@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/sv_cliente"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        app:iconifiedByDefault="false"
+        android:layout_margin="8dp"
+        app:queryHint="Nome"
+        app:layout_constraintEnd_toStartOf="@id/imgBtn_add_Service"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+    <include
+        layout="@layout/custom_loading_buttom"
+        android:id="@+id/button_import"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/sv_cliente"
+        app:layout_constraintBottom_toBottomOf="@id/sv_cliente"
+        android:text="Importar"
+        android:textSize="11sp"
+        />
+    <ImageButton
+        android:id="@+id/imgBtn_add_Service"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/sv_cliente"
+        app:layout_constraintEnd_toStartOf="@id/button_import"
+        app:layout_constraintTop_toTopOf="@+id/sv_cliente"
+        app:srcCompat="@drawable/ic_add" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_phone_contact_list"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        app:layoutManager="LinearLayoutManager"
+        android:layout_margin="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sv_cliente" />
+    <!--    <androidx.recyclerview.widget.RecyclerView-->
+    <!--        android:id="@+id/rv_phone_contact_list"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_margin="8dp"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/sv_cliente" />-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

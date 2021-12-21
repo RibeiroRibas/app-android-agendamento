@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".ui.activity.NewEventActivity">
+
+        <TextView
+            android:id="@+id/tv_date_of_event"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Data do Evento"
+            app:layout_constraintStart_toStartOf="@id/et_date_of_event"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/et_date_of_event"
+            android:layout_width="150dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/custom_default_input"
+            android:clickable="true"
+            android:focusable="false"
+            android:inputType="date"
+            android:longClickable="false"
+            android:padding="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_date_of_event" />
+
+        <TextView
+            android:id="@+id/tv_start_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Início ás:"
+            app:layout_constraintStart_toStartOf="@+id/et_event_start_time"
+            app:layout_constraintTop_toTopOf="@+id/tv_date_of_event" />
+
+        <EditText
+            android:id="@+id/et_event_start_time"
+            android:layout_width="75dp"
+            android:layout_height="48dp"
+            android:background="@drawable/custom_default_input"
+            android:clickable="true"
+            android:focusable="false"
+            android:inputType="number"
+            android:longClickable="false"
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/et_date_of_event"
+            app:layout_constraintEnd_toStartOf="@+id/tv_hrs" />
+
+        <TextView
+            android:id="@+id/tv_hrs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="hrs"
+            app:layout_constraintBottom_toBottomOf="@+id/et_date_of_event"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_client"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Cliente"
+            app:layout_constraintStart_toStartOf="@+id/et_date_of_event"
+            app:layout_constraintTop_toBottomOf="@+id/et_date_of_event" />
+
+
+        <EditText
+            android:id="@+id/et_find_client"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:background="@drawable/custom_default_input"
+            android:clickable="true"
+            android:focusable="false"
+            android:hint="Buscar"
+            android:longClickable="false"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="@id/tv_hrs"
+            app:layout_constraintStart_toStartOf="@+id/tv_client"
+            app:layout_constraintTop_toBottomOf="@+id/tv_client" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fcv_find_client"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="@+id/et_find_client"
+            app:layout_constraintStart_toStartOf="@+id/et_find_client"
+            app:layout_constraintTop_toBottomOf="@+id/et_find_client" />
+
+        <TextView
+            android:id="@+id/tv_service2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Serviço"
+            app:layout_constraintStart_toStartOf="@+id/et_find_client"
+            app:layout_constraintTop_toBottomOf="@+id/fcv_find_client" />
+
+        <EditText
+            android:id="@+id/et_find_service"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/custom_default_input"
+            android:clickable="true"
+            android:focusable="false"
+            android:hint="Buscar"
+            android:longClickable="false"
+            android:padding="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/et_duration_services"
+            app:layout_constraintStart_toStartOf="@+id/tv_client"
+            app:layout_constraintTop_toBottomOf="@+id/tv_service2" />
+
+
+        <TextView
+            android:id="@+id/tv_time_of_duration_services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Duração"
+            app:layout_constraintStart_toStartOf="@+id/et_duration_services"
+            app:layout_constraintTop_toTopOf="@+id/tv_service2" />
+
+        <EditText
+            android:id="@+id/et_duration_services"
+            android:layout_width="75dp"
+            android:layout_height="48dp"
+            android:background="@drawable/custom_default_input"
+            android:clickable="true"
+            android:focusable="false"
+            android:inputType="time"
+            android:longClickable="false"
+            android:padding="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/tv_hrs2"
+            app:layout_constraintTop_toBottomOf="@+id/tv_time_of_duration_services" />
+
+        <TextView
+            android:id="@+id/tv_hrs2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="hrs"
+            app:layout_constraintBottom_toBottomOf="@+id/et_find_service"
+            app:layout_constraintEnd_toEndOf="@+id/et_find_client" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fcv_find_service"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="@+id/et_duration_services"
+            app:layout_constraintStart_toStartOf="@+id/et_find_service"
+            app:layout_constraintTop_toBottomOf="@+id/et_find_service" />
+
+        <TextView
+            android:id="@+id/tv_valueService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Valor Total"
+            app:layout_constraintStart_toStartOf="@+id/et_find_client"
+            app:layout_constraintTop_toBottomOf="@+id/fcv_find_service" />
+
+        <EditText
+            android:id="@+id/et_value_service"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/custom_default_input"
+            android:clickable="true"
+            android:longClickable="false"
+            android:padding="8dp"
+            android:inputType="number"
+            app:layout_constraintEnd_toStartOf="@+id/checkBoxNaoRecebido"
+            app:layout_constraintStart_toStartOf="@+id/tv_client"
+            app:layout_constraintTop_toBottomOf="@+id/tv_valueService" />
+
+        <CheckBox
+            android:id="@+id/checkBoxRecebido"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RECEBIDO"
+            app:layout_constraintStart_toStartOf="@+id/checkBoxNaoRecebido"
+            app:layout_constraintTop_toBottomOf="@+id/fcv_find_service" />
+
+        <CheckBox
+            android:id="@+id/checkBoxNaoRecebido"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NÃO RECEBIDO"
+            app:layout_constraintEnd_toEndOf="@+id/tv_hrs2"
+            app:layout_constraintTop_toBottomOf="@+id/checkBoxRecebido" />
+
+        <Button
+            android:id="@+id/btn_save_event"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/purple"
+            android:text="Salvar"
+            app:layout_constraintStart_toStartOf="@+id/et_find_service"
+            app:layout_constraintTop_toBottomOf="@+id/et_value_service" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

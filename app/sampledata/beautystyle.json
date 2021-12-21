@@ -1,0 +1,32 @@
+{
+  "beautystyle": [
+    {
+      "Client": "Grace Hopper",
+      "Hour" : "7:00 - 8:00",
+      "Service": "Pintar a unha da mão \n \n Pintar a Unha do pé ",
+      "Price" : "R$30,00 \n \n R$30,00",
+      "Date": "29/10/2021"
+    },
+    {
+      "Client": "Ada Lovelace",
+      "Hour" : "8:00 - 9:30",
+      "Service": "Alongamento",
+      "Price" : "R$120,00",
+      "Date": "29/10/2021"
+    },
+    {
+      "Client": "Joana Dark",
+      "Hour" : "9:30 10:00",
+      "Service": "Pintar a unha da mão",
+      "Price" : "R$30,00",
+      "Date": "29/10/2021"
+    },
+    {
+      "Client": "Maria do relento",
+      "Hour" : "10:00 - 12:00",
+      "Service": "Manutenção",
+      "Price" : "R$150,00",
+      "Date": "29/10/2021"
+    }
+]
+}
