@@ -12,11 +12,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BeautyStyle"
-        android:name=".AgendaApplication">
+        android:name="br.com.beautystyle.AgendaApplication">
         <activity
-            android:name=".ui.activity.NewEventActivity" />
+            android:name="br.com.beautystyle.ui.activity.NewEventActivity" />
         <activity
-            android:name=".ui.activity.NavigationActivity"
+            android:name="br.com.beautystyle.ui.activity.NavigationActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

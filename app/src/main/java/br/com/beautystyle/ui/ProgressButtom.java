@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui;
+package br.com.beautystyle.ui;
 
 import android.view.View;
 import android.widget.TextView;

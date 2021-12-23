@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.fragment;
+package br.com.beautystyle.ui.fragment;
 
 import android.app.TimePickerDialog;
 import android.os.Bundle;
@@ -14,11 +14,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import com.example.beautystyle.model.Services;
-import com.example.beautystyle.util.TimeUtil;
+import br.com.beautystyle.model.Services;
+import br.com.beautystyle.util.TimeUtil;
 import com.example.beautystyle.R;
-import com.example.beautystyle.ui.ListServiceView;
-import com.example.beautystyle.util.CoinUtil;
+import br.com.beautystyle.ui.ListServiceView;
+import br.com.beautystyle.util.CoinUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;

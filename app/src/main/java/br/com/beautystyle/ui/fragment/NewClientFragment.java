@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.fragment;
+package br.com.beautystyle.ui.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,9 +13,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import com.example.beautystyle.model.Client;
+import br.com.beautystyle.model.Client;
 import com.example.beautystyle.R;
-import com.example.beautystyle.ui.ListClientView;
+import br.com.beautystyle.ui.ListClientView;
 
 public class NewClientFragment extends DialogFragment {
 

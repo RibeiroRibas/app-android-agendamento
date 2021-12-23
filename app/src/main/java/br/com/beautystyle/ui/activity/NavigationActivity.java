@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.activity;
+package br.com.beautystyle.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,7 +6,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.beautystyle.R;
-import com.example.beautystyle.ui.fragment.ListEventFragment;
+import br.com.beautystyle.ui.fragment.ListEventFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 

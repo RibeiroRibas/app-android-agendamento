@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.beautystyle.util.CalendarUtil;
+import br.com.beautystyle.util.CalendarUtil;
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;

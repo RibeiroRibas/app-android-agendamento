@@ -1,10 +1,10 @@
-package com.example.beautystyle.util;
+package br.com.beautystyle.util;
 
 import android.text.Editable;
 import android.text.TextWatcher;
 
-import com.example.beautystyle.ui.activity.NewEventActivity;
-import com.example.beautystyle.ui.fragment.NewServiceFragment;
+import br.com.beautystyle.ui.activity.NewEventActivity;
+import br.com.beautystyle.ui.fragment.NewServiceFragment;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;

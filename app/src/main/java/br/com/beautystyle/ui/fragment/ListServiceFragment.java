@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.fragment;
+package br.com.beautystyle.ui.fragment;
 
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -16,8 +16,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 
-import com.example.beautystyle.model.Services;
-import com.example.beautystyle.ui.ListServiceView;
+import br.com.beautystyle.model.Services;
+import br.com.beautystyle.ui.ListServiceView;
 import com.example.beautystyle.R;
 
 public class ListServiceFragment extends Fragment {

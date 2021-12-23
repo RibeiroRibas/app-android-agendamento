@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,7 +9,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import com.example.beautystyle.model.Services;
+import br.com.beautystyle.model.Services;
 import com.example.beautystyle.R;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
-package com.example.beautystyle.ui.fragment;
+package br.com.beautystyle.ui.fragment;
 
-import static com.example.beautystyle.ui.fragment.ConstantFragment.KEY_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EVENT;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,12 +19,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.beautystyle.model.Event;
-import com.example.beautystyle.ui.activity.NewEventActivity;
-import com.example.beautystyle.ui.adapter.ListDaysAdaper;
-import com.example.beautystyle.util.CalendarUtil;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.ui.activity.NewEventActivity;
+import br.com.beautystyle.ui.adapter.ListDaysAdaper;
+import br.com.beautystyle.util.CalendarUtil;
 import com.example.beautystyle.R;
-import com.example.beautystyle.ui.ListEventView;
+import br.com.beautystyle.ui.ListEventView;
 
 import java.time.LocalDate;
 

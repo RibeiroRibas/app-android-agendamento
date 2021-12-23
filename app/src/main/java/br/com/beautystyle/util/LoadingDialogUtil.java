@@ -1,4 +1,4 @@
-package br.com.beautystyle.ui;
+package br.com.beautystyle.util;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -7,12 +7,12 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.example.beautystyle.R;
 
-public class LoadingDialog{
+public class LoadingDialogUtil {
 
     private Activity activity;
     private AlertDialog dialog;
 
-    public LoadingDialog(Activity activity) {
+    public LoadingDialogUtil(Activity activity) {
         this.activity = activity;
     }
 

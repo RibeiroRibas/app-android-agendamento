@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context=".ui.activity.NavigationActivity">
+    tools:context="com.example.beautystyle.com.com.beautystyle.ui.activity.NavigationActivity">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/frame_container"

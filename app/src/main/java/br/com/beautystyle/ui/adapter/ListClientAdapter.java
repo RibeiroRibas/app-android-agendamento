@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter;
 
 import android.content.Context;
 import android.view.ContextMenu;
@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.beautystyle.model.Client;
+import br.com.beautystyle.model.Client;
 import com.example.beautystyle.R;
 
 import java.util.ArrayList;

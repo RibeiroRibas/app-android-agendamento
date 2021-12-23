@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.fragment;
+package br.com.beautystyle.ui.fragment;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;

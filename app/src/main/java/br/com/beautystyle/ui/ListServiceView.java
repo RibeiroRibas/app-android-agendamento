@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui;
+package br.com.beautystyle.ui;
 
 import android.content.Context;
 import android.view.MenuItem;
@@ -10,10 +10,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.FragmentActivity;
 
-import com.example.beautystyle.dao.ServiceDao;
-import com.example.beautystyle.model.Services;
-import com.example.beautystyle.ui.fragment.NewServiceFragment;
-import com.example.beautystyle.ui.adapter.ListServiceAdapter;
+import br.com.beautystyle.dao.ServiceDao;
+import br.com.beautystyle.model.Services;
+import br.com.beautystyle.ui.fragment.NewServiceFragment;
+import br.com.beautystyle.ui.adapter.ListServiceAdapter;
 
 public class ListServiceView {
     private final ListServiceAdapter adapter;

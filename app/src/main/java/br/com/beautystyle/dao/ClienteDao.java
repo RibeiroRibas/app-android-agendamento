@@ -1,6 +1,6 @@
-package com.example.beautystyle.dao;
+package br.com.beautystyle.dao;
 
-import com.example.beautystyle.model.Client;
+import br.com.beautystyle.model.Client;
 
 import java.util.ArrayList;
 import java.util.List;

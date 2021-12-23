@@ -1,13 +1,13 @@
-package com.example.beautystyle;
+package br.com.beautystyle;
 
 import android.app.Application;
 
-import com.example.beautystyle.dao.ClienteDao;
-import com.example.beautystyle.dao.EventDao;
-import com.example.beautystyle.dao.ServiceDao;
-import com.example.beautystyle.model.Client;
-import com.example.beautystyle.model.Event;
-import com.example.beautystyle.model.Services;
+import br.com.beautystyle.dao.ClienteDao;
+import br.com.beautystyle.dao.EventDao;
+import br.com.beautystyle.dao.ServiceDao;
+import br.com.beautystyle.model.Client;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

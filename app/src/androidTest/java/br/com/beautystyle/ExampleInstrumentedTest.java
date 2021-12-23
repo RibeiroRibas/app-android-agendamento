@@ -1,4 +1,4 @@
-package br.example.beautystyle;
+package br.com.beautystyle;
 
 import android.content.Context;
 

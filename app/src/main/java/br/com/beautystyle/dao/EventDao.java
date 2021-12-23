@@ -1,6 +1,6 @@
-package com.example.beautystyle.dao;
+package br.com.beautystyle.dao;
 
-import com.example.beautystyle.model.Event;
+import br.com.beautystyle.model.Event;
 
 import java.time.LocalTime;
 import java.util.ArrayList;

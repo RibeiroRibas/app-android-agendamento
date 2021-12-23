@@ -1,4 +1,4 @@
-package com.example.beautystyle.model;
+package br.com.beautystyle.model;
 
 import java.io.Serializable;
 

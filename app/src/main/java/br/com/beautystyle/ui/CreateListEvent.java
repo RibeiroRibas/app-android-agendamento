@@ -1,9 +1,9 @@
-package com.example.beautystyle.ui;
+package br.com.beautystyle.ui;
 
 import androidx.annotation.NonNull;
 
-import com.example.beautystyle.dao.EventDao;
-import com.example.beautystyle.model.Event;
+import br.com.beautystyle.dao.EventDao;
+import br.com.beautystyle.model.Event;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

@@ -1,4 +1,4 @@
-package com.example.beautystyle;
+package br.com.beautystyle;
 
 import org.junit.Test;
 

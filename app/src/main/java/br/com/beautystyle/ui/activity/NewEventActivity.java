@@ -1,6 +1,6 @@
-package com.example.beautystyle.ui.activity;
+package br.com.beautystyle.ui.activity;
 
-import static com.example.beautystyle.ui.fragment.ConstantFragment.KEY_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EVENT;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -17,18 +17,18 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 
-import com.example.beautystyle.dao.EventDao;
-import com.example.beautystyle.model.Client;
-import com.example.beautystyle.model.Event;
-import com.example.beautystyle.model.Services;
-import com.example.beautystyle.ui.fragment.ListClientFragment;
-import com.example.beautystyle.ui.fragment.TimePickerFragment;
-import com.example.beautystyle.util.CalendarUtil;
-import com.example.beautystyle.util.TimeUtil;
+import br.com.beautystyle.dao.EventDao;
+import br.com.beautystyle.model.Client;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
+import br.com.beautystyle.ui.fragment.ListClientFragment;
+import br.com.beautystyle.ui.fragment.TimePickerFragment;
+import br.com.beautystyle.util.CalendarUtil;
+import br.com.beautystyle.util.TimeUtil;
 import com.example.beautystyle.R;
-import com.example.beautystyle.ui.adapter.ListClientAdapter;
-import com.example.beautystyle.ui.fragment.ListServiceFragment;
-import com.example.beautystyle.util.CoinUtil;
+import br.com.beautystyle.ui.adapter.ListClientAdapter;
+import br.com.beautystyle.ui.fragment.ListServiceFragment;
+import br.com.beautystyle.util.CoinUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

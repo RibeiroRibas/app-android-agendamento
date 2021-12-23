@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui;
+package br.com.beautystyle.ui;
 
 import android.content.Context;
 import android.view.MenuItem;
@@ -8,10 +8,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
-import com.example.beautystyle.dao.EventDao;
-import com.example.beautystyle.model.Event;
-import com.example.beautystyle.util.CalendarUtil;
-import com.example.beautystyle.ui.adapter.ListEventAdapter;
+import br.com.beautystyle.dao.EventDao;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.util.CalendarUtil;
+import br.com.beautystyle.ui.adapter.ListEventAdapter;
 
 public class ListEventView {
     private final ListEventAdapter adapter;

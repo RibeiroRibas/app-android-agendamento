@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui;
+package br.com.beautystyle.ui;
 
 import android.content.Context;
 import android.view.MenuItem;
@@ -9,10 +9,10 @@ import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.beautystyle.dao.ClienteDao;
-import com.example.beautystyle.model.Client;
-import com.example.beautystyle.ui.adapter.ListClientAdapter;
-import com.example.beautystyle.ui.fragment.NewClientFragment;
+import br.com.beautystyle.dao.ClienteDao;
+import br.com.beautystyle.model.Client;
+import br.com.beautystyle.ui.adapter.ListClientAdapter;
+import br.com.beautystyle.ui.fragment.NewClientFragment;
 
 import java.util.List;
 

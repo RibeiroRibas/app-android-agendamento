@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.fragment;
+package br.com.beautystyle.ui.fragment;
 
 import static android.content.ContentValues.TAG;
 
@@ -28,12 +28,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.beautystyle.ui.LoadingDialog;
+import br.com.beautystyle.util.LoadingDialogUtil;
 import com.example.beautystyle.R;
-import com.example.beautystyle.model.Client;
-import com.example.beautystyle.ui.ListClientView;
-import com.example.beautystyle.ui.ProgressButtom;
-import com.example.beautystyle.ui.adapter.ListClientAdapter;
+import br.com.beautystyle.model.Client;
+import br.com.beautystyle.ui.ListClientView;
+import br.com.beautystyle.ui.ProgressButtom;
+import br.com.beautystyle.ui.adapter.ListClientAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class ListClientFragment extends Fragment implements ListClientAdapter.On
     private View inflateView;
     private ListClientView listClientView;
     private View importContactList;
-    private LoadingDialog loadingDialog;
+    private LoadingDialogUtil loadingDialog;
     private final ActivityResultLauncher<String> requestPermissionLauncher = getPermission();
     List<Client> contactList = new ArrayList<>();
 

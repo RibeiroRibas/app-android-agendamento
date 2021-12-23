@@ -1,4 +1,4 @@
-package com.example.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -12,10 +12,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 
-import com.example.beautystyle.model.Event;
-import com.example.beautystyle.model.Services;
-import com.example.beautystyle.ui.CreateListEvent;
-import com.example.beautystyle.util.TimeUtil;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
+import br.com.beautystyle.ui.CreateListEvent;
+import br.com.beautystyle.util.TimeUtil;
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;

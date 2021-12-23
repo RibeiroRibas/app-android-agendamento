@@ -1,4 +1,4 @@
-package com.example.beautystyle.util;
+package br.com.beautystyle.util;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
