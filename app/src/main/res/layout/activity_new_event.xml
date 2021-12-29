@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Data do Evento"
+            android:text="Data do Agendamento"
             app:layout_constraintStart_toStartOf="@id/et_date_of_event"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -107,7 +107,8 @@
         <EditText
             android:id="@+id/et_find_service"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:layout_marginEnd="16dp"
             android:background="@drawable/custom_default_input"
             android:clickable="true"

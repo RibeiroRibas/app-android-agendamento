@@ -3,4 +3,13 @@
     <style name="Theme.BeautyStyle" parent="Theme.MaterialComponents.Light.NoActionBar">
 
     </style>
+
+    <style name="Theme.BeautyStyle.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.BeautyStyle.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.BeautyStyle.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

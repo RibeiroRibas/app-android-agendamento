@@ -47,7 +47,7 @@ public class ListEventFragment extends Fragment implements ListDaysAdaper.OnDayL
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        inflateView = inflater.inflate(R.layout.fragment_event, container, false);
+        inflateView = inflater.inflate(R.layout.fragment_list_event, container, false);
 
         CalendarUtil.selectedDate = LocalDate.now();
 

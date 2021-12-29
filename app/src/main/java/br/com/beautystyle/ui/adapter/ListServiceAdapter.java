@@ -48,7 +48,7 @@ public class ListServiceAdapter extends BaseAdapter implements Filterable {
     }
 
     private View getInflate(ViewGroup parent) {
-        return LayoutInflater.from(context).inflate(R.layout.item_list_service, parent, false);
+        return LayoutInflater.from(context).inflate(R.layout.item_list_service_client, parent, false);
     }
 
     private void setServiceName(View createdView, int position) {

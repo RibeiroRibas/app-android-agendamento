@@ -5,16 +5,17 @@
         android:title="Inicio"
         android:icon="@drawable/ic_home"/>
 
-    <item android:id="@+id/et_find_client"
-        android:title="Cliente"
-        android:icon="@drawable/ic_person"/>
-
-    <item android:id="@+id/place_holder"
-        android:title=""/>
-
     <item android:id="@+id/add_delete"
         android:title="Finanças"
         android:icon="@drawable/ic_money"/>
+
+    <item
+        android:id="@+id/place_holder"
+        android:title="" />
+
+    <item android:id="@+id/et_find_client"
+        android:title="Cliente"
+        android:icon="@drawable/ic_person"/>
 
     <item android:id="@+id/add_search"
         android:title="Buscar"

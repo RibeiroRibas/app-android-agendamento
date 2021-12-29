@@ -17,13 +17,17 @@ import br.com.beautystyle.ui.fragment.NewClientFragment;
 import java.util.List;
 
 public class ListClientView {
-    private final ListClientAdapter adapter;
-    private final ClienteDao dao;
-    private final Context context;
+    private  ListClientAdapter adapter;
+    private ClienteDao dao;
+    private Context context;
 
     public ListClientView(Context context, ListClientAdapter.OnClientListener onNewEventClientListener, ListClientAdapter.OnClientListener onListClientFragmentListener) {
         this.context = context;
         this.adapter = new ListClientAdapter(context,onNewEventClientListener,onListClientFragmentListener);
+        this.dao = new ClienteDao();
+    }
+
+    public ListClientView() {
         this.dao = new ClienteDao();
     }
 
@@ -97,5 +101,25 @@ public class ListClientView {
     public void saveAllImportedClients(List<Client> contactList) {
         dao.saveAllImportedClients(contactList);
         adapter.publishResultsImportedClients(contactList);
+    }
+
+    public void showContactList(List<Client> contactList) {
+        if(contactList.size()>0){
+            new AlertDialog
+                    .Builder(context)
+                    .setMessage("Foram encontrados "+contactList.size()+" contatos no seu smartphone! Deseja importar todos para sua Agenda?")
+                    .setPositiveButton("Sim",((dialog, which) -> {
+                        saveAllImportedClients(contactList);
+                    }))
+                    .setNegativeButton("Não", null)
+                    .show();
+        }else{
+            new AlertDialog
+                    .Builder(context)
+                    .setTitle("Nenhum contato novo encontrato")
+                    .setMessage("Você já adicionou todos os contatos do seu smartphone para sua agenda.")
+                    .setPositiveButton("Ok",null)
+                    .show();
+        }
     }
 }

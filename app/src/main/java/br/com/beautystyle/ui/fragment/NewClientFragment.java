@@ -36,7 +36,7 @@ public class NewClientFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        return inflater.inflate(R.layout.dialog_new_client, container, false);
+        return inflater.inflate(R.layout.fragment_new_client, container, false);
     }
 
     @Override

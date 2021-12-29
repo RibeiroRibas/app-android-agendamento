@@ -39,7 +39,7 @@ public class ListServiceFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View viewInflate = inflater.inflate(R.layout.fragment_service, container, false);
+        View viewInflate = inflater.inflate(R.layout.fragment_list_service, container, false);
 
         setServiceAdapter(viewInflate);
         listServiceOnClickListener();

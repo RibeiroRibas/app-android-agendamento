@@ -36,7 +36,7 @@ public class ListClientAdapter extends RecyclerView.Adapter<ListClientAdapter.Li
     @NonNull
     @Override
     public ListClientHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View createdView = LayoutInflater.from(context).inflate(R.layout.item_list_service, parent, false);
+        View createdView = LayoutInflater.from(context).inflate(R.layout.item_list_service_client, parent, false);
         return new ListClientHolder(createdView, onNewEventClientListener, listCliente, onListClientFragmentListener);
     }
 
@@ -171,7 +171,6 @@ public class ListClientAdapter extends RecyclerView.Adapter<ListClientAdapter.Li
 
     public interface OnClientListener {
         void onClientClickNewEvent(Client client);
-
         void onClientClickRemoveFragment();
     }
 }
