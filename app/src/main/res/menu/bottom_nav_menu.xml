@@ -5,7 +5,7 @@
         android:title="Inicio"
         android:icon="@drawable/ic_home"/>
 
-    <item android:id="@+id/add_delete"
+    <item android:id="@+id/financas"
         android:title="Finanças"
         android:icon="@drawable/ic_money"/>
 

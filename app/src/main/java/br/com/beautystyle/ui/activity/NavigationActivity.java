@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.beautystyle.R;
 import br.com.beautystyle.ui.fragment.ListEventFragment;
+import br.com.beautystyle.ui.fragment.RelatorioFragment;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -46,6 +48,11 @@ public class NavigationActivity extends AppCompatActivity {
                         .replace(R.id.frame_container, new ListEventFragment())
                         .commit();
                 return true;
+            }else if(item.getItemId() == R.id.financas){
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.frame_container, new RelatorioFragment())
+                        .commit();
             }
             return false;
         });

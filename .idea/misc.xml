@@ -43,7 +43,8 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_main_schedule.xml" value="0.2248995983935743" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_navigation.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_new_event.xml" value="0.22" />
-        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_relatorios.xml" value="0.1" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_relatorios.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/content_relatorios.xml" value="0.14635416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/custom_loading_buttom.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/custom_loading_dialog.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/dialog_calendar.xml" value="0.11041666666666666" />
@@ -58,6 +59,8 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_client.xml" value="0.14270833333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation_fragmente.xml" value="0.1265625" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_relatorio.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_second.xml" value="0.14635416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_service.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_client_list.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_days_week.xml" value="0.33" />
