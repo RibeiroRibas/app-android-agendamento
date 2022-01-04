@@ -19,6 +19,9 @@ Colocar em prática meus estudos da linguagem java junto com o android framework
 
 ![main](https://user-images.githubusercontent.com/96504657/147508350-41d6c2cf-1973-433b-94aa-00b3739a2938.png)
 
+![beautyStyle](https://user-images.githubusercontent.com/96504657/148139354-02745c53-666f-41e0-994c-2ff92239e727.png)
+
+
 ## 📁 Acesso ao projeto
 
 Você pode baixar o apk e instalar no seu emulador ou no próprio smartphone, é apenas para fins de estudo, até porque o mesmo ainda não tem um DB implementado. Ou baixe o arquivo .zip e abra no android studio.
