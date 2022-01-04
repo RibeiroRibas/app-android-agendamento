@@ -16,11 +16,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Data do Agendamento"
-            app:layout_constraintStart_toStartOf="@id/et_date_of_event"
+            app:layout_constraintStart_toStartOf="@id/et_fragment_report_period_start_date"
             app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
-            android:id="@+id/et_date_of_event"
+            android:id="@+id/et_fragment_report_period_start_date"
             android:layout_width="150dp"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
@@ -51,7 +51,7 @@
             android:inputType="number"
             android:longClickable="false"
             android:padding="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/et_date_of_event"
+            app:layout_constraintBottom_toBottomOf="@+id/et_fragment_report_period_start_date"
             app:layout_constraintEnd_toStartOf="@+id/tv_hrs" />
 
         <TextView
@@ -60,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:text="hrs"
-            app:layout_constraintBottom_toBottomOf="@+id/et_date_of_event"
+            app:layout_constraintBottom_toBottomOf="@+id/et_fragment_report_period_start_date"
             app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
@@ -69,8 +69,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Cliente"
-            app:layout_constraintStart_toStartOf="@+id/et_date_of_event"
-            app:layout_constraintTop_toBottomOf="@+id/et_date_of_event" />
+            app:layout_constraintStart_toStartOf="@+id/et_fragment_report_period_start_date"
+            app:layout_constraintTop_toBottomOf="@+id/et_fragment_report_period_start_date" />
 
 
         <EditText

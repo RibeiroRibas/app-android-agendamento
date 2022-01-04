@@ -102,7 +102,7 @@ public class ListEventAdapter extends BaseAdapter {
     }
 
     private void setStartAndEndTime(int position, @NonNull View viewCriada) {
-        TextView timeOfEvent = viewCriada.findViewById(R.id.item_schedule_hour);
+        TextView timeOfEvent = viewCriada.findViewById(R.id.fragment_report_gain);
         String endTime = TimeUtil.formatLocalTime(listEvent.get(position).getEndTime());
         String startTime = TimeUtil.formatLocalTime(listEvent.get(position).getStarTime());
         concatenate = startTime + " - " + endTime;

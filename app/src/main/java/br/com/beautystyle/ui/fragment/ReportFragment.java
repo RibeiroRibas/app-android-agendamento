@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 
@@ -22,17 +21,23 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 
-public class RelatorioFragment extends Fragment {
+import br.com.beautystyle.ui.PieChartData;
+import br.com.beautystyle.ui.ReportInterface;
+
+public class ReportFragment extends Fragment implements ReportInterface {
 
     private PieChart pieChart;
 
-    private String[] typeOfReport = {"Mensal", "Diário", "Por Período", "Anual"};
+    private String[] typeOfReport = {"Mensal", "Diário", "Por período", "Anual"};
     private AutoCompleteTextView autoCompleteTextView;
     private ArrayAdapter<String> adapteritens;
 
-    public RelatorioFragment() {
+    public ReportFragment() {
+
     }
 
     @Override
@@ -44,13 +49,39 @@ public class RelatorioFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View inflateView = inflater.inflate(R.layout.fragment_relatorio, container, false);
+        View inflateView = inflater.inflate(R.layout.fragment_report, container, false);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragment_report_container, new MonthReportFragment(this))
+                .commit();
+
         pieChart = inflateView.findViewById(R.id.activity_relatorios_piechart);
-        adapteritens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1,typeOfReport);
+        adapteritens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, typeOfReport);
         autoCompleteTextView = inflateView.findViewById(R.id.auto_complete_tv);
         autoCompleteTextView.setAdapter(adapteritens);
         autoCompleteTextView.setOnItemClickListener((parent, view, position, id) -> {
-
+            if (position == 0) {//mensal
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_report_container, new MonthReportFragment(this))
+                        .commit();
+            } else if (position == 1) {//diário
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_report_container, new DailyReportFragment())
+                        .commit();
+            } else if (position == 2) {//semanal
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_report_container, new WeekReportFragment())
+                        .commit();
+            } else {//anual
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_report_container, new YearReportFragment())
+                        .commit();
+            }
         });
         setupPieChart();
         loadPieChartData();
@@ -76,11 +107,48 @@ public class RelatorioFragment extends Fragment {
 
     private void loadPieChartData() {
         ArrayList<PieEntry> entries = new ArrayList<>();
-        entries.add(new PieEntry(0.2f, "Food & Dining"));
+        BigDecimal valor = new BigDecimal("0.2");
+        entries.add(new PieEntry(valor.floatValue(), "Food & Dining"));
         entries.add(new PieEntry(0.15f, "Medical"));
         entries.add(new PieEntry(0.10f, "Entertainment"));
         entries.add(new PieEntry(0.25f, "Electricity and Gas"));
         entries.add(new PieEntry(0.3f, "Housing"));
+
+        ArrayList<Integer> colors = new ArrayList<>();
+        for (int color : ColorTemplate.MATERIAL_COLORS) {
+            colors.add(color);
+        }
+
+        for (int color : ColorTemplate.VORDIPLOM_COLORS) {
+            colors.add(color);
+        }
+
+        PieDataSet dataSet = new PieDataSet(entries, "Expense Category");
+        dataSet.setColors(colors);
+
+        PieData data = new PieData(dataSet);
+        data.setDrawValues(true);
+        data.setValueFormatter(new PercentFormatter(pieChart));
+        data.setValueTextSize(12f);
+        data.setValueTextColor(Color.BLACK);
+
+        pieChart.setData(data);
+        pieChart.invalidate();
+
+        pieChart.animateY(1400, Easing.EaseInOutQuad);
+    }
+
+    @Override
+    public void publishReportData(BigDecimal gain, BigDecimal spending) {
+
+    }
+
+    @Override
+    public void loadPieChartData(List<PieChartData> chartData) {
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        for (PieChartData d : chartData) {
+            entries.add(new PieEntry(d.getValue(), d.getDescription()));
+        }
 
         ArrayList<Integer> colors = new ArrayList<>();
         for (int color : ColorTemplate.MATERIAL_COLORS) {

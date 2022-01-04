@@ -1,0 +1,38 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="br.com.beautystyle.ui.fragment.DailyReportFragment">
+
+    <EditText
+        android:id="@+id/et_fragment_report_period_start_date"
+        android:layout_width="150dp"
+        android:layout_height="48dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/custom_default_input"
+        android:clickable="true"
+        android:focusable="false"
+        android:hint="Data Inicial"
+        android:inputType="date"
+        android:longClickable="false"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/et_fragment_report_pediod_final_date"
+        android:layout_width="150dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/custom_default_input"
+        android:clickable="true"
+        android:focusable="false"
+        android:hint="Data Final"
+        android:inputType="date"
+        android:longClickable="false"
+        android:padding="8dp"
+        app:layout_constraintStart_toEndOf="@id/et_fragment_report_period_start_date"
+        app:layout_constraintTop_toTopOf="@id/et_fragment_report_period_start_date" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

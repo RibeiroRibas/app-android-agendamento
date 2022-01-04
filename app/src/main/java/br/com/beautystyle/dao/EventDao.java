@@ -1,5 +1,10 @@
 package br.com.beautystyle.dao;
 
+import static android.content.ContentValues.TAG;
+
+import android.util.Log;
+import android.widget.Toast;
+
 import br.com.beautystyle.model.Event;
 
 import java.time.LocalTime;
@@ -72,5 +77,14 @@ public class EventDao {
         if (findedEvent != null) {
             listEvents.remove(findedEvent);
         }
+    }
+
+    public List<Event> findEventByMonth(int position){
+        List<Event> eventsByMonth = new ArrayList<>();
+        for (Event event: listEvents) {
+            if(event.getEventDate().getMonthValue()==position)
+                eventsByMonth.add(event);
+        }
+        return eventsByMonth;
     }
 }

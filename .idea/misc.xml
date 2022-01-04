@@ -60,6 +60,11 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation_fragmente.xml" value="0.1265625" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_relatorio.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_report.xml" value="0.17892156862745098" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_report_daily.xml" value="0.25" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_report_month.xml" value="0.18" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_report_week.xml" value="0.22" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_report_year.xml" value="0.17892156862745098" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_second.xml" value="0.14635416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_service.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_client_list.xml" value="0.1" />

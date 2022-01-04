@@ -71,7 +71,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
     }
 
     private void initWidgets() {
-        eventDate = findViewById(R.id.et_date_of_event);
+        eventDate = findViewById(R.id.et_fragment_report_period_start_date);
         searchService = findViewById(R.id.et_find_service);
         searchClient = findViewById(R.id.et_find_client);
         valueOfTheServices = findViewById(R.id.et_value_service);
