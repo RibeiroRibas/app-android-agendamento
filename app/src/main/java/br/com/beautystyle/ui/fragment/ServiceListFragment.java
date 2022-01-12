@@ -1,6 +1,7 @@
 package br.com.beautystyle.ui.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -18,15 +19,16 @@ import androidx.fragment.app.Fragment;
 
 import br.com.beautystyle.model.Services;
 import br.com.beautystyle.ui.ListServiceView;
+
 import com.example.beautystyle.R;
 
-public class ListServiceFragment extends Fragment {
+public class ServiceListFragment extends Fragment {
 
-    private final ListServiceFragment.OnServiceListener onNewEventServiceListener;
+    private final ServiceListFragment.OnServiceListener onNewEventServiceListener;
     private ListServiceView listServiceView;
     private ListView listService;
 
-    public ListServiceFragment(ListServiceFragment.OnServiceListener onNewEventServiceListener) {
+    public ServiceListFragment(ServiceListFragment.OnServiceListener onNewEventServiceListener) {
         this.onNewEventServiceListener = onNewEventServiceListener;
     }
 
@@ -51,14 +53,13 @@ public class ListServiceFragment extends Fragment {
     }
 
     private void listServiceOnClickListener() {
+        listService.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         listService.setOnItemClickListener((adapter, view, position, id) -> {
             Services service = (Services) adapter.getItemAtPosition(position);
-            if (listService.isSelected()) {
-                listService.setSelected(false);
+            if (!listService.isItemChecked(position)) {
                 onNewEventServiceListener.onServiceClickRemoveItemList(service);
                 view.setBackgroundResource(R.drawable.custom_shape_list_default);
             } else {
-                listService.setSelected(true);
                 onNewEventServiceListener.onServiceClickAddItemList(service);
                 view.setBackgroundResource(R.drawable.custom_shape_list_clicked);
             }
@@ -80,9 +81,9 @@ public class ListServiceFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-        if (R.id.activity_list_service_and_client_menu_edit == item.getItemId()){
-            listServiceView.edit(item,requireActivity());
-        }else if(R.id.activity_list_service_and_client_menu_remove == item.getItemId()){
+        if (R.id.activity_list_service_and_client_menu_edit == item.getItemId()) {
+            listServiceView.edit(item, requireActivity());
+        } else if (R.id.activity_list_service_and_client_menu_remove == item.getItemId()) {
             listServiceView.checkRemove(item);
         }
         return super.onContextItemSelected(item);
@@ -117,7 +118,9 @@ public class ListServiceFragment extends Fragment {
 
     public interface OnServiceListener {
         void onServiceClickAddItemList(Services service);
+
         void onServiceClickRemoveItemList(Services service);
+
         void onServiceClickFillForm();
     }
 }

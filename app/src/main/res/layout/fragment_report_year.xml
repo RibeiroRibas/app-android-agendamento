@@ -5,19 +5,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="br.com.beautystyle.ui.fragment.DailyReportFragment">
 
-    <EditText
-        android:id="@+id/et_fragment_year_date"
-        android:layout_width="150dp"
-        android:layout_height="48dp"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/fragment_report_year_Selected"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:background="@drawable/custom_default_input"
-        android:clickable="true"
-        android:focusable="false"
-        android:hint="Ano"
-        android:inputType="date"
-        android:longClickable="false"
-        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
+    <AutoCompleteTextView
+        android:id="@+id/fragment_report_month_auto_complete"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:hint="Selecione o Ano"
+        android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,40 +1,31 @@
 package br.com.beautystyle.ui.fragment;
 
-import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 
-import com.example.beautystyle.R;
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.utils.ColorTemplate;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
+import com.example.beautystyle.R;
+import com.github.mikephil.charting.charts.PieChart;
+
+import java.time.LocalDate;
 import java.util.List;
 
-import br.com.beautystyle.ui.PieChartData;
-import br.com.beautystyle.ui.ReportInterface;
+import br.com.beautystyle.dao.EventDao;
+import br.com.beautystyle.dao.ExpenseDao;
+import br.com.beautystyle.ui.adapter.recyclerview.ReportListAdapter;
+import br.com.beautystyle.util.CreateListsUtil;
 
-public class ReportFragment extends Fragment implements ReportInterface {
+public class ReportFragment extends Fragment {
 
-    private PieChart pieChart;
-
-    private String[] typeOfReport = {"Mensal", "Diário", "Por período", "Anual"};
-    private AutoCompleteTextView autoCompleteTextView;
-    private ArrayAdapter<String> adapteritens;
+    private AutoCompleteTextView typeOfReport;
+    private EventDao eventDao = new EventDao();
+    private ExpenseDao expenseDao = new ExpenseDao();
 
     public ReportFragment() {
 
@@ -49,128 +40,84 @@ public class ReportFragment extends Fragment implements ReportInterface {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View inflateView = inflater.inflate(R.layout.fragment_report, container, false);
+        View inflatedView = inflater.inflate(R.layout.fragment_report, container, false);
 
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.fragment_report_container, new MonthReportFragment(this))
-                .commit();
+        beginMonthlyReportFragment();
+        setAdapterTypeOfReport(inflatedView);
+        setTypeOfReportListener();
+        setAdapterReport(inflatedView);
 
-        pieChart = inflateView.findViewById(R.id.activity_relatorios_piechart);
-        adapteritens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, typeOfReport);
-        autoCompleteTextView = inflateView.findViewById(R.id.auto_complete_tv);
-        autoCompleteTextView.setAdapter(adapteritens);
-        autoCompleteTextView.setOnItemClickListener((parent, view, position, id) -> {
-            if (position == 0) {//mensal
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_report_container, new MonthReportFragment(this))
-                        .commit();
-            } else if (position == 1) {//diário
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_report_container, new DailyReportFragment())
-                        .commit();
-            } else if (position == 2) {//semanal
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_report_container, new WeekReportFragment())
-                        .commit();
-            } else {//anual
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_report_container, new YearReportFragment())
-                        .commit();
+        return inflatedView;
+    }
+
+    private void setAdapterReport(View inflatedView) {
+        RecyclerView reportList = inflatedView.findViewById(R.id.fragment_report_rv);
+        List<Object> createdReportList = CreateListsUtil.createMonthlyReportList(LocalDate.now(), expenseDao.listAll(), eventDao.listAll());
+        ReportListAdapter adapter = new ReportListAdapter(createdReportList, requireActivity());
+        reportList.setAdapter(adapter);
+        adapter.publishResultsFilteredList(createdReportList);
+    }
+
+    private void setTypeOfReportListener() {
+        typeOfReport.setText(typeOfReport.getAdapter().getItem(0).toString(), false);
+        typeOfReport.setOnItemClickListener((parent, view, position, id) -> {
+            switch (position) {
+                case 0://monthly
+                    replaceMonthlyReportFragment();
+                    break;
+                case 1://daily
+                    replaceDailyReportFragment();
+                    break;
+                case 2://weekly
+                    replaceWeeklyReportFragment();
+                    break;
+                case 3://annual
+                    replaceAnnualReportFragment();
+                    break;
             }
         });
-        setupPieChart();
-        loadPieChartData();
-        return inflateView;
     }
 
-    private void setupPieChart() {
-        pieChart.setDrawHoleEnabled(false);
-        pieChart.setUsePercentValues(true);
-        pieChart.setEntryLabelTextSize(12);
-        pieChart.setEntryLabelColor(Color.BLACK);
-//        pieChart.setCenterText("Spending by Category");
-//        pieChart.setCenterTextSize(24);
-        pieChart.getDescription().setEnabled(false);
-
-        Legend l = pieChart.getLegend();
-//        l.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
-//        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
-//        l.setOrientation(Legend.LegendOrientation.VERTICAL);
-//        l.setDrawInside(true);
-        l.setEnabled(false);
+    private void beginMonthlyReportFragment() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragment_report_container, new MonthlyReportFragment())
+                .commit();
     }
 
-    private void loadPieChartData() {
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        BigDecimal valor = new BigDecimal("0.2");
-        entries.add(new PieEntry(valor.floatValue(), "Food & Dining"));
-        entries.add(new PieEntry(0.15f, "Medical"));
-        entries.add(new PieEntry(0.10f, "Entertainment"));
-        entries.add(new PieEntry(0.25f, "Electricity and Gas"));
-        entries.add(new PieEntry(0.3f, "Housing"));
-
-        ArrayList<Integer> colors = new ArrayList<>();
-        for (int color : ColorTemplate.MATERIAL_COLORS) {
-            colors.add(color);
-        }
-
-        for (int color : ColorTemplate.VORDIPLOM_COLORS) {
-            colors.add(color);
-        }
-
-        PieDataSet dataSet = new PieDataSet(entries, "Expense Category");
-        dataSet.setColors(colors);
-
-        PieData data = new PieData(dataSet);
-        data.setDrawValues(true);
-        data.setValueFormatter(new PercentFormatter(pieChart));
-        data.setValueTextSize(12f);
-        data.setValueTextColor(Color.BLACK);
-
-        pieChart.setData(data);
-        pieChart.invalidate();
-
-        pieChart.animateY(1400, Easing.EaseInOutQuad);
+    private void setAdapterTypeOfReport(View inflateView) {
+        typeOfReport = inflateView.findViewById(R.id.fragment_report_type_of_);
+        List<String> typeOfReportList = CreateListsUtil.createTypeOfReportList();
+        ArrayAdapter<String> adapteritens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, typeOfReportList);
+        typeOfReport.setAdapter(adapteritens);
     }
 
-    @Override
-    public void publishReportData(BigDecimal gain, BigDecimal spending) {
-
+    private void replaceAnnualReportFragment() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_report_container, new AnnualReportFragment())
+                .commit();
     }
 
-    @Override
-    public void loadPieChartData(List<PieChartData> chartData) {
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        for (PieChartData d : chartData) {
-            entries.add(new PieEntry(d.getValue(), d.getDescription()));
-        }
-
-        ArrayList<Integer> colors = new ArrayList<>();
-        for (int color : ColorTemplate.MATERIAL_COLORS) {
-            colors.add(color);
-        }
-
-        for (int color : ColorTemplate.VORDIPLOM_COLORS) {
-            colors.add(color);
-        }
-
-        PieDataSet dataSet = new PieDataSet(entries, "Expense Category");
-        dataSet.setColors(colors);
-
-        PieData data = new PieData(dataSet);
-        data.setDrawValues(true);
-        data.setValueFormatter(new PercentFormatter(pieChart));
-        data.setValueTextSize(12f);
-        data.setValueTextColor(Color.BLACK);
-
-        pieChart.setData(data);
-        pieChart.invalidate();
-
-        pieChart.animateY(1400, Easing.EaseInOutQuad);
+    private void replaceWeeklyReportFragment() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_report_container, new WeekReportFragment())
+                .commit();
     }
+
+    private void replaceDailyReportFragment() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_report_container, new DailyReportFragment())
+                .commit();
+    }
+
+    private void replaceMonthlyReportFragment() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_report_container, new MonthlyReportFragment())
+                .commit();
+    }
+
 }

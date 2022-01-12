@@ -1,4 +1,4 @@
-package br.com.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter.listview;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -15,12 +15,12 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListServiceAdapter extends BaseAdapter implements Filterable {
+public class ServiceListAdapter extends BaseAdapter implements Filterable {
     private final Context context;
     private final List<Services> listServiceAll = new ArrayList<>();
     private final List<Services> listService = new ArrayList<>();
 
-    public ListServiceAdapter(Context context) {
+    public ServiceListAdapter(Context context) {
         this.context = context;
 
     }
@@ -48,7 +48,7 @@ public class ListServiceAdapter extends BaseAdapter implements Filterable {
     }
 
     private View getInflate(ViewGroup parent) {
-        return LayoutInflater.from(context).inflate(R.layout.item_list_service_client, parent, false);
+        return LayoutInflater.from(context).inflate(R.layout.item_service_and_client, parent, false);
     }
 
     private void setServiceName(View createdView, int position) {

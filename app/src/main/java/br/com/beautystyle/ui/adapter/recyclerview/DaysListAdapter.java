@@ -1,4 +1,4 @@
-package br.com.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter.recyclerview;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -20,25 +20,25 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDaysHolder> {
+public class DaysListAdapter extends RecyclerView.Adapter<DaysListAdapter.ListDaysHolder> {
 
         private final List<LocalDate> listDays = new ArrayList<>();
         private final OnDayListener mOnDayListener;
 
-    public ListDaysAdaper(OnDayListener onDayListener) {
+    public DaysListAdapter(OnDayListener onDayListener) {
         this.mOnDayListener = onDayListener;
     }
 
     @NonNull
         @Override
-        public ListDaysAdaper.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public DaysListAdapter.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View createView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_days_week_button, parent, false);
             return new ListDaysHolder(createView, mOnDayListener,listDays);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ListDaysAdaper.ListDaysHolder holder, int position) {
+        public void onBindViewHolder(@NonNull DaysListAdapter.ListDaysHolder holder, int position) {
             holder.setLayoutEventHolder(listDays.get(position));
             holder.setTextView(listDays.get(position));
         }

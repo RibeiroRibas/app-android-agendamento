@@ -21,19 +21,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import br.com.beautystyle.model.Event;
 import br.com.beautystyle.ui.activity.NewEventActivity;
-import br.com.beautystyle.ui.adapter.ListDaysAdaper;
+import br.com.beautystyle.ui.adapter.recyclerview.DaysListAdapter;
 import br.com.beautystyle.util.CalendarUtil;
 import com.example.beautystyle.R;
 import br.com.beautystyle.ui.ListEventView;
 
 import java.time.LocalDate;
 
-public class ListEventFragment extends Fragment implements ListDaysAdaper.OnDayListener {
+public class EventListFragment extends Fragment implements DaysListAdapter.OnDayListener {
 
     private View inflateView;
     private ListView listDeEventos;
     private ListEventView listaEventoView;
-    private final ListDaysAdaper listDaysAdaper = new ListDaysAdaper(this);
+    private final DaysListAdapter listDaysAdaper = new DaysListAdapter(this);
     private TextView monthAndYear;
     private RecyclerView dayOfMonth;
     private Button buttonPrevious, buttonNext;

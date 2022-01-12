@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -30,14 +29,14 @@ import com.example.beautystyle.R;
 import br.com.beautystyle.model.Client;
 import br.com.beautystyle.ui.ListClientView;
 import br.com.beautystyle.ui.ProgressButtom;
-import br.com.beautystyle.ui.adapter.ListClientAdapter;
+import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListClientFragment extends Fragment implements ListClientAdapter.OnClientListener {
+public class ClientListFragment extends Fragment implements ClientListAdapter.OnClientListener {
 
-    private final ListClientAdapter.OnClientListener onNewEventClientListener;
+    private final ClientListAdapter.OnClientListener onNewEventClientListener;
     private View inflateView;
     private ListClientView listClientView;
     private final ActivityResultLauncher<String> requestPermissionLauncher = getPermission();
@@ -62,7 +61,7 @@ public class ListClientFragment extends Fragment implements ListClientAdapter.On
         handler.removeCallbacks(runnable);
     }
 
-    public ListClientFragment(ListClientAdapter.OnClientListener onNewEventClientListener) {
+    public ClientListFragment(ClientListAdapter.OnClientListener onNewEventClientListener) {
         this.onNewEventClientListener = onNewEventClientListener;
     }
 
@@ -83,32 +82,6 @@ public class ListClientFragment extends Fragment implements ListClientAdapter.On
         return inflateView;
     }
 
-    private void importContactListener() {
-        Button importContactList = inflateView.findViewById(R.id.button_import);
-        importContactList.setOnClickListener(v -> {
-            progressButtom = new ProgressButtom(v, requireActivity());
-            if (checkPermission()) {
-                startRunnable();
-            } else {
-                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
-            }
-        });
-    }
-
-    private void startRunnable() {
-        progressButtom.buttonActivated();
-        runnable = () -> {
-            getContactList(progressButtom);
-        };
-        handler.postDelayed(runnable, 5000);
-    }
-
-    private boolean checkPermission() {
-        return ContextCompat.checkSelfPermission(
-                requireActivity(), Manifest.permission.READ_CONTACTS) ==
-                PackageManager.PERMISSION_GRANTED;
-    }
-
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == 1) {
@@ -122,9 +95,14 @@ public class ListClientFragment extends Fragment implements ListClientAdapter.On
     @Override
     public void onResume() {
         super.onResume();
-        listClientView.listClient();
+        //listClientView.listClient();
     }
 
+    private void setAdapterRecyclerView() {
+        RecyclerView listClient = inflateView.findViewById(R.id.rv_phone_contact_list);
+        listClientView.setAdapter(listClient);
+        registerForContextMenu(listClient);
+    }
 
     @SuppressLint("Range")
     private void getContactList(ProgressButtom progressButtom) {
@@ -154,10 +132,30 @@ public class ListClientFragment extends Fragment implements ListClientAdapter.On
         listClientView.showContactList(contactList);
     }
 
-    private void setAdapterRecyclerView() {
-        RecyclerView listClient = inflateView.findViewById(R.id.rv_phone_contact_list);
-        listClientView.setAdapter(listClient);
-        registerForContextMenu(listClient);
+    private void importContactListener() {
+        View importContactList = inflateView.findViewById(R.id.button_import);
+        importContactList.setOnClickListener(v -> {
+            progressButtom = new ProgressButtom(v, requireActivity());
+            if (checkPermission()) {
+                startRunnable();
+            } else {
+                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
+            }
+        });
+    }
+
+    private void startRunnable() {
+        progressButtom.buttonActivated();
+        runnable = () -> {
+            getContactList(progressButtom);
+        };
+        handler.postDelayed(runnable, 5000);
+    }
+
+    private boolean checkPermission() {
+        return ContextCompat.checkSelfPermission(
+                requireActivity(), Manifest.permission.READ_CONTACTS) ==
+                PackageManager.PERMISSION_GRANTED;
     }
 
     private void setSearchViewClient() {

@@ -19,6 +19,8 @@ import br.com.beautystyle.util.TimeUtil;
 import com.example.beautystyle.R;
 import br.com.beautystyle.ui.ListServiceView;
 import br.com.beautystyle.util.CoinUtil;
+import me.abhinay.input.CurrencyEditText;
+import me.abhinay.input.CurrencySymbols;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -26,7 +28,7 @@ import java.time.LocalTime;
 public class NewServiceFragment extends DialogFragment {
 
     private EditText durationService, nameService;
-    public EditText valueService;
+    public CurrencyEditText valueService;
     private final ListServiceView listServiceView;
     private Services service = new Services();
 
@@ -64,7 +66,7 @@ public class NewServiceFragment extends DialogFragment {
         nameService.setText(service.getName());
         String formatedDurationService = TimeUtil.formatLocalTime(service.getTimeOfDuration());
         durationService.setText(formatedDurationService);
-        String formatedValueService = CoinUtil.formatBr(service.getValueOfService());
+        String formatedValueService = CoinUtil.formatBrWithoutSymbol(service.getValueOfService());
         valueService.setText(formatedValueService);
     }
 
@@ -101,7 +103,11 @@ public class NewServiceFragment extends DialogFragment {
     }
 
     private void setValueServiceListener() {
-        valueService.addTextChangedListener(new CoinUtil(this,true));
+        valueService.setCurrency(CurrencySymbols.NONE);
+        valueService.setDelimiter(false);
+        valueService.setSpacing(true);
+        valueService.setDecimals(true);
+        valueService.setSeparator(".");
     }
 
     private void saveServiceListener(View inflateNewServiceView) {

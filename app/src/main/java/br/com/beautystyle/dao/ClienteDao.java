@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDao {
-    private static int countId= 1;
 
+    private static int countId= 1;
     private final static List<Client> listClients = new ArrayList<>();
 
     public void save(Client client){

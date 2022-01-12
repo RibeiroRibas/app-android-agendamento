@@ -65,19 +65,20 @@
         app:layout_constraintStart_toStartOf="@+id/edTxt_name_service"
         app:layout_constraintTop_toBottomOf="@+id/edTxt_name_service" />
 
-    <EditText
+
+    <me.abhinay.input.CurrencyEditText
         android:id="@+id/edTxt_value_service"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/custom_default_input"
-        android:digits="0,1,2,3,4,5,6,7,8,9,."
-        android:hint="Valor do Serviço"
-        android:inputType="number|numberDecimal"
+        android:longClickable="false"
         android:padding="8dp"
+        android:text="0,00"
+        android:inputType="number"
         app:layout_constraintEnd_toEndOf="@+id/edTxt_name_service"
         app:layout_constraintStart_toStartOf="@+id/edTxt_name_service"
-        app:layout_constraintTop_toBottomOf="@+id/edTxt_duration_service" />
+        app:layout_constraintTop_toBottomOf="@+id/edTxt_duration_service"  />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

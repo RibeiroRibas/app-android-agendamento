@@ -1,6 +1,9 @@
-package br.com.beautystyle.ui.adapter;
+package br.com.beautystyle.ui.adapter.recyclerview;
+
+import static android.content.ContentValues.TAG;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,15 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ListClientAdapter extends RecyclerView.Adapter<ListClientAdapter.ListClientHolder>{
+public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder>{
 
     private final List<Client> listCliente;
     private final List<Client> listClienteAll;
     private final OnClientListener onNewEventClientListener;
     private final OnClientListener onListClientFragmentListener;
     private final Context context;
+    private int teste = 0;
 
-    public ListClientAdapter(Context context, OnClientListener onNewEventClientListener, OnClientListener onListClientFragmentListener) {
+    public ClientListAdapter(Context context, OnClientListener onNewEventClientListener, OnClientListener onListClientFragmentListener) {
         this.context = context;
         this.listCliente = new ArrayList<>();
         this.listClienteAll = new ArrayList<>();
@@ -36,7 +40,9 @@ public class ListClientAdapter extends RecyclerView.Adapter<ListClientAdapter.Li
     @NonNull
     @Override
     public ListClientHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View createdView = LayoutInflater.from(context).inflate(R.layout.item_list_service_client, parent, false);
+        teste++;
+        View createdView = LayoutInflater.from(context).inflate(R.layout.item_service_and_client, parent, false);
+        Log.i(TAG, "onCreateViewHolder: hollder: "+teste);
         return new ListClientHolder(createdView, onNewEventClientListener, listCliente, onListClientFragmentListener);
     }
 
@@ -89,7 +95,6 @@ public class ListClientAdapter extends RecyclerView.Adapter<ListClientAdapter.Li
     }
 
     public void publishAllClient(List<Client> listAll) {
-        listCliente.clear();
         listCliente.addAll(listAll);
         listClienteAll.addAll(listAll);
         notifyDataSetChanged();

@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:layout_marginBottom="15dp"
     android:background="@android:color/transparent"
-    tools:context="com.example.beautystyle.com.com.beautystyle.ui.fragment.ListEventFragment">
+    >
 
     <TextView
         android:id="@+id/day_of_month_textview"

@@ -11,15 +11,15 @@ import androidx.appcompat.app.AlertDialog;
 import br.com.beautystyle.dao.EventDao;
 import br.com.beautystyle.model.Event;
 import br.com.beautystyle.util.CalendarUtil;
-import br.com.beautystyle.ui.adapter.ListEventAdapter;
+import br.com.beautystyle.ui.adapter.listview.EventListAdapter;
 
 public class ListEventView {
-    private final ListEventAdapter adapter;
+    private final EventListAdapter adapter;
     private final EventDao eventDao;
     private final Context context;
 
     public ListEventView(Context context) {
-        this.adapter = new ListEventAdapter(context);
+        this.adapter = new EventListAdapter(context);
         this.eventDao = new EventDao();
         this.context = context;
     }

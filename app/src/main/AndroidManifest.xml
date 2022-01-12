@@ -14,10 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BeautyStyle">
         <activity
-            android:name="br.com.beautystyle.ui.activity.RelatoriosActivity"
-            android:exported="false"
-            android:label="@string/title_activity_relatorios"
-            android:theme="@style/Theme.BeautyStyle.NoActionBar" />
+            android:name="br.com.beautystyle.ui.activity.NewExpenseActivity"
+            android:exported="false" />
         <activity android:name="br.com.beautystyle.ui.activity.NewEventActivity" />
         <activity
             android:name="br.com.beautystyle.ui.activity.NavigationActivity"

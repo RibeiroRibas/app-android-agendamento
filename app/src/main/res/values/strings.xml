@@ -5,7 +5,6 @@
     <string name="nome">nome</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="todo">TODO</string>
     <string name="remove">Excluir</string>
     <string name="edit">Editar</string>
     <string name="title_activity_relatorios">RelatoriosActivity</string>
@@ -14,8 +13,22 @@
     <string name="second_fragment_label">Second Fragment</string>
     <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="purchase_date">Data da Compra</string>
+    <string name="category">Categoria</string>
+    <string name="item_description">Descrição dos itens</string>
+    <string name="save">Salvar</string>
+    <string name="amount">Valor Total</string>
+    <string name="others">Outros</string>
+    <string name="expenses">Gastos</string>
+    <string name="select_month">Selecione o Mês</string>
+    <string name="todo">TODO</string>
+    <string name="category_">Categoria:</string>
+    <string name="descricao_">Descrição:</string>
+    <string name="select">Selecione</string>
+    <string name="overview">Visão Geral</string>
+    <string name="amount_">Total de Ganhos:</string>
+    <string name="total_expense">Total De Gastos:</string>
+    <string name="left">Sobrou:</string>
 
 
 </resources>

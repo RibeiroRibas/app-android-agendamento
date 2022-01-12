@@ -74,7 +74,7 @@
 
 
         <EditText
-            android:id="@+id/et_find_client"
+            android:id="@+id/payment"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:background="@drawable/custom_default_input"
@@ -91,9 +91,9 @@
             android:id="@+id/fcv_find_client"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@+id/et_find_client"
-            app:layout_constraintStart_toStartOf="@+id/et_find_client"
-            app:layout_constraintTop_toBottomOf="@+id/et_find_client" />
+            app:layout_constraintEnd_toEndOf="@+id/payment"
+            app:layout_constraintStart_toStartOf="@+id/payment"
+            app:layout_constraintTop_toBottomOf="@+id/payment" />
 
         <TextView
             android:id="@+id/tv_service2"
@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Serviço"
-            app:layout_constraintStart_toStartOf="@+id/et_find_client"
+            app:layout_constraintStart_toStartOf="@+id/payment"
             app:layout_constraintTop_toBottomOf="@+id/fcv_find_client" />
 
         <EditText
@@ -148,7 +148,7 @@
             android:layout_height="wrap_content"
             android:text="hrs"
             app:layout_constraintBottom_toBottomOf="@+id/et_find_service"
-            app:layout_constraintEnd_toEndOf="@+id/et_find_client" />
+            app:layout_constraintEnd_toEndOf="@+id/payment" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fcv_find_service"
@@ -164,18 +164,18 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Valor Total"
-            app:layout_constraintStart_toStartOf="@+id/et_find_client"
+            app:layout_constraintStart_toStartOf="@+id/payment"
             app:layout_constraintTop_toBottomOf="@+id/fcv_find_service" />
 
-        <EditText
+        <me.abhinay.input.CurrencyEditText
             android:id="@+id/et_value_service"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/custom_default_input"
-            android:clickable="true"
             android:longClickable="false"
             android:padding="8dp"
+            android:text="0,00"
             android:inputType="number"
             app:layout_constraintEnd_toStartOf="@+id/checkBoxNaoRecebido"
             app:layout_constraintStart_toStartOf="@+id/tv_client"

@@ -11,19 +11,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import br.com.beautystyle.dao.ClienteDao;
 import br.com.beautystyle.model.Client;
-import br.com.beautystyle.ui.adapter.ListClientAdapter;
+import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
 import br.com.beautystyle.ui.fragment.NewClientFragment;
 
 import java.util.List;
 
 public class ListClientView {
-    private  ListClientAdapter adapter;
+    private ClientListAdapter adapter;
     private ClienteDao dao;
     private Context context;
 
-    public ListClientView(Context context, ListClientAdapter.OnClientListener onNewEventClientListener, ListClientAdapter.OnClientListener onListClientFragmentListener) {
+    public ListClientView(Context context, ClientListAdapter.OnClientListener onNewEventClientListener, ClientListAdapter.OnClientListener onListClientFragmentListener) {
         this.context = context;
-        this.adapter = new ListClientAdapter(context,onNewEventClientListener,onListClientFragmentListener);
+        this.adapter = new ClientListAdapter(context,onNewEventClientListener,onListClientFragmentListener);
         this.dao = new ClienteDao();
     }
 
@@ -31,12 +31,13 @@ public class ListClientView {
         this.dao = new ClienteDao();
     }
 
-    public ListClientAdapter getAdapter() {
+    public ClientListAdapter getAdapter() {
         return adapter;
     }
 
     public void setAdapter(RecyclerView listClient){
         listClient.setAdapter(adapter);
+        adapter.publishAllClient(dao.listAll());
     }
 
     public void save(Client client){

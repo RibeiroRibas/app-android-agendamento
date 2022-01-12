@@ -4,9 +4,12 @@ import android.app.Application;
 
 import br.com.beautystyle.dao.ClienteDao;
 import br.com.beautystyle.dao.EventDao;
+import br.com.beautystyle.dao.ExpenseDao;
 import br.com.beautystyle.dao.ServiceDao;
+import br.com.beautystyle.model.Category;
 import br.com.beautystyle.model.Client;
 import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Expenses;
 import br.com.beautystyle.model.Services;
 
 import java.math.BigDecimal;
@@ -34,8 +37,8 @@ public class AgendaApplication extends Application {
         clienteDao.save(new Client("Ada Lovelace", "01-010100011"));
         clienteDao.save(new Client("Carol Shaw", "01-1010101100"));
         clienteDao.save(new Client("Frances Allen", "01-0101001101"));
-        for(int i = 0; i< 10000;i++)
-            clienteDao.save(new Client("Cliente "+i, "" + (i + i)));
+//        for(int i = 0; i< 10000;i++)
+//            clienteDao.save(new Client("Cliente "+i, "" + (i + i)));
 
         EventDao eventDao = new EventDao();
 
@@ -70,6 +73,12 @@ public class AgendaApplication extends Application {
                 Event.StatusPagamento.NAORECEBIDO,
                 new BigDecimal(75)));
 
+        ExpenseDao expenseDao = new ExpenseDao();
 
+        expenseDao.save(new Expenses("amarelo, roxo, azul",new BigDecimal(55),LocalDate.now(), Category.ESMALTE));
+        expenseDao.save(new Expenses("",new BigDecimal(80),LocalDate.of(2021,2,5), Category.AMOLACAO));
+        expenseDao.save(new Expenses("Materiais de limpeza",new BigDecimal(42),LocalDate.of(2021,2,1), Category.OUTROS));
+        expenseDao.save(new Expenses("Aluguel",new BigDecimal(300),LocalDate.now(), Category.FIXO));
+        expenseDao.save(new Expenses("",new BigDecimal(300),LocalDate.of(2021,7,5), Category.LUZ));
     }
 }

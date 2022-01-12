@@ -21,14 +21,16 @@ import br.com.beautystyle.dao.EventDao;
 import br.com.beautystyle.model.Client;
 import br.com.beautystyle.model.Event;
 import br.com.beautystyle.model.Services;
-import br.com.beautystyle.ui.fragment.ListClientFragment;
+import br.com.beautystyle.ui.fragment.ClientListFragment;
 import br.com.beautystyle.ui.fragment.TimePickerFragment;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.TimeUtil;
 import com.example.beautystyle.R;
-import br.com.beautystyle.ui.adapter.ListClientAdapter;
-import br.com.beautystyle.ui.fragment.ListServiceFragment;
+import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
+import br.com.beautystyle.ui.fragment.ServiceListFragment;
 import br.com.beautystyle.util.CoinUtil;
+import me.abhinay.input.CurrencyEditText;
+import me.abhinay.input.CurrencySymbols;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,10 +40,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class NewEventActivity extends AppCompatActivity implements ListClientAdapter.OnClientListener, ListServiceFragment.OnServiceListener, View.OnClickListener,TimePickerDialog.OnTimeSetListener{
+public class NewEventActivity extends AppCompatActivity implements ClientListAdapter.OnClientListener, ServiceListFragment.OnServiceListener, View.OnClickListener,TimePickerDialog.OnTimeSetListener{
 
     private EditText searchClient, searchService, eventDate, eventStartTime, servicesDuration;
-    public EditText valueOfTheServices;
+    public CurrencyEditText valueOfTheServices;
     private CheckBox statusNaoRecebido, statusRecebido;
     private Set<Services> listServiceSet = new ArraySet<>();
     private Event event = new Event();
@@ -54,6 +56,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
         initWidgets();
+
         setStatusPagamento();
         loadEvent();
         setEventDateListener();
@@ -73,7 +76,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
     private void initWidgets() {
         eventDate = findViewById(R.id.et_fragment_report_period_start_date);
         searchService = findViewById(R.id.et_find_service);
-        searchClient = findViewById(R.id.et_find_client);
+        searchClient = findViewById(R.id.payment);
         valueOfTheServices = findViewById(R.id.et_value_service);
         servicesDuration = findViewById(R.id.et_duration_services);
         eventStartTime = findViewById(R.id.et_event_start_time);
@@ -102,17 +105,16 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
             event = (Event) intentEvent.getSerializableExtra(KEY_EVENT);
             if (event.getEndTime() == null) { // new event mode (click list event)
                 eventStartTime.setText(TimeUtil.formatLocalTime(event.getStarTime()));
-                setValueStatusAndDateEvent();
+                setStatusAndDateEvent();
             } else { // edit event mode (click list event)
                 fillAllForm();
             }
         } else { // new event mode (click Fab button)
-            setValueStatusAndDateEvent();
+            setStatusAndDateEvent();
         }
     }
 
-    private void setValueStatusAndDateEvent() {
-        valueOfTheServices.setText("0,00"); // value default
+    private void setStatusAndDateEvent() {
         statusNaoRecebido.setChecked(true); // value default
         eventDate.setText(CalendarUtil.formatDate(CalendarUtil.selectedDate));
         event.setEventDate(CalendarUtil.selectedDate);
@@ -128,7 +130,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
         eventDuration = event.getEndTime().minusHours(event.getStarTime().getHour())
                 .minusMinutes(event.getStarTime().getMinute());
         servicesDuration.setText(TimeUtil.formatLocalTime(eventDuration));
-        valueOfTheServices.setText(CoinUtil.formatBr(event.getValueEvent()));
+        valueOfTheServices.setText(CoinUtil.formatBrWithoutSymbol(event.getValueEvent()));
         setStatusPagamentoEditMode();
     }
 
@@ -157,7 +159,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
     }
 
     private void setOnDateChangeListener(AlertDialog dialogBuilderCalendar, View inflateViewCalendar) {
-        CalendarView calendar = inflateViewCalendar.findViewById(R.id.calendarView);
+        CalendarView calendar = inflateViewCalendar.findViewById(R.id.dialog_calendar_view);
         calendar.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             LocalDate dateOfEvent = LocalDate.of(year, month + 1, dayOfMonth);
             event.setEventDate(dateOfEvent);
@@ -179,7 +181,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
             if (getSupportFragmentManager().findFragmentById(R.id.fcv_find_client) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.fcv_find_client, new ListClientFragment(this))
+                        .add(R.id.fcv_find_client, new ClientListFragment(this))
                         .commit();
         });
     }
@@ -201,7 +203,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
             if (getSupportFragmentManager().findFragmentById(R.id.fcv_find_service) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.fcv_find_service, new ListServiceFragment(this))
+                        .add(R.id.fcv_find_service, new ServiceListFragment(this))
                         .commit();
         });
     }
@@ -240,7 +242,7 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
         BigDecimal sumValueOfServices = listServiceSet.stream()
                 .map(Services::getValueOfService)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        valueOfTheServices.setText(CoinUtil.formatBr(sumValueOfServices));
+        valueOfTheServices.setText(CoinUtil.formatBrWithoutSymbol(sumValueOfServices));
     }
 
     private void setListServices() {
@@ -268,7 +270,11 @@ public class NewEventActivity extends AppCompatActivity implements ListClientAda
 
 
     private void formatInputEditTextValueService() {
-        valueOfTheServices.addTextChangedListener(new CoinUtil(this));
+        valueOfTheServices.setCurrency(CurrencySymbols.NONE);
+        valueOfTheServices.setDelimiter(false);
+        valueOfTheServices.setSpacing(true);
+        valueOfTheServices.setDecimals(true);
+        valueOfTheServices.setSeparator(".");
     }
 
     private void saveEvent() {

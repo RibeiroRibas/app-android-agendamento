@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="br.com.beautystyle.ui.fragment.MonthReportFragment">
+    tools:context="br.com.beautystyle.ui.fragment.MonthlyReportFragment">
 
 
     <com.google.android.material.textfield.TextInputLayout
@@ -20,7 +20,7 @@
             android:id="@+id/fragment_report_month_auto_complete"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="Selecione"
+            android:hint="Selecione o Mês"
             android:inputType="none" />
 
     </com.google.android.material.textfield.TextInputLayout>

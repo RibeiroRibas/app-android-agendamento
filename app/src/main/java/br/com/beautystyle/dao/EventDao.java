@@ -1,17 +1,12 @@
 package br.com.beautystyle.dao;
 
-import static android.content.ContentValues.TAG;
-
-import android.util.Log;
-import android.widget.Toast;
-
-import br.com.beautystyle.model.Event;
-
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import br.com.beautystyle.model.Event;
 
 public class EventDao {
     private final static List<Event> listEvents = new ArrayList<>();

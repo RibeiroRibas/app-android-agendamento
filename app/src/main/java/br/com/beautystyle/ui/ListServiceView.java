@@ -13,20 +13,20 @@ import androidx.fragment.app.FragmentActivity;
 import br.com.beautystyle.dao.ServiceDao;
 import br.com.beautystyle.model.Services;
 import br.com.beautystyle.ui.fragment.NewServiceFragment;
-import br.com.beautystyle.ui.adapter.ListServiceAdapter;
+import br.com.beautystyle.ui.adapter.listview.ServiceListAdapter;
 
 public class ListServiceView {
-    private final ListServiceAdapter adapter;
+    private final ServiceListAdapter adapter;
     private final ServiceDao dao;
     private final Context context;
 
     public ListServiceView(Context context) {
         this.context = context;
-        this.adapter = new ListServiceAdapter(context);
+        this.adapter = new ServiceListAdapter(context);
         this.dao = new ServiceDao();
     }
 
-    public ListServiceAdapter getAdapter() {
+    public ServiceListAdapter getAdapter() {
         return adapter;
     }
 
