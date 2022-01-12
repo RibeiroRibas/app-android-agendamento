@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="br.com.beautystyle.ui.activity.NewExpenseActivity">
+
+    <TextView
+        android:id="@+id/activity_new_spending_tv1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/purchase_date"
+        app:layout_constraintStart_toStartOf="@id/activity_new_spending_date"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/activity_new_spending_date"
+        android:layout_width="0dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/custom_secundary_default_input"
+        android:clickable="true"
+        android:focusable="false"
+        android:inputType="date"
+        android:longClickable="false"
+        android:padding="14dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/activity_new_spending_text_input_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/activity_new_spending_tv1" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/activity_new_spending_text_input_layout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/activity_new_spending_date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/activity_new_spending_date">
+
+        <AutoCompleteTextView
+            android:id="@+id/activity_new_spending_category"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/category"
+            android:text="@string/others"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/activity_new_spending_tv2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/item_description"
+        app:layout_constraintStart_toStartOf="@id/activity_new_spending_date"
+        app:layout_constraintTop_toBottomOf="@id/activity_new_spending_text_input_layout" />
+
+    <EditText
+        android:id="@+id/activity_new_spending_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_secundary_default_input"
+        android:gravity="top"
+        android:inputType="textMultiLine"
+        android:lines="8"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/activity_new_spending_text_input_layout"
+        app:layout_constraintStart_toStartOf="@+id/activity_new_spending_tv2"
+        app:layout_constraintTop_toBottomOf="@id/activity_new_spending_tv2" />
+
+    <TextView
+        android:id="@+id/activity_new_spending_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/amount"
+        app:layout_constraintStart_toStartOf="@+id/activity_new_spending_description"
+        app:layout_constraintTop_toBottomOf="@+id/activity_new_spending_description" />
+
+    <me.abhinay.input.CurrencyEditText
+        android:id="@+id/activity_new_spending_price"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:inputType="number"
+        android:padding="8dp"
+        android:text="0,00"
+        android:background="@drawable/custom_secundary_default_input"
+        app:layout_constraintEnd_toStartOf="@id/activity_new_spending_save"
+        app:layout_constraintStart_toStartOf="@id/activity_new_spending_tv"
+        app:layout_constraintTop_toBottomOf="@id/activity_new_spending_tv" />
+
+    <Button
+        android:id="@+id/activity_new_spending_save"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:background="@color/purple"
+        android:text="@string/save"
+        app:layout_constraintBottom_toBottomOf="@+id/activity_new_spending_price"
+        app:layout_constraintEnd_toEndOf="@id/activity_new_spending_description"
+        app:layout_constraintStart_toEndOf="@+id/activity_new_spending_price" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

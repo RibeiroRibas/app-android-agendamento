@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="br.com.beautystyle.ui.fragment.ExpenseListFragment">
+
+    <TextView
+        android:id="@+id/fragment_list_expense_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="@string/expenses"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/fragment_list_expense_til"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/fragment_list_expense_til" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/fragment_list_expense_til"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:layout_constraintEnd_toStartOf="@id/fragment_list_expense_save"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/fragment_list_expense_tv"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <AutoCompleteTextView
+            android:id="@+id/fragment_list_expense_month"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/select_month"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ImageButton
+        android:id="@+id/fragment_list_expense_save"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/fragment_list_expense_til"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/fragment_list_expense_til"
+        app:layout_constraintTop_toTopOf="@id/fragment_list_expense_til"
+        app:srcCompat="@drawable/ic_add"
+        android:contentDescription="@string/todo" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/fragment_list_expense_rv"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layoutManager="LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/fragment_list_expense_save"
+        app:layout_constraintStart_toStartOf="@id/fragment_list_expense_tv"
+        app:layout_constraintTop_toBottomOf="@id/fragment_list_expense_til" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
