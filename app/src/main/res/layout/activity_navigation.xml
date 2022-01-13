@@ -10,7 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/activity_main_schedule_bottom"
         android:layout_width="match_parent"

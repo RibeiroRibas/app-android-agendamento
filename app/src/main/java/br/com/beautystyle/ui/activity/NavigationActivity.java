@@ -6,12 +6,12 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.beautystyle.R;
-import br.com.beautystyle.ui.fragment.EventListFragment;
-import br.com.beautystyle.ui.fragment.ReportFragment;
-import br.com.beautystyle.ui.fragment.ExpenseListFragment;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import br.com.beautystyle.ui.fragment.ExpenseListFragment;
+import br.com.beautystyle.ui.fragment.ListEventFragment;
+import br.com.beautystyle.ui.fragment.ReportFragment;
 
 public class NavigationActivity extends AppCompatActivity {
 
@@ -30,7 +30,7 @@ public class NavigationActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.frame_container, new EventListFragment())
+                    .add(R.id.frame_container, new ListEventFragment())
                     .commit();
         }
     }
@@ -47,7 +47,7 @@ public class NavigationActivity extends AppCompatActivity {
                 getSupportFragmentManager()
                         .beginTransaction()
                         .addToBackStack("home")
-                        .replace(R.id.frame_container, new EventListFragment())
+                        .replace(R.id.frame_container, new ListEventFragment())
                         .commit();
                 return true;
             }else if(item.getItemId() == R.id.report){
