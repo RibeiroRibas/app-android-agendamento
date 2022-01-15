@@ -95,7 +95,7 @@ public class ExpenseListFragment extends Fragment {
 
     private void registerActivityResult() {
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == 1) {
+            if (result.getResultCode() == 2) {
                 Intent intent = result.getData();
                 if (intent != null) {
                     Expenses expense = saveExpense(intent);

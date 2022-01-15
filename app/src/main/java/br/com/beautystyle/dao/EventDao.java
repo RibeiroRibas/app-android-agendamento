@@ -55,16 +55,17 @@ public class EventDao {
                         .equals(newEvent.getEventDate()))
                 .sorted(Comparator.comparing(Event::getStarTime))
                 .collect(Collectors.toList());
-        boolean checkEndTime = false;
+
         for (Event event : listEvent) {
             if (event.getStarTime().isAfter(newEvent.getStarTime())
-                    && newEvent.getEndTime().isAfter(event.getStarTime())) {
-                checkEndTime = true;
+                    && newEvent.getEndTime().isAfter(event.getStarTime())
+                    && newEvent.getId()!=event.getId()) {
                 reduzedEndTime = event.getStarTime();
-                break;
+                return true;
             }
         }
-        return checkEndTime;
+
+        return false;
     }
 
     public void remove(Event event) {

@@ -18,7 +18,7 @@ import java.util.List;
 
 public class ListClientView {
     private ClientListAdapter adapter;
-    private ClienteDao dao;
+    private final ClienteDao dao;
     private Context context;
 
     public ListClientView(Context context, ClientListAdapter.OnClientListener onNewEventClientListener, ClientListAdapter.OnClientListener onListClientFragmentListener) {

@@ -13,7 +13,7 @@
         android:id="@+id/place_holder"
         android:title="" />
 
-    <item android:id="@+id/spending"
+    <item android:id="@+id/expense"
         android:title="Gastos"
         android:icon="@drawable/ic_spending"/>
 

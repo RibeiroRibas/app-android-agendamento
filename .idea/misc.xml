@@ -31,6 +31,7 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_person.xml" value="0.159375" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_person_gray.xml" value="0.1171875" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_search.xml" value="0.159375" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_spending.xml" value="0.15416666666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_star.xml" value="0.16145833333333334" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/selector_button_color.xml" value="0.16145833333333334" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/selector_button_pressed.xml" value="0.1484375" />
@@ -63,7 +64,7 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_event.xml" value="0.2173202614379085" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_home_schedule.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_client.xml" value="0.14270833333333333" />
-        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_event.xml" value="0.1" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_event.xml" value="0.22" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_expense.xml" value="0.14635416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_service.xml" value="0.15196078431372548" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation.xml" value="0.25" />

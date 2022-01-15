@@ -28,6 +28,11 @@ public class ListEventView {
         adapter.update(CalendarUtil.selectedDate);
     }
 
+    public void save(Event event){
+        eventDao.save(event);
+        adapter.update(event.getEventDate());
+    }
+
     public void setAdapter(ListView listaDeEvento) {
         listaDeEvento.setAdapter(adapter);
     }
@@ -53,6 +58,12 @@ public class ListEventView {
 
     private void remove(Event event) {
         eventDao.remove(event);
+        adapter.update(event.getEventDate());
+    }
+
+
+    public void edit(Event event) {
+        eventDao.edit(event);
         adapter.update(event.getEventDate());
     }
 }

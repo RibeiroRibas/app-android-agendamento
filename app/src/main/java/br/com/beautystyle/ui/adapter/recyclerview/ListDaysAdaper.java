@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import br.com.beautystyle.util.CalendarUtil;
+
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;
@@ -22,46 +23,51 @@ import java.util.List;
 
 public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDaysHolder> {
 
-        private final List<LocalDate> listDays = new ArrayList<>();
-        private final OnDayListener mOnDayListener;
+    private final List<LocalDate> listDays = new ArrayList<>();
+    private final OnDayListener mOnDayListener;
+    int selectedPosition;
 
     public ListDaysAdaper(OnDayListener onDayListener) {
         this.mOnDayListener = onDayListener;
     }
 
     @NonNull
-        @Override
-        public ListDaysAdaper.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View createView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_days_week_button, parent, false);
-            return new ListDaysHolder(createView, mOnDayListener,listDays);
-        }
+    @Override
+    public ListDaysAdaper.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        @Override
-        public void onBindViewHolder(@NonNull ListDaysAdaper.ListDaysHolder holder, int position) {
-            holder.setLayoutEventHolder(listDays.get(position));
-            holder.setTextView(listDays.get(position));
-        }
+        View createView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_days_week_button, parent, false);
+        return new ListDaysHolder(createView, mOnDayListener, listDays);
+    }
 
-        @Override
-        public int getItemCount() {
-            return 5;
-        }
+    @Override
+    public void onBindViewHolder(@NonNull ListDaysAdaper.ListDaysHolder holder, int position) {
 
-        public void atualizaAdapter(){
-            this.listDays.clear();
-            this.listDays.addAll(CalendarUtil.fiveDays());
-            notifyDataSetChanged();
-        }
+        holder.setTextView(listDays.get(position), position);
 
-    public static class ListDaysHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    }
+
+    @Override
+    public int getItemCount() {
+        return listDays.size();
+    }
+
+    public void publishAllDays() {
+        List<LocalDate> createdList = CalendarUtil.createDaysList();
+        this.listDays.addAll(createdList);
+        int size2 = createdList.size();
+        notifyItemRangeInserted(0, size2);
+    }
+
+    public class ListDaysHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final Button buttonDay;
         private final TextView dayWeek;
         private final OnDayListener onDayListener;
         private final List<LocalDate> listDays;
 
-        public ListDaysHolder(@NonNull View itemView, OnDayListener onDayListener,List<LocalDate> listDays) {
+
+        public ListDaysHolder(@NonNull View itemView, OnDayListener onDayListener, List<LocalDate> listDays) {
             super(itemView);
             this.buttonDay = itemView.findViewById(R.id.button);
             this.dayWeek = itemView.findViewById(R.id.day_of_week_textview);
@@ -70,45 +76,56 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
 
             buttonDay.setOnClickListener(this);
             itemView.setOnClickListener(this);
+
         }
 
-        private void setLayoutEventHolder(LocalDate date) {
-            if(date.equals(CalendarUtil.selectedDate)){
-                setDrawable();
-                setLayoutParams();
-                buttonDay.setTextColor(Color.WHITE);
-            }
-        }
-
-        private void setDrawable() {
-            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(), R.drawable.shape_button_color2);
+        private void setDrawable(Drawable drawable) {
             buttonDay.setBackground(drawable);
         }
 
-        private void setLayoutParams() {
+        private void setLayoutParams(int params) {
             ViewGroup.LayoutParams layoutParams = buttonDay.getLayoutParams();
-            layoutParams.height = 150;
-            layoutParams.width = 150;
+            layoutParams.height = params;
+            layoutParams.width = params;
             buttonDay.setLayoutParams(layoutParams);
         }
 
-        public void setTextView(LocalDate date){
-            buttonDay.setText(CalendarUtil.formatDay(date));
-            dayWeek.setTypeface(null, Typeface.NORMAL);
-            dayWeek.setText(CalendarUtil.formatDayWeek(date));
-            if(LocalDate.now().equals(date)){
-                dayWeek.setText("HOJE");
-                dayWeek.setTypeface(null, Typeface.BOLD);
+        public void setTextView(LocalDate date, int position) {
+            String checkIsToday = LocalDate.now().equals(date) ? "TODAY" : CalendarUtil.formatDayWeek(date);
+            if (CalendarUtil.selectedDate.equals(date)) {
+                Drawable drawable = ContextCompat.getDrawable(itemView.getContext(), R.drawable.shape_button_color2);
+                setDrawable(drawable);
+                setLayoutParams(150);
+                selectedPosition = position;
+                setText(checkIsToday, Typeface.BOLD, date, Color.WHITE);
+            } else {
+                Drawable drawable = ContextCompat.getDrawable(itemView.getContext(), R.drawable.shape_button_color1);
+                setLayoutParams(130);
+                setDrawable(drawable);
+                setText(checkIsToday, Typeface.NORMAL, date, Color.BLACK);
             }
+            onDayListener.onDayBinding(date);
+        }
+
+        private void setText(String formatedDay, int typeFace, LocalDate date, int textColor) {
+            buttonDay.setText(CalendarUtil.formatDay(date));
+            buttonDay.setTextColor(textColor);
+            dayWeek.setTypeface(null, typeFace);
+            dayWeek.setText(formatedDay);
         }
 
         @Override
         public void onClick(View v) {
-            onDayListener.onDayClick(listDays.get(getAdapterPosition()));
+            notifyItemChanged(selectedPosition);
+            selectedPosition = getLayoutPosition();
+            notifyItemChanged(selectedPosition);
+            onDayListener.onDayClick(listDays.get(getAdapterPosition()), selectedPosition);
         }
     }
+
     public interface OnDayListener {
-        void onDayClick(LocalDate date);
+        void onDayClick(LocalDate date, int position);
+        void onDayBinding(LocalDate date);
     }
-    }
+}
 
