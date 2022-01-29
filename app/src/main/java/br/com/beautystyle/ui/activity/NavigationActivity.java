@@ -33,6 +33,9 @@ public class NavigationActivity extends AppCompatActivity {
     private final ListEventView listEventView = new ListEventView((this));
     private BottomNavigationView bottomNavigationView;
     private CalendarViewModel calendarViewModel;
+    private static final String TITLE_APPBAR_EVENT = "Beauty Style - Agendamento";
+    private static final String TITLE_APPBAR_REPORT = "Beauty Style - Relatório";
+    private static final String TITLE_APPBAR_EXPENSE = "Beauty Style - Gastos";
 
 
     @Override
@@ -53,6 +56,7 @@ public class NavigationActivity extends AppCompatActivity {
 
 
     private void startHomeFragment(Bundle savedInstanceState) {
+        setTitle(TITLE_APPBAR_EVENT);
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -72,12 +76,15 @@ public class NavigationActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case (R.id.home):
                     replaceContainer("home",new EventListFragment(listDaysView,listEventView));
+                    setTitle(TITLE_APPBAR_EVENT);
                     return true;
                 case (R.id.report):
                     replaceContainer("report",new ReportFragment());
+                    setTitle(TITLE_APPBAR_REPORT);
                     return true;
                 case (R.id.expense):
                     replaceContainer("expense",new ExpenseListFragment());
+                    setTitle(TITLE_APPBAR_EXPENSE);
                     return true;
                 case (R.id.calendar):
                     calendarViewModel.inflateCalendar(this);
@@ -123,5 +130,6 @@ public class NavigationActivity extends AppCompatActivity {
     private void setDate(LocalDate date) {
         replaceContainer("home",new EventListFragment(listDaysView,listEventView,date));
         bottomNavigationView.getMenu().getItem(0).setChecked(true);
+        setTitle(TITLE_APPBAR_EVENT);
     }
 }
