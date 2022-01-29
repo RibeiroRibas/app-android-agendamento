@@ -7,23 +7,23 @@
     android:layout_marginStart="8dp">
 
     <TextView
-        android:id="@+id/item_hour_text_view"
+        android:id="@+id/item_event_start_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/black"
-        app:layout_constraintEnd_toStartOf="@id/item_expense_cardView"
+        app:layout_constraintEnd_toStartOf="@id/item_event_cardView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/item_expense_cardView" />
+        app:layout_constraintTop_toTopOf="@id/item_event_cardView" />
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/item_expense_cardView"
+        android:id="@+id/item_event_cardView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         app:cardCornerRadius="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/item_hour_text_view"
+        app:layout_constraintStart_toEndOf="@id/item_event_start_time"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0">
 
@@ -32,62 +32,61 @@
             android:layout_height="match_parent">
 
             <ImageView
-                android:id="@+id/item_expense_toolbar_imageView"
+                android:id="@+id/item_event_toolbar"
                 android:layout_width="0dp"
                 android:layout_height="24dp"
                 android:background="@color/light_gray"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                 />
+                tools:ignore="ContentDescription" />
 
             <TextView
-                android:id="@+id/item_expense_date_tv"
-                android:layout_width="0dp"
+                android:id="@+id/item_event_duration"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:textColor="@color/black"
-                app:layout_constraintBottom_toBottomOf="@+id/item_expense_toolbar_imageView"
+                app:layout_constraintBottom_toBottomOf="@+id/item_event_toolbar"
+                app:layout_constraintEnd_toStartOf="@id/item_event_name"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/item_expense_value_tv"
-                app:layout_constraintTop_toTopOf="@+id/item_expense_toolbar_imageView"
+                app:layout_constraintTop_toTopOf="@+id/item_event_toolbar"
                 tools:text="@sample/beautystyle.json/beautystyle/Hour" />
 
             <TextView
-                android:id="@+id/item_expense_value_tv"
+                android:id="@+id/item_event_name"
                 android:layout_width="0dp"
-                android:layout_margin="8dp"
                 android:layout_height="wrap_content"
+                android:layout_margin="8dp"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="@+id/item_expense_toolbar_imageView"
+                app:layout_constraintBottom_toBottomOf="@+id/item_event_toolbar"
                 app:layout_constraintEnd_toStartOf="@id/item_event_status_cash"
-                app:layout_constraintStart_toEndOf="@id/item_expense_date_tv"
-                app:layout_constraintTop_toTopOf="@+id/item_expense_toolbar_imageView"
+                app:layout_constraintStart_toEndOf="@id/item_event_duration"
+                app:layout_constraintTop_toTopOf="@+id/item_event_toolbar"
                 tools:text="@sample/beautystyle.json/beautystyle/Client" />
 
             <TextView
                 android:id="@+id/item_event_status_cash"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:textAlignment="viewEnd"
-                app:layout_constraintStart_toEndOf="@id/item_expense_value_tv"
+                app:layout_constraintBottom_toBottomOf="@id/item_event_name"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/item_expense_value_tv"
-                app:layout_constraintBottom_toBottomOf="@id/item_expense_value_tv"
-                />
+                app:layout_constraintStart_toEndOf="@id/item_event_name"
+                app:layout_constraintTop_toTopOf="@id/item_event_name" />
 
             <TextView
-                android:id="@+id/item_expense_tv"
+                android:id="@+id/item_event_service"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:textColor="@color/purple"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/item_expense_toolbar_imageView"
+                app:layout_constraintTop_toBottomOf="@+id/item_event_toolbar"
                 tools:text="@sample/beautystyle.json/beautystyle/Service" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

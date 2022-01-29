@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorPrimary">#FF37BC</color>
+    <color name="colorPrimaryDark">#FF37BC</color>
     <color name="pink">#FF37BC</color>
     <color name="medium_pink">#FEB1E5</color>
     <color name="light_pink">#FEE2F5</color>
@@ -14,5 +16,4 @@
     <color name="green">#228C22</color>
     <color name="gray">#808080</color>
     <color name="medium_gray">#d8d9d8</color>
-
 </resources>

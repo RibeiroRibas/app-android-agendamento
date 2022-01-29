@@ -13,19 +13,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BeautyStyle">
-        <activity
-            android:name="br.com.beautystyle.ui.activity.NewExpenseActivity"
-            android:exported="false" />
-        <activity android:name="br.com.beautystyle.ui.activity.NewEventActivity" />
+
         <activity
             android:name="br.com.beautystyle.ui.activity.NavigationActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="br.com.beautystyle.ui.activity.NewEventActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="br.com.beautystyle.ui.activity.NewExpenseActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

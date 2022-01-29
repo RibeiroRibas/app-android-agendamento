@@ -6,59 +6,47 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
 
 import br.com.beautystyle.dao.ClienteDao;
 import br.com.beautystyle.model.Client;
 import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
-import br.com.beautystyle.ui.fragment.NewClientFragment;
-
-import java.util.List;
 
 public class ListClientView {
-    private ClientListAdapter adapter;
+    private final ClientListAdapter adapter;
     private final ClienteDao dao;
-    private Context context;
+    private final Context context;
 
     public ListClientView(Context context, ClientListAdapter.OnClientListener onNewEventClientListener, ClientListAdapter.OnClientListener onListClientFragmentListener) {
         this.context = context;
-        this.adapter = new ClientListAdapter(context,onNewEventClientListener,onListClientFragmentListener);
+        this.adapter = new ClientListAdapter(context, onNewEventClientListener, onListClientFragmentListener);
         this.dao = new ClienteDao();
     }
 
-    public ListClientView() {
-        this.dao = new ClienteDao();
-    }
-
-    public ClientListAdapter getAdapter() {
-        return adapter;
-    }
-
-    public void setAdapter(RecyclerView listClient){
-        listClient.setAdapter(adapter);
+    public void setAdapter(RecyclerView clientList) {
+        clientList.setAdapter(adapter);
         adapter.publishAllClient(dao.listAll());
     }
 
-    public void save(Client client){
+    public void save(Client client) {
         dao.save(client);
         adapter.publishResultsNew(client);
     }
 
-    public void edit(Client client){
+    public void edit(Client client, int position) {
         dao.edit(client);
-        adapter.publishResultsEdited(client);
+        adapter.publishResultsEdited(client, position);
     }
 
-    public void startFragmentEditClient(MenuItem item, FragmentActivity listClientFragment) {
-        Client selectedClient = adapter.getClientAtPosition(item.getGroupId());
-        NewClientFragment newClientFragment = new NewClientFragment(this,selectedClient);
-        newClientFragment.show(listClientFragment.getSupportFragmentManager(), "EditClientFragment");
+    public Client getClientAtPosition(MenuItem item) {
+        return adapter.getClientAtPosition(item.getGroupId());
     }
 
-    private void remove(Client client) {
+    private void remove(Client client, int position) {
         dao.remove(client);
-        adapter.publishResultsRemoved(client);
+        adapter.publishResultsRemoved(client, position);
     }
 
     @NonNull
@@ -66,20 +54,15 @@ public class ListClientView {
         return new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-             adapter.filteredClient(newText);
-             return  false;
+                adapter.filteredClient(newText);
+                return false;
             }
         };
-    }
-
-    public void listClient() {
-        adapter.publishAllClient(dao.listAll());
     }
 
     public void checkRemove(MenuItem item) {
@@ -89,7 +72,7 @@ public class ListClientView {
                 .setMessage("Tem Certeza que deseja remover esse item?")
                 .setPositiveButton("Sim", (dialog, which) -> {
                     Client selectedClient = adapter.getClientAtPosition(item.getGroupId());
-                    remove(selectedClient);
+                    remove(selectedClient, item.getGroupId());
                 })
                 .setNegativeButton("Não", null)
                 .show();
@@ -105,21 +88,19 @@ public class ListClientView {
     }
 
     public void showContactList(List<Client> contactList) {
-        if(contactList.size()>0){
+        if (contactList.size() > 0) {
             new AlertDialog
                     .Builder(context)
-                    .setMessage("Foram encontrados "+contactList.size()+" contatos no seu smartphone! Deseja importar todos para sua Agenda?")
-                    .setPositiveButton("Sim",((dialog, which) -> {
-                        saveAllImportedClients(contactList);
-                    }))
+                    .setMessage("Foram encontrados " + contactList.size() + " contatos no seu smartphone! Deseja importar todos para sua Agenda?")
+                    .setPositiveButton("Sim", ((dialog, which) -> saveAllImportedClients(contactList)))
                     .setNegativeButton("Não", null)
                     .show();
-        }else{
+        } else {
             new AlertDialog
                     .Builder(context)
                     .setTitle("Nenhum contato novo encontrato")
                     .setMessage("Você já adicionou todos os contatos do seu smartphone para sua agenda.")
-                    .setPositiveButton("Ok",null)
+                    .setPositiveButton("Ok", null)
                     .show();
         }
     }

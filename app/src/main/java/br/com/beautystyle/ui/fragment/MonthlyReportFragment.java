@@ -1,6 +1,8 @@
 package br.com.beautystyle.ui.fragment;
 
-import android.annotation.SuppressLint;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_MONTHLY_REPORT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_REPORT;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,13 +23,9 @@ import br.com.beautystyle.util.CreateListsUtil;
 
 public class MonthlyReportFragment extends Fragment {
 
-    private AutoCompleteTextView autoCompleteTextView;
-    private ArrayAdapter<String> adapterItens;
-    private EventDao dao = new EventDao();
-
-    public MonthlyReportFragment() {
-
-    }
+    private final EventDao dao = new EventDao();
+    private int monthValue, yearValue = -1;
+    private AutoCompleteTextView monthsOfTheYear, years;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -35,33 +33,58 @@ public class MonthlyReportFragment extends Fragment {
 
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View inflatedView = inflater.inflate(R.layout.fragment_report_month, container, false);
-        List<String> monthsOfTheYear = CreateListsUtil.createMonthList();
-        adapterItens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1,monthsOfTheYear);
-        autoCompleteTextView = inflatedView.findViewById(R.id.fragment_report_month_auto_complete);
-        autoCompleteTextView.setAdapter(adapterItens);
-        String currentMonth = CalendarUtil.formatMonth(LocalDate.now());
-        autoCompleteTextView.setText(currentMonth, false);
-        autoCompleteTextView.setOnItemClickListener((parent, view, position, id) ->{
-//            String s = parent.getItemAtPosition(position).toString();
-//            List<Event> eventByMonth = dao.findEventByMonth(position+1);
-//            BigDecimal sumValueOfEvents = eventByMonth.stream()
-//                    .map(Event::getValueEvent)
-//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-//            List<PieChartData> listData = new ArrayList<>();
-//            for (Event ev : eventByMonth) {
-//                BigDecimal percent = (ev.getValueEvent().multiply(new BigDecimal(100))).divide(sumValueOfEvents,2, RoundingMode.HALF_UP);
-//                 listData.add(new PieChartData(percent.floatValue(),ev.getClient().getName()));
-//            }
-          //  onReportInterface.loadPieChartData(listData);
-        });
+        View inflatedView = inflater.inflate(R.layout.fragment_report_monthly, container, false);
 
-
+        setAdapterMonthsOfTheYear(inflatedView);
+        setOnMonthClickListener();
+        setAdapterYears(inflatedView);
+        setOnYearClickListener();
 
         return inflatedView;
     }
+
+    private void setAdapterMonthsOfTheYear(View inflatedView) {
+        monthsOfTheYear = inflatedView.findViewById(R.id.fragment_report_monthly_month);
+        setAdapter(monthsOfTheYear, CreateListsUtil.createMonthList());
+        monthsOfTheYear.setText(CalendarUtil.formatMonth(LocalDate.now()), false);
+    }
+
+    private void setOnMonthClickListener() {
+        monthValue = LocalDate.now().getMonthValue();//value default;
+        monthsOfTheYear.setOnItemClickListener((parent, view, position, id) -> {
+            monthValue = position + 1;
+            setFragmentResult();
+        });
+    }
+
+    private void setAdapterYears(View inflatedView) {
+        years = inflatedView.findViewById(R.id.fragment_report_monthly_year);
+        setAdapter(years, CreateListsUtil.CreateListYearsEvent(dao.listAll()));
+        years.setText(CalendarUtil.formatYear(LocalDate.now()), false);
+    }
+
+    private void setOnYearClickListener() {
+        yearValue = LocalDate.now().getYear();//value default
+        years.setOnItemClickListener(((parent, view, position, id) -> {
+            yearValue = Integer.parseInt(parent.getItemAtPosition(position).toString());
+            setFragmentResult();
+        }));
+    }
+
+    private void setAdapter(AutoCompleteTextView autoCompleteTextView, List<String> itemList) {
+        ArrayAdapter<String> adapterItens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, itemList);
+        autoCompleteTextView.setAdapter(adapterItens);
+    }
+
+    private void setFragmentResult() {
+        Bundle result = new Bundle();
+        LocalDate date = LocalDate.of(yearValue, monthValue, 1);
+        result.putSerializable(KEY_MONTHLY_REPORT, date);
+        getParentFragmentManager().setFragmentResult(KEY_REPORT, result);
+    }
+
+
 }

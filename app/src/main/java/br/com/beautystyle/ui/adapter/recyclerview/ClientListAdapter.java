@@ -1,9 +1,9 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
-import static android.content.ContentValues.TAG;
+import static br.com.beautystyle.ui.adapter.ConstantsAdapter.ITEM_MENU_DELETE;
+import static br.com.beautystyle.ui.adapter.ConstantsAdapter.ITEM_MENU_EDIT;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,146 +13,133 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import br.com.beautystyle.model.Client;
 import com.example.beautystyle.R;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder>{
+import br.com.beautystyle.model.Client;
 
-    private final List<Client> listCliente;
-    private final List<Client> listClienteAll;
+public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder> {
+
+    private final List<Client> clientList;
+    private final List<Client> clientListAll;
     private final OnClientListener onNewEventClientListener;
-    private final OnClientListener onListClientFragmentListener;
+    private final OnClientListener onClientListFragmentListener;
     private final Context context;
-    private int teste = 0;
 
     public ClientListAdapter(Context context, OnClientListener onNewEventClientListener, OnClientListener onListClientFragmentListener) {
         this.context = context;
-        this.listCliente = new ArrayList<>();
-        this.listClienteAll = new ArrayList<>();
+        this.clientList = new ArrayList<>();
+        this.clientListAll = new ArrayList<>();
         this.onNewEventClientListener = onNewEventClientListener;
-        this.onListClientFragmentListener = onListClientFragmentListener;
+        this.onClientListFragmentListener = onListClientFragmentListener;
     }
 
     @NonNull
     @Override
     public ListClientHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        teste++;
         View createdView = LayoutInflater.from(context).inflate(R.layout.item_service_and_client, parent, false);
-        Log.i(TAG, "onCreateViewHolder: hollder: "+teste);
-        return new ListClientHolder(createdView, onNewEventClientListener, listCliente, onListClientFragmentListener);
+        return new ListClientHolder(createdView, onNewEventClientListener, clientList, onClientListFragmentListener);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ListClientHolder holder, int position) {
-        if(!listCliente.isEmpty()){
-            Client client = listCliente.get(position);
+        if (!clientList.isEmpty()) {
+            Client client = clientList.get(position);
             holder.setTextView(client);
         }
     }
 
     @Override
     public int getItemCount() {
-        return listCliente.size();
+        return clientList.size();
     }
 
     public void filteredClient(String newText) {
         List<Client> filteredListClient = new ArrayList<>();
-        if(newText.isEmpty()) {
+        if (newText.isEmpty()) {
             itemInserted(filteredListClient);
-        }else{
+        } else {
             itemRemoved(newText, filteredListClient);
         }
     }
 
     private void itemRemoved(String newText, List<Client> filteredListClient) {
-        for (Client client : listCliente) {
+        for (Client client : clientList) {
             if (!client.getName().toLowerCase().contains(newText.toLowerCase())) {
                 filteredListClient.add(client);
             }
         }
         for (Client client : filteredListClient) {
-            int index = listCliente.indexOf(client);
-            listCliente.remove(client);
+            int index = clientList.indexOf(client);
+            clientList.remove(client);
             notifyItemRemoved(index);
         }
     }
 
     private void itemInserted(List<Client> filteredListClient) {
-        if(listCliente.isEmpty()){
-          filteredListClient = listClienteAll;
+        if (clientList.isEmpty()) {
+            filteredListClient = clientListAll;
         }
-        for (Client c : listCliente) {
-            filteredListClient = listClienteAll.stream().filter(client -> client != c).collect(Collectors.toList());
-            }
+        for (Client c : clientList) {
+            filteredListClient = clientListAll.stream().filter(client -> client != c).collect(Collectors.toList());
+        }
         for (Client c : filteredListClient) {
-            listCliente.add(c);
-            notifyItemInserted(listCliente.indexOf(c));
+            clientList.add(c);
+            notifyItemInserted(clientList.indexOf(c));
         }
     }
 
     public void publishAllClient(List<Client> listAll) {
-        listCliente.addAll(listAll);
-        listClienteAll.addAll(listAll);
-        notifyDataSetChanged();
+        clientList.addAll(listAll);
+        clientListAll.addAll(listAll);
+        notifyItemRangeInserted(0, listAll.size());
     }
 
     public void publishResultsNew(Client client) {
-        listCliente.add(client);
-        listClienteAll.add(client);
-        notifyItemInserted(listCliente.indexOf(client));
+        clientList.add(client);
+        clientListAll.add(client);
+        notifyItemInserted(clientList.indexOf(client));
     }
 
     public void publishResultsImportedClients(List<Client> newListClient) {
-        for (Client c : newListClient) {
-            publishResultsNew(c);
-        }
+        int size = clientList.size();
+        clientList.addAll(newListClient);
+        clientListAll.addAll(newListClient);
+        notifyItemRangeInserted(size, clientList.size());
     }
-    public void publishResultsRemoved(Client client) {
-        int position = getPosition(client);
-        listCliente.remove(client);
-        listClienteAll.remove(client);
+
+    public void publishResultsRemoved(Client client, int position) {
+        clientList.remove(client);
+        clientListAll.remove(client);
         notifyItemRemoved(position);
     }
 
-    public void publishResultsEdited(Client client) {
-        int position = getPosition(client);
-        listCliente.set(position, client);
-        listClienteAll.set(position, client);
+    public void publishResultsEdited(Client client, int position) {
+        clientList.set(position, client);
+        clientListAll.set(position, client);
         notifyItemChanged(position, client);
     }
 
-    private int getPosition(Client client){
-        int position = 0;
-        for (Client c : listCliente) {
-            if(c.getId()==client.getId()){
-                position = listCliente.indexOf(c);
-                return position;
-            }
-        }
-        return position;
-    }
-
     public Client getClientAtPosition(int position) {
-        return listCliente.get(position);
+        return clientList.get(position);
     }
 
     public static class ListClientHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnCreateContextMenuListener {
 
         private final TextView nameClient;
         private final OnClientListener onNewEventClientListener;
-        private final List<Client> listClient;
-        private final OnClientListener onListClientFragmentListener;
+        private final List<Client> clientList;
+        private final OnClientListener onClientListFragmentListener;
 
-        public ListClientHolder(@NonNull View itemView, OnClientListener onNewEventClientListener, List<Client> listClient, OnClientListener onListClientFragmentListener) {
+        public ListClientHolder(@NonNull View itemView, OnClientListener onNewEventClientListener, List<Client> clientList, OnClientListener onClientListFragmentListener) {
             super(itemView);
-            this.nameClient = itemView.findViewById(R.id.tv_service);
+            this.nameClient = itemView.findViewById(R.id.tv_name);
             this.onNewEventClientListener = onNewEventClientListener;
-            this.listClient = listClient;
-            this.onListClientFragmentListener = onListClientFragmentListener;
+            this.clientList = clientList;
+            this.onClientListFragmentListener = onClientListFragmentListener;
             itemView.setOnClickListener(this);
             itemView.setOnCreateContextMenuListener(this);
         }
@@ -163,14 +150,14 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
 
         @Override
         public void onClick(View v) {
-            onNewEventClientListener.onClientClickNewEvent(listClient.get(getAdapterPosition()));
-            onListClientFragmentListener.onClientClickRemoveFragment();
+            onNewEventClientListener.onClientClickNewEvent(clientList.get(getAdapterPosition()));
+            onClientListFragmentListener.onClientClickRemoveFragment();
         }
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            menu.add(this.getAdapterPosition(), 1, 0, "Editar");
-            menu.add(this.getAdapterPosition(), 2, 1, "Excluir");
+            menu.add(this.getAdapterPosition(), 1, 0, ITEM_MENU_EDIT);
+            menu.add(this.getAdapterPosition(), 2, 1, ITEM_MENU_DELETE);
         }
     }
 

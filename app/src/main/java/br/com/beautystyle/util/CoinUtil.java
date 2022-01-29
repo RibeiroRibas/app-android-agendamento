@@ -1,14 +1,9 @@
 package br.com.beautystyle.util;
 
-import android.text.Editable;
-import android.text.TextWatcher;
-
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-
-import br.com.beautystyle.ui.fragment.NewServiceFragment;
 
 public class CoinUtil {
 

@@ -1,5 +1,10 @@
 package br.com.beautystyle.ui.fragment;
 
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NEW_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_EDIT_SERVICE;
+
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,32 +19,23 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import br.com.beautystyle.model.Services;
-import br.com.beautystyle.util.TimeUtil;
 import com.example.beautystyle.R;
-import br.com.beautystyle.ui.ListServiceView;
-import br.com.beautystyle.util.CoinUtil;
-import me.abhinay.input.CurrencyEditText;
-import me.abhinay.input.CurrencySymbols;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.Objects;
+
+import br.com.beautystyle.model.Services;
+import br.com.beautystyle.util.CoinUtil;
+import br.com.beautystyle.util.TimeUtil;
+import me.abhinay.input.CurrencyEditText;
+import me.abhinay.input.CurrencySymbols;
 
 public class NewServiceFragment extends DialogFragment {
 
     private EditText durationService, nameService;
     public CurrencyEditText valueService;
-    private final ListServiceView listServiceView;
     private Services service = new Services();
-
-    public NewServiceFragment(ListServiceView listServiceView) {
-        this.listServiceView = listServiceView;
-    }
-
-    public NewServiceFragment(ListServiceView listServiceView, Services editService) {
-        this.listServiceView = listServiceView;
-        this.service = editService;
-    }
 
     @Nullable
     @Override
@@ -51,23 +47,13 @@ public class NewServiceFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         initiWidgets(view);
-
-        if (getTag().equals("EditServiceFragment"))
-            fillFormServiceEditMode();
-
+        loadService();
         setDurationServiceListener();
         setValueServiceListener();
         saveServiceListener(view);
 
-    }
-
-    private void fillFormServiceEditMode() {
-        nameService.setText(service.getName());
-        String formatedDurationService = TimeUtil.formatLocalTime(service.getTimeOfDuration());
-        durationService.setText(formatedDurationService);
-        String formatedValueService = CoinUtil.formatBrWithoutSymbol(service.getValueOfService());
-        valueService.setText(formatedValueService);
     }
 
     @Override
@@ -77,16 +63,32 @@ public class NewServiceFragment extends DialogFragment {
     }
 
     private void setLayoutParamsDialog() {
-        WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
+        WindowManager.LayoutParams params = Objects.requireNonNull(getDialog()).getWindow().getAttributes();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         getDialog().getWindow().setAttributes(params);
     }
 
     private void initiWidgets(View view) {
-        nameService = view.findViewById(R.id.edTxt_name_service);
-        valueService = view.findViewById(R.id.edTxt_value_service);
-        durationService = view.findViewById(R.id.edTxt_duration_service);
+        nameService = view.findViewById(R.id.fragment_new_service_description);
+        valueService = view.findViewById(R.id.fragment_new_service_value);
+        durationService = view.findViewById(R.id.fragment_new_service_duration);
+    }
+
+    private void loadService() {
+        Bundle bundle = getArguments();
+        if (bundle != null && getTag() != null && getTag().equals(TAG_EDIT_SERVICE)) {
+            service = (Services) bundle.getSerializable(KEY_EDIT_SERVICE);
+            fillAllForm();
+        }
+    }
+
+    private void fillAllForm() {
+        nameService.setText(service.getName());
+        String formatedDurationService = TimeUtil.formatLocalTime(service.getTimeOfDuration());
+        durationService.setText(formatedDurationService);
+        String formatedValueService = CoinUtil.formatBrWithoutSymbol(service.getValueOfService());
+        valueService.setText(formatedValueService);
     }
 
     private void setDurationServiceListener() {
@@ -111,11 +113,11 @@ public class NewServiceFragment extends DialogFragment {
     }
 
     private void saveServiceListener(View inflateNewServiceView) {
-        ImageView saveService = inflateNewServiceView.findViewById(R.id.img_save_service);
+        ImageView saveService = inflateNewServiceView.findViewById(R.id.fragment_new_service_save);
         saveService.setOnClickListener(v -> {
             if (checkInputService()) {
                 getService();
-                saveService(service);
+                saveService();
             }
         });
     }
@@ -123,8 +125,8 @@ public class NewServiceFragment extends DialogFragment {
     private boolean checkInputService() {
         if (nameService.getText().toString().isEmpty()
                 || durationService.getText().toString().isEmpty()
-                || valueService.getText().toString().isEmpty()) {
-            new AlertDialog.Builder(getDialog().getContext())
+                || Objects.requireNonNull(valueService.getText()).toString().isEmpty()) {
+            new AlertDialog.Builder(Objects.requireNonNull(getDialog()).getContext())
                     .setTitle("Todos Os Campos São Obrigatórios!")
                     .setPositiveButton("ok", null)
                     .show();
@@ -136,20 +138,27 @@ public class NewServiceFragment extends DialogFragment {
     private void getService() {
         String name = nameService.getText().toString();
         LocalTime duration = TimeUtil.formatDurationService(durationService.getText().toString());
-        BigDecimal value = new BigDecimal(CoinUtil.formatBrBigDecimal(valueService.getText().toString()));
+        BigDecimal value = new BigDecimal(CoinUtil.formatBrBigDecimal(Objects.requireNonNull(valueService.getText()).toString()));
 
         service.setName(name);
         service.setTimeOfDuration(duration);
         service.setValueOfService(value);
     }
 
-    private void saveService(Services service) {
-        if (getTag().equals("EditServiceFragment")){
-            listServiceView.edit(service);
-        }else{
-            listServiceView.save(service);
+    private void saveService() {
+        if (getTag() != null && getTag().equals(TAG_EDIT_SERVICE)) {
+            setResult(KEY_EDIT_SERVICE);
+        } else {
+            setResult(KEY_NEW_SERVICE);
         }
-        getDialog().dismiss();
+        Objects.requireNonNull(getDialog()).dismiss();
+        getParentFragmentManager().beginTransaction().remove(this).commit();
+    }
+
+    private void setResult(String key) {
+        Bundle result = new Bundle();
+        result.putSerializable(key, service);
+        getParentFragmentManager().setFragmentResult(KEY_SERVICE, result);
     }
 
 }

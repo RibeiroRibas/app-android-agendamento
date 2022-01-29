@@ -1,46 +1,48 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="br.com.beautystyle.ui.fragment.DailyReportFragment">
 
     <EditText
-        android:id="@+id/et_fragment_report_period_start_date"
+        android:id="@+id/fragment_report_period_start_date"
         android:layout_width="0dp"
         android:layout_height="55dp"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginTop="14dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/custom_secundary_default_input"
         android:clickable="true"
         android:focusable="false"
-        android:hint="Data Inicial"
-        android:textSize="16sp"
+        android:hint="@string/start_date"
         android:inputType="date"
         android:longClickable="false"
         android:padding="14dp"
+        android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/et_fragment_report_period_end_date"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="Autofill" />
 
     <EditText
         android:id="@+id/et_fragment_report_period_end_date"
         android:layout_width="0dp"
         android:layout_height="55dp"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginTop="14dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/custom_secundary_default_input"
         android:clickable="true"
         android:focusable="false"
-        android:hint="Data Final"
-        android:textSize="16sp"
+        android:hint="@string/end_date"
         android:inputType="date"
         android:longClickable="false"
         android:padding="14dp"
-        app:layout_constraintStart_toEndOf="@+id/et_fragment_report_period_start_date"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/fragment_report_period_start_date"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="Autofill" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

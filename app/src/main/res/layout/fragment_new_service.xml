@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/img_action_bar"
+        android:id="@+id/fragment_new_service_action_bar"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:background="@color/lilas"
+        android:contentDescription="@string/todo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -18,67 +19,69 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="Novo Serviço"
+        android:text="@string/new_service"
         android:textColor="@color/white"
         android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="@id/img_action_bar"
-        app:layout_constraintStart_toStartOf="@id/img_action_bar"
-        app:layout_constraintTop_toTopOf="@id/img_action_bar" />
+        app:layout_constraintBottom_toBottomOf="@id/fragment_new_service_action_bar"
+        app:layout_constraintStart_toStartOf="@id/fragment_new_service_action_bar"
+        app:layout_constraintTop_toTopOf="@id/fragment_new_service_action_bar" />
 
     <ImageView
-        android:id="@+id/img_save_service"
+        android:id="@+id/fragment_new_service_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/img_action_bar"
-        app:layout_constraintEnd_toEndOf="@id/img_action_bar"
-        app:layout_constraintTop_toTopOf="@id/img_action_bar"
+        android:contentDescription="@string/todo"
+        app:layout_constraintBottom_toBottomOf="@id/fragment_new_service_action_bar"
+        app:layout_constraintEnd_toEndOf="@id/fragment_new_service_action_bar"
+        app:layout_constraintTop_toTopOf="@id/fragment_new_service_action_bar"
         app:srcCompat="@drawable/ic_check" />
 
     <EditText
-        android:id="@+id/edTxt_name_service"
+        android:id="@+id/fragment_new_service_description"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_margin="8dp"
         android:background="@drawable/custom_default_input"
-        android:hint="Nome do Serviço"
-        android:inputType="textPersonName"
+        android:hint="@string/service_name"
+        android:inputType="text"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/img_action_bar" />
+        app:layout_constraintTop_toBottomOf="@+id/fragment_new_service_action_bar"
+        tools:ignore="Autofill" />
 
     <EditText
-        android:id="@+id/edTxt_duration_service"
+        android:id="@+id/fragment_new_service_duration"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/custom_default_input"
-        android:digits="0,1,2,3,4,5,6,7,8,9,:"
-        android:hint="Tempo de Duração"
-        android:focusable="false"
         android:clickable="true"
+        android:digits="0,1,2,3,4,5,6,7,8,9,:"
+        android:focusable="false"
+        android:hint="@string/duration_time"
         android:inputType="time"
         android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="@+id/edTxt_name_service"
-        app:layout_constraintStart_toStartOf="@+id/edTxt_name_service"
-        app:layout_constraintTop_toBottomOf="@+id/edTxt_name_service" />
-
+        app:layout_constraintEnd_toEndOf="@+id/fragment_new_service_description"
+        app:layout_constraintStart_toStartOf="@+id/fragment_new_service_description"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_new_service_description"
+        tools:ignore="Autofill" />
 
     <me.abhinay.input.CurrencyEditText
-        android:id="@+id/edTxt_value_service"
+        android:id="@+id/fragment_new_service_value"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/custom_default_input"
+        android:inputType="number"
         android:longClickable="false"
         android:padding="8dp"
-        android:text="0,00"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="@+id/edTxt_name_service"
-        app:layout_constraintStart_toStartOf="@+id/edTxt_name_service"
-        app:layout_constraintTop_toBottomOf="@+id/edTxt_duration_service"  />
+        android:text="@string/default_coin_value"
+        app:layout_constraintEnd_toEndOf="@+id/fragment_new_service_description"
+        app:layout_constraintStart_toStartOf="@+id/fragment_new_service_description"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_new_service_duration" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

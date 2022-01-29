@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 import br.com.beautystyle.dao.EventDao;
 import br.com.beautystyle.model.Category;
 import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Expenses;
+import br.com.beautystyle.model.Expense;
 import br.com.beautystyle.model.MonthsOfTheYear;
 import br.com.beautystyle.model.TypeOfReport;
 
@@ -100,10 +100,10 @@ public class CreateListsUtil {
                 .collect(Collectors.toList());
     }
 
-    public static List<Object> createMonthlyReportList(LocalDate date, List<Expenses> listExpense, List<Event> listEvent) {
+    public static List<Object> createMonthlyReportList(LocalDate date, List<Expense> listExpense, List<Event> listEvent) {
 
         List<Object> reportList = new ArrayList<>();
-        List<Expenses> collect = listExpense.stream()
+        List<Expense> collect = listExpense.stream()
                 .filter(expense -> expense.getDate().getMonthValue() == date.getMonthValue()
                         && expense.getDate().getYear() == date.getYear())
                 .collect(Collectors.toList());
@@ -117,7 +117,22 @@ public class CreateListsUtil {
         return reportList;
     }
 
-    public static List<String> CreateListYears(List<Event> listAll) {
+    public static List<Object> createDailyReportList(LocalDate date, List<Expense> listExpense, List<Event> listEvent) {
+
+        List<Object> reportList = new ArrayList<>();
+
+        reportList.addAll(listEvent.stream()
+                .filter(event -> event.getEventDate().equals(date))
+                .collect(Collectors.toList()));
+
+        reportList.addAll(listExpense.stream()
+                .filter(expense -> expense.getDate().equals(date))
+                .collect(Collectors.toList()));
+
+        return reportList;
+    }
+
+    public static List<String> CreateListYearsEvent(List<Event> listAll) {
         return listAll.stream()
                 .map(Event::getEventDate)
                 .map(LocalDate::getYear)
@@ -127,5 +142,29 @@ public class CreateListsUtil {
                 .collect(Collectors.toList());
     }
 
+    public static List<String> CreateListYearsExpense(List<Expense> listAll) {
+        return listAll.stream()
+                .map(Expense::getDate)
+                .map(LocalDate::getYear)
+                .distinct()
+                .sorted(Comparator.comparing(Integer::intValue))
+                .map(Objects::toString)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Object> createPeriodReportList(LocalDate startDate, LocalDate endDate, List<Event> listEvent, List<Expense> listExpense) {
+        List<Object> reportList = new ArrayList<>();
+
+        reportList.addAll(listEvent.stream()
+                .filter(ev -> !ev.getEventDate().isBefore(startDate)
+                        && !ev.getEventDate().isAfter(endDate))
+                .collect(Collectors.toList()));
+
+        reportList.addAll(listExpense.stream().filter(ex -> !ex.getDate().isBefore(startDate)
+                && !ex.getDate().isAfter(endDate))
+                .collect(Collectors.toList()));
+
+        return reportList;
+    }
 }
 

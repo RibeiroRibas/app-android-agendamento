@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/home"
-        android:title="Inicio"
-        android:icon="@drawable/ic_home"/>
+    <item
+        android:id="@+id/home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/home" />
 
-    <item android:id="@+id/report"
-        android:title="Relatórios"
-        android:icon="@drawable/ic_assignment"/>
+    <item
+        android:id="@+id/report"
+        android:icon="@drawable/ic_assignment"
+        android:title="@string/reports" />
 
     <item
         android:id="@+id/place_holder"
         android:title="" />
 
-    <item android:id="@+id/expense"
-        android:title="Gastos"
-        android:icon="@drawable/ic_spending"/>
+    <item
+        android:id="@+id/expense"
+        android:icon="@drawable/ic_spending"
+        android:title="@string/expense" />
 
-    <item android:id="@+id/add_search"
-        android:title="Buscar"
-        android:icon="@drawable/ic_search"/>
+    <item
+        android:id="@+id/calendar"
+        android:icon="@drawable/ic_calendar"
+        android:title="@string/calendar" />
 
 </menu>

@@ -2,6 +2,9 @@ package br.com.beautystyle;
 
 import android.app.Application;
 
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkRequest;
+
 import br.com.beautystyle.dao.ClienteDao;
 import br.com.beautystyle.dao.EventDao;
 import br.com.beautystyle.dao.ExpenseDao;
@@ -9,21 +12,25 @@ import br.com.beautystyle.dao.ServiceDao;
 import br.com.beautystyle.model.Category;
 import br.com.beautystyle.model.Client;
 import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Expenses;
+import br.com.beautystyle.model.Expense;
 import br.com.beautystyle.model.Services;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
 public class AgendaApplication extends Application {
 
+    WorkRequest workRequest = new PeriodicWorkRequest.Builder(AddExpenseWorker.class,1440, TimeUnit.MINUTES).build();
+
     @Override
     public void onCreate() {
         super.onCreate();
         criaEventoDeteste();
+      //  WorkManager.getInstance(this).enqueue(workRequest);
     }
 
     private void criaEventoDeteste() {
@@ -37,8 +44,6 @@ public class AgendaApplication extends Application {
         clienteDao.save(new Client("Ada Lovelace", "01-010100011"));
         clienteDao.save(new Client("Carol Shaw", "01-1010101100"));
         clienteDao.save(new Client("Frances Allen", "01-0101001101"));
-//        for(int i = 0; i< 10000;i++)
-//            clienteDao.save(new Client("Cliente "+i, "" + (i + i)));
 
         EventDao eventDao = new EventDao();
 
@@ -75,10 +80,16 @@ public class AgendaApplication extends Application {
 
         ExpenseDao expenseDao = new ExpenseDao();
 
-        expenseDao.save(new Expenses("amarelo, roxo, azul",new BigDecimal(55),LocalDate.now(), Category.ESMALTE));
-        expenseDao.save(new Expenses("",new BigDecimal(80),LocalDate.of(2021,2,5), Category.AMOLACAO));
-        expenseDao.save(new Expenses("Materiais de limpeza",new BigDecimal(42),LocalDate.of(2021,2,1), Category.OUTROS));
-        expenseDao.save(new Expenses("Aluguel",new BigDecimal(300),LocalDate.now(), Category.FIXO));
-        expenseDao.save(new Expenses("",new BigDecimal(300),LocalDate.of(2021,7,5), Category.LUZ));
+        expenseDao.save(new Expense("amarelo, roxo, azul",new BigDecimal(55),LocalDate.now(), Category.ESMALTE, Expense.RepeatOrNot.NREPEAT));
+        expenseDao.save(new Expense("",new BigDecimal(80),LocalDate.of(2022,2,5), Category.AMOLACAO, Expense.RepeatOrNot.NREPEAT));
+        expenseDao.save(new Expense("Materiais de limpeza",new BigDecimal(42),LocalDate.of(2022,12,1), Category.OUTROS, Expense.RepeatOrNot.NREPEAT));
+        expenseDao.save(new Expense("",new BigDecimal(300),LocalDate.of(2022,7,5), Category.LUZ, Expense.RepeatOrNot.NREPEAT));
+
+        Expense expenses = new Expense("",new BigDecimal(300),LocalDate.of(2022,2,1), Category.ALUGUEL, Expense.RepeatOrNot.REPEAT);
+        Expense expenses3 = new Expense("",new BigDecimal(200),LocalDate.of(2022,2,1), Category.LUZ, Expense.RepeatOrNot.REPEAT);
+
+
+        expenseDao.save(expenses);
+        expenseDao.save(expenses3);
     }
 }

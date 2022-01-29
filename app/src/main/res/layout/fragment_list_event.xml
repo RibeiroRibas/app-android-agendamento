@@ -2,67 +2,35 @@
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cl_event_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginBottom="15dp"
-    android:background="@android:color/transparent"
-    >
+    android:background="@android:color/transparent">
 
     <TextView
-        android:id="@+id/day_of_month_textview"
+        android:id="@+id/fragment_list_event_month_and_year"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textColor="@color/black"
-        app:layout_constraintBottom_toTopOf="@id/days_of_month_recycler_view"
+        app:layout_constraintBottom_toTopOf="@id/fragment_list_event_days_list_rv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-<!--    <androidx.appcompat.widget.AppCompatButton-->
-<!--        android:id="@+id/button_preview"-->
-<!--        android:layout_width="32dp"-->
-<!--        android:layout_height="32dp"-->
-<!--        android:layout_marginTop="8dp"-->
-<!--        android:background="@android:color/transparent"-->
-<!--        android:onClick="previousWeekAction"-->
-<!--        android:text="@string/preview"-->
-<!--        android:textAlignment="center"-->
-<!--        android:textColor="@color/pink"-->
-<!--        android:textSize="20sp"-->
-<!--        app:layout_constraintEnd_toStartOf="@id/days_of_month_recycler_view"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="@id/days_of_month_recycler_view" />-->
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/days_of_month_recycler_view"
+        android:id="@+id/fragment_list_event_days_list_rv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/day_of_month_textview"
-    />
-
-<!--    <androidx.appcompat.widget.AppCompatButton-->
-<!--        android:id="@+id/button_next"-->
-<!--        android:layout_width="32dp"-->
-<!--        android:layout_height="32dp"-->
-<!--        android:layout_marginTop="8dp"-->
-<!--        android:background="@android:color/transparent"-->
-<!--        android:text="@string/next"-->
-<!--        android:textAlignment="center"-->
-<!--        android:textColor="@color/pink"-->
-<!--        android:textSize="20sp"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@id/days_of_month_recycler_view"-->
-<!--        app:layout_constraintTop_toTopOf="@id/days_of_month_recycler_view" />-->
+        app:layout_constraintTop_toBottomOf="@id/fragment_list_event_month_and_year" />
 
     <ListView
-        android:id="@+id/list_event_listview"
+        android:id="@+id/fragment_list_event_list_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="8dp"
@@ -70,7 +38,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/days_of_month_recycler_view"
+        app:layout_constraintTop_toBottomOf="@id/fragment_list_event_days_list_rv"
         app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

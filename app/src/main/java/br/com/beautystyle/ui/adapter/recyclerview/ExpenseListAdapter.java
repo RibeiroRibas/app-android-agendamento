@@ -1,6 +1,9 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
+import static br.com.beautystyle.ui.adapter.ConstantsAdapter.ITEM_MENU_DELETE;
+
 import android.content.Context;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,19 +18,20 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.Expenses;
+import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.ui.adapter.recyclerview.listener.OnItemClickListener;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 
 public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.ExpenseViewHolder> {
 
-    private final List<Expenses> expenseList;
+    private final List<Expense> expenseList;
     private final Context context;
+    private OnItemClickListener onItemClickListener;
 
-    public ExpenseListAdapter(List<Expenses> expenseList, Context context) {
+    public ExpenseListAdapter(List<Expense> expenseList, Context context) {
         this.expenseList = new ArrayList<>(expenseList);
         this.context = context;
-
     }
 
     @NonNull
@@ -40,10 +44,11 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
     @Override
     public void onBindViewHolder(@NonNull ExpenseViewHolder holder, int position) {
         if (position < expenseList.size()) {
-            Expenses expense = expenseList.get(position);
+            Expense expense = expenseList.get(position);
             holder.setTextView(expense);
+            holder.setLayoutParamCardView(View.VISIBLE,250);
         } else {
-            holder.setLayoutParamCardView();
+            holder.setLayoutParamCardView(View.INVISIBLE,100);
         }
     }
 
@@ -52,25 +57,21 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         return expenseList.size() + 2;
     }
 
-    public void publishResultsNew(Expenses expense, int monthValue) {
+    public void publishResultsNew(Expense expense, int monthValue, int year) {
         expenseList.add(expense);
-        if (expense.getDate().getMonthValue() == monthValue)
+        if (expense.getDate().getMonthValue() == monthValue && expense.getDate().getYear()==year)
             notifyItemInserted(expenseList.indexOf(expense));
     }
 
-    public void publishResultsFilteredList(List<Expenses> filteredList) {
-        if (filteredList.isEmpty()) {
-            removeItemRange();
-        } else {
-            removeItemRange();
-            insertItemRange(filteredList);
-        }
+    public void publishResultsChangedList(List<Expense> expenseList) {
+        removeItemRange();
+        if (!expenseList.isEmpty())
+            insertItemRange(expenseList);
     }
 
-    private void insertItemRange(List<Expenses> filteredList) {
+    private void insertItemRange(List<Expense> filteredList) {
         expenseList.addAll(filteredList);
-        int size2 = filteredList.size();
-        notifyItemRangeInserted(0, size2);
+        notifyItemRangeInserted(0, filteredList.size());
     }
 
     private void removeItemRange() {
@@ -80,12 +81,34 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
             notifyItemRangeRemoved(0, size);
         }
     }
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
+    }
 
-    static class ExpenseViewHolder extends RecyclerView.ViewHolder {
+    public void publishResultsChanged(Expense expense, int position) {
+        expenseList.set(position,expense);
+        notifyItemChanged(position);
+    }
+
+    public Expense getItem(int position) {
+        return expenseList.get(position);
+    }
+
+    public void publishResultsRemoved(Expense selectedExpense, int position) {
+        expenseList.remove(selectedExpense);
+        notifyItemRemoved(position);
+    }
+
+    public void publishAll(){
+        notifyItemRangeInserted(0, expenseList.size());
+    }
+
+    class ExpenseViewHolder extends RecyclerView.ViewHolder implements  View.OnCreateContextMenuListener{
 
         private final TextView date, value, category, description;
         private final CardView cardView;
         private final View itemView;
+        private Expense expense;
 
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -95,9 +118,12 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
             description = itemView.findViewById(R.id.item_expense_description_tv);
             cardView = itemView.findViewById(R.id.item_expense_cardView);
             this.itemView = itemView;
+            itemView.setOnCreateContextMenuListener(this);
+            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(expense,getAdapterPosition()));
         }
 
-        public void setTextView(Expenses expense) {
+        public void setTextView(Expense expense) {
+            this.expense = expense;
             String formatedDate = CalendarUtil.formatDate(expense.getDate());
             date.setText(formatedDate);
             String formatedValue = CoinUtil.formatBr(expense.getPrice());
@@ -106,11 +132,16 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
             description.setText(expense.getDescription());
         }
 
-        private void setLayoutParamCardView() {
-            itemView.setVisibility(View.INVISIBLE);
+        public void setLayoutParamCardView(int visibility, int height) {
+                        itemView.setVisibility(visibility);
             ViewGroup.LayoutParams cardViewParams = cardView.getLayoutParams();
-            cardViewParams.height = 100;
+            cardViewParams.height = height;
             cardView.setLayoutParams(cardViewParams);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            menu.add(this.getAdapterPosition(), 1, 1, ITEM_MENU_DELETE);
         }
     }
 }

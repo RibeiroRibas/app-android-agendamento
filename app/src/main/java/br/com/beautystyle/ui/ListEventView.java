@@ -10,8 +10,8 @@ import androidx.appcompat.app.AlertDialog;
 
 import br.com.beautystyle.dao.EventDao;
 import br.com.beautystyle.model.Event;
-import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.ui.adapter.listview.EventListAdapter;
+import br.com.beautystyle.util.CalendarUtil;
 
 public class ListEventView {
     private final EventListAdapter adapter;
@@ -28,7 +28,7 @@ public class ListEventView {
         adapter.update(CalendarUtil.selectedDate);
     }
 
-    public void save(Event event){
+    public void save(Event event) {
         eventDao.save(event);
         adapter.update(event.getEventDate());
     }
@@ -46,9 +46,9 @@ public class ListEventView {
                     AdapterView.AdapterContextMenuInfo menuInfo =
                             (AdapterView.AdapterContextMenuInfo) itemId.getMenuInfo();
                     Event chosedEvent = (Event) adapter.getItem(menuInfo.position);
-                    if(chosedEvent.getEventDate()!=null){
+                    if (chosedEvent.getEventDate() != null) {
                         remove(chosedEvent);
-                    }else{
+                    } else {
                         Toast.makeText(context, "Não é possível remover um horário vazio", Toast.LENGTH_LONG).show();
                     }
                 })
@@ -66,4 +66,5 @@ public class ListEventView {
         eventDao.edit(event);
         adapter.update(event.getEventDate());
     }
+
 }

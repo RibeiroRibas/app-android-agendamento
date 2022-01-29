@@ -1,5 +1,12 @@
 package br.com.beautystyle.ui.fragment;
 
+import static br.com.beautystyle.ui.fragment.ConstantFragment.INVALID_POSITION;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NEW_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_EDIT_CLIENT;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,24 +20,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import br.com.beautystyle.model.Client;
 import com.example.beautystyle.R;
-import br.com.beautystyle.ui.ListClientView;
+
+import java.util.Objects;
+
+import br.com.beautystyle.model.Client;
 
 public class NewClientFragment extends DialogFragment {
 
-    private final ListClientView listClientView;
-    private EditText nameClient,phoneClient;
-    private Client client =new Client();
-
-    public NewClientFragment(ListClientView listClientView) {
-        this.listClientView = listClientView;
-    }
-
-    public NewClientFragment(ListClientView listClientView, Client editClient) {
-        this.listClientView = listClientView;
-        this.client = editClient;
-    }
+    private EditText nameClient, phoneClient;
+    private Client client = new Client();
+    private int position;
 
     @Nullable
     @Override
@@ -42,20 +42,10 @@ public class NewClientFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         initWidgets(view);
-        if(getTag().equals("EditClientFragment"))
-            fillFormService();
+        loadClient();
         saveClientListener(view);
-    }
-
-    private void initWidgets(View view) {
-        nameClient = view.findViewById(R.id.edTxt_name_service);
-        phoneClient = view.findViewById(R.id.edTxt_duration_service);
-    }
-
-    private void fillFormService() {
-        nameClient.setText(client.getName());
-        phoneClient.setText(client.getPhone());
     }
 
     @Override
@@ -65,14 +55,33 @@ public class NewClientFragment extends DialogFragment {
     }
 
     private void setLayoutParamsDialog() {
-        WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
+        WindowManager.LayoutParams params = Objects.requireNonNull(getDialog()).getWindow().getAttributes();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         getDialog().getWindow().setAttributes(params);
     }
 
+    private void initWidgets(View view) {
+        nameClient = view.findViewById(R.id.fragment_new_client_name);
+        phoneClient = view.findViewById(R.id.fragment_new_client_phone);
+    }
+
+    private void loadClient() {
+        Bundle bundle = getArguments();
+        if (bundle != null && getTag() != null && getTag().equals(TAG_EDIT_CLIENT)) {
+            client = (Client) bundle.getSerializable(KEY_EDIT_CLIENT);
+            position = bundle.getInt(KEY_POSITION, INVALID_POSITION);
+            fillAllForm();
+        }
+    }
+
+    private void fillAllForm() {
+        nameClient.setText(client.getName());
+        phoneClient.setText(client.getPhone());
+    }
+
     private void saveClientListener(View inflateNewEventView) {
-        ImageView saveClient = inflateNewEventView.findViewById(R.id.img_save_service);
+        ImageView saveClient = inflateNewEventView.findViewById(R.id.fragment_new_client_save);
         saveClient.setOnClickListener(v -> {
             if (checkInputNameClient()) {
                 saveClient();
@@ -82,7 +91,7 @@ public class NewClientFragment extends DialogFragment {
 
     private boolean checkInputNameClient() {
         if (nameClient.getText().toString().isEmpty()) {
-            new AlertDialog.Builder(getDialog().getContext())
+            new AlertDialog.Builder(Objects.requireNonNull(getDialog()).getContext())
                     .setTitle("Campo nome obrigatório!")
                     .setPositiveButton("ok", null).show();
             return false;
@@ -92,14 +101,24 @@ public class NewClientFragment extends DialogFragment {
 
     private void saveClient() {
         getClient();
-        if(getTag().equals("EditClientFragment")){
-            listClientView.edit(client);
-        }else{
-            listClientView.save(client);
+        if (getTag() != null) {
+            if (getTag().equals(TAG_EDIT_CLIENT)) {
+                setResult(KEY_EDIT_CLIENT, position);
+            } else {
+                setResult(KEY_NEW_CLIENT, INVALID_POSITION);
+            }
         }
-        getDialog().dismiss();
-        requireActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        Objects.requireNonNull(getDialog()).dismiss();
+        getParentFragmentManager().beginTransaction().remove(this).commit();
     }
+
+    private void setResult(String key, int position) {
+        Bundle result = new Bundle();
+        result.putSerializable(key, client);
+        result.putInt(KEY_POSITION, position);
+        getParentFragmentManager().setFragmentResult(KEY_CLIENT, result);
+    }
+
 
     private void getClient() {
         String name = nameClient.getText().toString();

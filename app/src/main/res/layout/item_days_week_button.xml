@@ -12,7 +12,7 @@
         android:layout_margin="15dp"
         android:background="@drawable/shape_button_color1"
         android:textColor="@color/black"
-        android:textSize="12sp"
+        android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@id/day_of_week_textview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,9 +25,9 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/button" />
 
 

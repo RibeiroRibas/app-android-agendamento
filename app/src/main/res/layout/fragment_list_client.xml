@@ -2,57 +2,51 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
+
     <androidx.appcompat.widget.SearchView
-        android:id="@+id/sv_cliente"
+        android:id="@+id/fragment_list_client_sv"
         android:layout_width="0dp"
         android:layout_height="40dp"
-        app:iconifiedByDefault="false"
         android:layout_margin="8dp"
-        app:queryHint="Nome"
-        app:layout_constraintEnd_toStartOf="@id/imgBtn_add_Service"
+        app:iconifiedByDefault="false"
+        app:layout_constraintEnd_toStartOf="@id/fragment_list_cliente_btn_add"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:queryHint="Nome" />
+
     <include
+        android:id="@+id/fragment_list_client_import"
         layout="@layout/custom_loading_buttom"
-        android:id="@+id/button_import"
-        android:layout_width="150dp"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/sv_cliente"
-        app:layout_constraintBottom_toBottomOf="@id/sv_cliente"
-        android:text="Importar"
+        android:text="@string/importing"
         android:textSize="11sp"
-        />
+        app:layout_constraintBottom_toBottomOf="@id/fragment_list_client_sv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/fragment_list_client_sv" />
+
     <ImageButton
-        android:id="@+id/imgBtn_add_Service"
+        android:id="@+id/fragment_list_cliente_btn_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:backgroundTint="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/sv_cliente"
-        app:layout_constraintEnd_toStartOf="@id/button_import"
-        app:layout_constraintTop_toTopOf="@+id/sv_cliente"
+        android:contentDescription="@string/todo"
+        app:layout_constraintBottom_toBottomOf="@+id/fragment_list_client_sv"
+        app:layout_constraintEnd_toStartOf="@id/fragment_list_client_import"
+        app:layout_constraintTop_toTopOf="@+id/fragment_list_client_sv"
         app:srcCompat="@drawable/ic_add" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_phone_contact_list"
+        android:id="@+id/fragment_list_cliente_rv"
         android:layout_width="0dp"
         android:layout_height="200dp"
-        app:layoutManager="LinearLayoutManager"
         android:layout_margin="8dp"
+        app:layoutManager="LinearLayoutManager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/sv_cliente" />
-    <!--    <androidx.recyclerview.widget.RecyclerView-->
-    <!--        android:id="@+id/rv_phone_contact_list"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_margin="8dp"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@id/sv_cliente" />-->
+        app:layout_constraintTop_toBottomOf="@id/fragment_list_client_sv" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,20 +7,19 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:context="com.example.beautystyle.com.com.beautystyle.ui.activity.NewEventActivity">
+        android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/tv_date_of_event"
+            android:id="@+id/activity_new_event_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Data do Agendamento"
-            app:layout_constraintStart_toStartOf="@id/et_fragment_report_period_start_date"
+            android:text="@string/event_date"
+            app:layout_constraintStart_toStartOf="@id/activity_new_event_event_date"
             app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
-            android:id="@+id/et_fragment_report_period_start_date"
+            android:id="@+id/activity_new_event_event_date"
             android:layout_width="150dp"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
@@ -31,181 +30,188 @@
             android:longClickable="false"
             android:padding="8dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_date_of_event" />
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv"
+            tools:ignore="Autofill,LabelFor" />
 
         <TextView
-            android:id="@+id/tv_start_time"
+            android:id="@+id/activity_new_event_tv1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Início ás:"
-            app:layout_constraintStart_toStartOf="@+id/et_event_start_time"
-            app:layout_constraintTop_toTopOf="@+id/tv_date_of_event" />
+            android:text="@string/start_time"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_start_time"
+            app:layout_constraintTop_toTopOf="@+id/activity_new_event_tv" />
 
         <EditText
-            android:id="@+id/et_event_start_time"
+            android:id="@+id/activity_new_event_start_time"
             android:layout_width="75dp"
             android:layout_height="48dp"
             android:background="@drawable/custom_default_input"
             android:clickable="true"
+            android:digits="0,1,2,3,4,5,6,7,8,9,:"
             android:focusable="false"
             android:inputType="number"
             android:longClickable="false"
             android:padding="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/et_fragment_report_period_start_date"
-            app:layout_constraintEnd_toStartOf="@+id/tv_hrs" />
+            app:layout_constraintBottom_toBottomOf="@+id/activity_new_event_event_date"
+            app:layout_constraintEnd_toStartOf="@+id/activity_new_event_tv2"
+            tools:ignore="Autofill,LabelFor" />
 
         <TextView
-            android:id="@+id/tv_hrs"
+            android:id="@+id/activity_new_event_tv2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="hrs"
-            app:layout_constraintBottom_toBottomOf="@+id/et_fragment_report_period_start_date"
+            android:text="@string/hrs"
+            app:layout_constraintBottom_toBottomOf="@+id/activity_new_event_event_date"
             app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
-            android:id="@+id/tv_client"
+            android:id="@+id/activity_new_event_tv3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Cliente"
-            app:layout_constraintStart_toStartOf="@+id/et_fragment_report_period_start_date"
-            app:layout_constraintTop_toBottomOf="@+id/et_fragment_report_period_start_date" />
+            android:text="@string/client"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_event_date"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_event_date" />
 
 
         <EditText
-            android:id="@+id/payment"
+            android:id="@+id/activity_new_event_client"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:background="@drawable/custom_default_input"
             android:clickable="true"
             android:focusable="false"
-            android:hint="Buscar"
+            android:hint="@string/search"
             android:longClickable="false"
             android:padding="8dp"
-            app:layout_constraintEnd_toEndOf="@id/tv_hrs"
-            app:layout_constraintStart_toStartOf="@+id/tv_client"
-            app:layout_constraintTop_toBottomOf="@+id/tv_client" />
+            app:layout_constraintEnd_toEndOf="@id/activity_new_event_tv2"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_tv3"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv3"
+            tools:ignore="Autofill,TextFields" />
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fcv_find_client"
+            android:id="@+id/activity_new_event_container_client"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@+id/payment"
-            app:layout_constraintStart_toStartOf="@+id/payment"
-            app:layout_constraintTop_toBottomOf="@+id/payment" />
+            app:layout_constraintEnd_toEndOf="@+id/activity_new_event_client"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_client"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_client" />
 
         <TextView
-            android:id="@+id/tv_service2"
+            android:id="@+id/activity_new_event_tv4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Serviço"
-            app:layout_constraintStart_toStartOf="@+id/payment"
-            app:layout_constraintTop_toBottomOf="@+id/fcv_find_client" />
+            android:text="@string/service"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_client"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_client" />
 
         <EditText
-            android:id="@+id/et_find_service"
+            android:id="@+id/activity_new_event_service"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
             android:layout_marginEnd="16dp"
             android:background="@drawable/custom_default_input"
             android:clickable="true"
             android:focusable="false"
-            android:hint="Buscar"
+            android:hint="@string/search"
             android:longClickable="false"
+            android:minHeight="48dp"
             android:padding="8dp"
-            app:layout_constraintEnd_toStartOf="@+id/et_duration_services"
-            app:layout_constraintStart_toStartOf="@+id/tv_client"
-            app:layout_constraintTop_toBottomOf="@+id/tv_service2" />
+            app:layout_constraintEnd_toStartOf="@+id/activity_new_event_duration"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_tv3"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv4"
+            tools:ignore="Autofill,TextFields" />
 
 
         <TextView
-            android:id="@+id/tv_time_of_duration_services"
+            android:id="@+id/activity_new_event_tv5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Duração"
-            app:layout_constraintStart_toStartOf="@+id/et_duration_services"
-            app:layout_constraintTop_toTopOf="@+id/tv_service2" />
+            android:text="@string/duration"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_duration"
+            app:layout_constraintTop_toTopOf="@+id/activity_new_event_tv4" />
 
         <EditText
-            android:id="@+id/et_duration_services"
+            android:id="@+id/activity_new_event_duration"
             android:layout_width="75dp"
             android:layout_height="48dp"
             android:background="@drawable/custom_default_input"
             android:clickable="true"
+            android:digits="0,1,2,3,4,5,6,7,8,9,:"
             android:focusable="false"
             android:inputType="time"
             android:longClickable="false"
             android:padding="8dp"
-            app:layout_constraintEnd_toStartOf="@+id/tv_hrs2"
-            app:layout_constraintTop_toBottomOf="@+id/tv_time_of_duration_services" />
+            app:layout_constraintEnd_toStartOf="@+id/activity_new_event_tv6"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv5"
+            tools:ignore="Autofill" />
 
         <TextView
-            android:id="@+id/tv_hrs2"
+            android:id="@+id/activity_new_event_tv6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="hrs"
-            app:layout_constraintBottom_toBottomOf="@+id/et_find_service"
-            app:layout_constraintEnd_toEndOf="@+id/payment" />
+            android:text="@string/hrs"
+            app:layout_constraintBottom_toBottomOf="@+id/activity_new_event_service"
+            app:layout_constraintEnd_toEndOf="@+id/activity_new_event_client" />
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fcv_find_service"
+            android:id="@+id/activity_new_event_container_service"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@+id/et_duration_services"
-            app:layout_constraintStart_toStartOf="@+id/et_find_service"
-            app:layout_constraintTop_toBottomOf="@+id/et_find_service" />
+            app:layout_constraintEnd_toEndOf="@+id/activity_new_event_duration"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_service"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_service" />
 
         <TextView
-            android:id="@+id/tv_valueService"
+            android:id="@+id/activity_new_event_tv7"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Valor Total"
-            app:layout_constraintStart_toStartOf="@+id/payment"
-            app:layout_constraintTop_toBottomOf="@+id/fcv_find_service" />
+            android:text="@string/total_value"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_client"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_service" />
 
         <me.abhinay.input.CurrencyEditText
-            android:id="@+id/et_value_service"
+            android:id="@+id/activity_new_event_value"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/custom_default_input"
+            android:inputType="number"
             android:longClickable="false"
             android:padding="8dp"
-            android:text="0,00"
-            android:inputType="number"
-            app:layout_constraintEnd_toStartOf="@+id/checkBoxNaoRecebido"
-            app:layout_constraintStart_toStartOf="@+id/tv_client"
-            app:layout_constraintTop_toBottomOf="@+id/tv_valueService" />
+            android:text="@string/default_coin_value"
+            app:layout_constraintEnd_toStartOf="@+id/activity_new_event_cb_not_received"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_tv3"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv7" />
 
         <CheckBox
-            android:id="@+id/checkBoxRecebido"
+            android:id="@+id/activity_new_event_cb_received"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="RECEBIDO"
-            app:layout_constraintStart_toStartOf="@+id/checkBoxNaoRecebido"
-            app:layout_constraintTop_toBottomOf="@+id/fcv_find_service" />
+            android:text="@string/gain"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_cb_not_received"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_service" />
 
         <CheckBox
-            android:id="@+id/checkBoxNaoRecebido"
+            android:id="@+id/activity_new_event_cb_not_received"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="NÃO RECEBIDO"
-            app:layout_constraintEnd_toEndOf="@+id/tv_hrs2"
-            app:layout_constraintTop_toBottomOf="@+id/checkBoxRecebido" />
+            android:text="@string/not_received"
+            app:layout_constraintEnd_toEndOf="@+id/activity_new_event_tv6"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_cb_received" />
 
         <Button
-            android:id="@+id/btn_save_event"
+            android:id="@+id/activity_new_event_btn_save_event"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@color/purple"
-            android:text="Salvar"
-            app:layout_constraintStart_toStartOf="@+id/et_find_service"
-            app:layout_constraintTop_toBottomOf="@+id/et_value_service" />
+            android:text="@string/save"
+            app:layout_constraintStart_toStartOf="@+id/activity_new_event_service"
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_value" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

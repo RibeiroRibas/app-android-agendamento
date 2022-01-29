@@ -24,7 +24,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        app:layout_constraintEnd_toStartOf="@id/fragment_list_expense_save"
+        app:layout_constraintEnd_toStartOf="@+id/fragment_list_expense_til2"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/fragment_list_expense_tv"
         app:layout_constraintTop_toTopOf="parent">
@@ -38,18 +38,38 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/fragment_list_expense_til2"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toStartOf="@id/fragment_list_expense_save"
+        app:layout_constraintStart_toEndOf="@+id/fragment_list_expense_til"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <AutoCompleteTextView
+            android:id="@+id/fragment_list_expense_year"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/select_year"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <ImageButton
         android:id="@+id/fragment_list_expense_save"
         android:layout_width="55dp"
         android:layout_height="55dp"
         android:layout_marginEnd="8dp"
         android:backgroundTint="@color/white"
+        android:contentDescription="@string/todo"
         app:layout_constraintBottom_toBottomOf="@id/fragment_list_expense_til"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/fragment_list_expense_til"
+        app:layout_constraintStart_toEndOf="@id/fragment_list_expense_til2"
         app:layout_constraintTop_toTopOf="@id/fragment_list_expense_til"
-        app:srcCompat="@drawable/ic_add"
-        android:contentDescription="@string/todo" />
+        app:srcCompat="@drawable/ic_add" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/fragment_list_expense_rv"

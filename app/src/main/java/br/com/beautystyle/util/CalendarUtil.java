@@ -1,17 +1,11 @@
 package br.com.beautystyle.util;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import br.com.beautystyle.model.Event;
 
 public class CalendarUtil {
 
@@ -22,7 +16,7 @@ public class CalendarUtil {
     public static List<LocalDate> createDaysList() {
         List<LocalDate> listDays = new ArrayList<>();
         listDays.add(selectedDate);
-        for (int i = 1; i <= 30; i++) {
+        for (int i = 1; i <= 365; i++) {
             listDays.add(selectedDate.minusDays(i));
             listDays.add(selectedDate.plusDays(i));
         }
@@ -41,12 +35,14 @@ public class CalendarUtil {
         formatDate = df.format(date);
         return formatDate;
     }
+
     public static String formatMonth(LocalDate date) {
         df = DateTimeFormatter.ofPattern("MMMM");
         formatDate = df.format(date);
-        formatDate = formatDate.substring(0,1).toUpperCase().concat(formatDate.substring(1));
+        formatDate = formatDate.substring(0, 1).toUpperCase().concat(formatDate.substring(1));
         return formatDate;
     }
+
     public static String formatYear(LocalDate date) {
         df = DateTimeFormatter.ofPattern("yyyy");
         formatDate = df.format(date);
@@ -58,6 +54,7 @@ public class CalendarUtil {
         formatDate = df.format(date);
         return formatDate;
     }
+
     public static String formatDateLong(LocalDate date) {
         df = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
         formatDate = df.format(date);
@@ -69,25 +66,5 @@ public class CalendarUtil {
         formatDate = df.format(date);
         return formatDate;
     }
-
-
-    public static String[] createArrayOfYears(List<Event> listAll) {
-
-        List<Integer> collect = listAll.stream()
-                .map(Event::getEventDate)
-                .map(LocalDate::getYear)
-                .distinct()
-                .sorted(Comparator.comparing(Integer::intValue))
-                .collect(Collectors.toList());
-
-        String[] years = new String[collect.size()];
-
-        for(int i = 0; i<collect.size();i++){
-            years[i]= Integer.toString(collect.get(i));
-        }
-        return years;
-    }
-
-
 }
 

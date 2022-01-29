@@ -4,37 +4,41 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Expenses implements Serializable {
+public class Expense implements Serializable {
+
+    public Expense() {
+
+    }
+
+    public enum RepeatOrNot {
+        REPEAT, NREPEAT
+    }
 
     private String description;
     private BigDecimal price;
     private LocalDate date;
     private Category category;
     private int id = 0;
+    private RepeatOrNot repeatOrNot;
 
-    public Expenses(String description, BigDecimal price, LocalDate date, Category category) {
+    public RepeatOrNot getRepeatOrNot() {
+        return repeatOrNot;
+    }
+
+    public void setRepeatOrNot(RepeatOrNot repeatOrNot) {
+        this.repeatOrNot = repeatOrNot;
+    }
+
+    public Expense(String description, BigDecimal price, LocalDate date, Category category, RepeatOrNot repeatOrNot) {
         this.description = description;
         this.price = price;
         this.date = date;
         this.category = category;
-    }
-
-    @Override
-    public String toString() {
-        return "Expenses{" +
-                "description='" + description + '\'' +
-                ", price=" + price +
-                ", date=" + date +
-                ", category=" + category +
-                ", id=" + id +
-                '}';
+        this.repeatOrNot = repeatOrNot;
     }
 
     public Category getCategory() {
         return category;
-    }
-
-    public Expenses() {
     }
 
     public int getId() {
@@ -72,4 +76,6 @@ public class Expenses implements Serializable {
     public void setDate(LocalDate date) {
         this.date = date;
     }
+
+
 }

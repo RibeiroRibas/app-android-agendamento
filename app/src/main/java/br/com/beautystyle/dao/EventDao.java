@@ -41,6 +41,12 @@ public class EventDao {
         return null;
     }
 
+    public List<Event> listByMonth(int monthValue){
+        return listEvents.stream()
+                .filter(event -> event.getEventDate().getMonthValue()==monthValue)
+                .collect(Collectors.toList());
+    }
+
     public boolean checkStartTime(Event newEvent) {
         return listEvents.stream()
                 .filter(ev -> ev.getEventDate()
@@ -75,12 +81,4 @@ public class EventDao {
         }
     }
 
-    public List<Event> findEventByMonth(int position){
-        List<Event> eventsByMonth = new ArrayList<>();
-        for (Event event: listEvents) {
-            if(event.getEventDate().getMonthValue()==position)
-                eventsByMonth.add(event);
-        }
-        return eventsByMonth;
-    }
 }

@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 public class TimePickerFragment extends DialogFragment {
-
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {

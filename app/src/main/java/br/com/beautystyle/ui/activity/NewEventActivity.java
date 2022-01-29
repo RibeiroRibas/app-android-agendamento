@@ -1,17 +1,17 @@
 package br.com.beautystyle.ui.activity;
 
-import static br.com.beautystyle.ui.activity.ContantsEventActivity.REQUEST_CODE_EDIT_EVENT;
-import static br.com.beautystyle.ui.activity.ContantsEventActivity.REQUEST_CODE_NEW_EVENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EVENT;
+import static br.com.beautystyle.ui.activity.ContantsActivity.KEY_NEW_EVENT;
+import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_EDIT_EVENT;
+import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_NEW_EVENT;
+import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_DURATION;
+import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_START_TIME;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_EVENT;
 
-import android.annotation.SuppressLint;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.ArraySet;
-import android.view.View;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TimePicker;
@@ -19,6 +19,7 @@ import android.widget.TimePicker;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
@@ -31,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import br.com.beautystyle.ViewModel.CalendarViewModel;
 import br.com.beautystyle.dao.EventDao;
 import br.com.beautystyle.model.Client;
 import br.com.beautystyle.model.Event;
@@ -45,7 +47,7 @@ import br.com.beautystyle.util.TimeUtil;
 import me.abhinay.input.CurrencyEditText;
 import me.abhinay.input.CurrencySymbols;
 
-public class NewEventActivity extends AppCompatActivity implements ClientListAdapter.OnClientListener, ServiceListFragment.OnServiceListener, TimePickerDialog.OnTimeSetListener{
+public class NewEventActivity extends AppCompatActivity implements ClientListAdapter.OnClientListener, ServiceListFragment.OnServiceListener, TimePickerDialog.OnTimeSetListener {
 
     private EditText searchClient, searchService, eventDate, eventStartTime, servicesDuration;
     public CurrencyEditText valueOfTheServices;
@@ -53,55 +55,44 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
     private Set<Services> listServiceSet = new ArraySet<>();
     private Event event = new Event();
     private LocalTime eventDuration;
-    private DialogFragment timePicker=null;
+    private DialogFragment timePicker = null;
+    private CalendarViewModel calendarViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
-        initWidgets();
 
-        setStatusPagamento();
+        initWidgets();
         loadEvent();
         setEventDateListener();
+        calendarObserve();
         setEventStartTimeListener();
         startClientFragment();
         startServiceFragment();
         setDurationEventListener();
         formatInputEditTextValueService();
+        setPaymentStatusListener();
+
         saveEvent();
     }
 
     private void initWidgets() {
-        eventDate = findViewById(R.id.et_fragment_report_period_start_date);
-        searchService = findViewById(R.id.et_find_service);
-        searchClient = findViewById(R.id.payment);
-        valueOfTheServices = findViewById(R.id.et_value_service);
-        servicesDuration = findViewById(R.id.et_duration_services);
-        eventStartTime = findViewById(R.id.et_event_start_time);
-        statusRecebido = findViewById(R.id.checkBoxRecebido);
-        statusNaoRecebido = findViewById(R.id.checkBoxNaoRecebido);
+        eventDate = findViewById(R.id.activity_new_event_event_date);
+        searchService = findViewById(R.id.activity_new_event_service);
+        searchClient = findViewById(R.id.activity_new_event_client);
+        valueOfTheServices = findViewById(R.id.activity_new_event_value);
+        servicesDuration = findViewById(R.id.activity_new_event_duration);
+        eventStartTime = findViewById(R.id.activity_new_event_start_time);
+        statusRecebido = findViewById(R.id.activity_new_event_cb_received);
+        statusNaoRecebido = findViewById(R.id.activity_new_event_cb_not_received);
     }
 
-    private void setStatusPagamento() {
-        statusRecebido.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (buttonView.isChecked()) {
-                statusNaoRecebido.setChecked(false);
-                event.setStatusPagamento(Event.StatusPagamento.RECEBIDO);
-            }
-        });
-        statusNaoRecebido.setOnCheckedChangeListener(((buttonView, isChecked) -> {
-            if (buttonView.isChecked()) {
-                statusRecebido.setChecked(false);
-                event.setStatusPagamento(Event.StatusPagamento.NAORECEBIDO);
-            }
-        }));
-    }
 
     private void loadEvent() {
         Intent intentEvent = getIntent();
-        if (intentEvent.hasExtra(KEY_EVENT)) {
-            event = (Event) intentEvent.getSerializableExtra(KEY_EVENT);
+        if (intentEvent.hasExtra(KEY_EDIT_EVENT)) {
+            event = (Event) intentEvent.getSerializableExtra(KEY_EDIT_EVENT);
             if (event.getEndTime() == null) { // new event mode (click list event)
                 eventStartTime.setText(TimeUtil.formatLocalTime(event.getStarTime()));
                 setStatusAndDateEvent();
@@ -115,6 +106,7 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
 
     private void setStatusAndDateEvent() {
         statusNaoRecebido.setChecked(true); // value default
+        event.setStatusPagamento(Event.StatusPagamento.NAORECEBIDO);
         eventDate.setText(CalendarUtil.formatDate(CalendarUtil.selectedDate));
         event.setEventDate(CalendarUtil.selectedDate);
     }
@@ -141,46 +133,34 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
         }
     }
 
+    private void calendarObserve() {
+        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
+        calendarViewModel.getDate().observe(this, this::setDate);
+    }
+
     private void setEventDateListener() {
-        eventDate.setOnClickListener(v -> {
-            @SuppressLint("InflateParams") View inflateViewCalendar = getLayoutInflater().inflate(R.layout.dialog_calendar, null);
-            AlertDialog dialogBuilderCalendar = createDiologBuilderCalendar(inflateViewCalendar);
-            setOnDateChangeListener(dialogBuilderCalendar, inflateViewCalendar);
-        });
+        eventDate.setOnClickListener(v -> calendarViewModel.inflateCalendar(this));
     }
 
-    private AlertDialog createDiologBuilderCalendar(View inflateViewCalendar) {
-        AlertDialog.Builder dialogCalendar = new AlertDialog.Builder(this);
-        dialogCalendar.setView(inflateViewCalendar);
-        AlertDialog dialog = dialogCalendar.create();
-        dialog.show();
-        return dialog;
-    }
-
-    private void setOnDateChangeListener(AlertDialog dialogBuilderCalendar, View inflateViewCalendar) {
-        CalendarView calendar = inflateViewCalendar.findViewById(R.id.dialog_calendar_view);
-        calendar.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            LocalDate dateOfEvent = LocalDate.of(year, month + 1, dayOfMonth);
-            event.setEventDate(dateOfEvent);
-            String formatDateOfEvent = CalendarUtil.formatDate(dateOfEvent);
-            eventDate.setText(formatDateOfEvent);
-            dialogBuilderCalendar.dismiss();
-        });
+    private void setDate(LocalDate date) {
+        event.setEventDate(date);
+        String formatDateOfEvent = CalendarUtil.formatDate(date);
+        eventDate.setText(formatDateOfEvent);
     }
 
     private void setEventStartTimeListener() {
         eventStartTime.setOnClickListener(v -> {
-             timePicker = new TimePickerFragment();
-            timePicker.show(getSupportFragmentManager(),"startTime");
+            timePicker = new TimePickerFragment();
+            timePicker.show(getSupportFragmentManager(), TAG_EVENT_START_TIME);
         });
     }
 
     private void startClientFragment() {
         searchClient.setOnClickListener(v -> {
-            if (getSupportFragmentManager().findFragmentById(R.id.fcv_find_client) == null)
+            if (getSupportFragmentManager().findFragmentById(R.id.activity_new_event_container_client) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.fcv_find_client, new ClientListFragment(this))
+                        .add(R.id.activity_new_event_container_client, new ClientListFragment(this))
                         .commit();
         });
     }
@@ -199,10 +179,10 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
     private void startServiceFragment() {
         searchService.setOnClickListener(v -> {
             resetService();
-            if (getSupportFragmentManager().findFragmentById(R.id.fcv_find_service) == null)
+            if (getSupportFragmentManager().findFragmentById(R.id.activity_new_event_container_service) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.fcv_find_service, new ServiceListFragment(this))
+                        .add(R.id.activity_new_event_container_service, new ServiceListFragment(this))
                         .commit();
         });
     }
@@ -227,6 +207,7 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
             builder.append(service.getName());
             builder.append(", ");
         }
+        builder.delete(builder.length() - 2, builder.length() - 1);
         searchService.setText(builder.toString());
     }
 
@@ -253,7 +234,7 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
     private void setDurationEventListener() {
         servicesDuration.setOnClickListener(v -> {
             timePicker = new TimePickerFragment();
-            timePicker.show(getSupportFragmentManager(),"eventDuration");
+            timePicker.show(getSupportFragmentManager(), TAG_EVENT_DURATION);
         });
     }
 
@@ -276,9 +257,24 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
         valueOfTheServices.setSeparator(".");
     }
 
+    private void setPaymentStatusListener() {
+        statusRecebido.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isChecked()) {
+                statusNaoRecebido.setChecked(false);
+                event.setStatusPagamento(Event.StatusPagamento.RECEBIDO);
+            }
+        });
+        statusNaoRecebido.setOnCheckedChangeListener(((buttonView, isChecked) -> {
+            if (buttonView.isChecked()) {
+                statusRecebido.setChecked(false);
+                event.setStatusPagamento(Event.StatusPagamento.NAORECEBIDO);
+            }
+        }));
+    }
+
     private void saveEvent() {
         EventDao eventDao = new EventDao();
-        Button btnSaveEvent = findViewById(R.id.btn_save_event);
+        Button btnSaveEvent = findViewById(R.id.activity_new_event_btn_save_event);
         btnSaveEvent.setOnClickListener(v -> {
             if (checkRequiredFields()) {
                 boolean checkStartTime;
@@ -302,7 +298,7 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
     private void setEndTimeAndValueService() {
         LocalTime eventEndTime = event.getStarTime().plusHours(eventDuration.getHour()).plusMinutes(eventDuration.getMinute());
         event.setEndTime(eventEndTime);
-        BigDecimal valueService = new BigDecimal(CoinUtil.formatBrBigDecimal(valueOfTheServices.getText().toString()));
+        BigDecimal valueService = new BigDecimal(CoinUtil.formatBrBigDecimal(Objects.requireNonNull(valueOfTheServices.getText()).toString()));
         event.setValueEvent(valueService);
     }
 
@@ -323,9 +319,7 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
                     event.setEndTime(EventDao.reduzedEndTime);
                     saveEventFinish();
                 })
-                .setNegativeButton("Não", (dialogInterface, i) -> {
-                    servicesDuration.setBackgroundResource(R.drawable.custom_invalid_input);
-                })
+                .setNegativeButton("Não", (dialogInterface, i) -> servicesDuration.setBackgroundResource(R.drawable.custom_invalid_input))
                 .show();
     }
 
@@ -339,21 +333,21 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
 
     private boolean checkRequiredFields() {
 
-        List<Boolean> check = new ArrayList<>();;
+        List<Boolean> check = new ArrayList<>();
         check.add(checkFields(eventStartTime));
         check.add(checkFields(searchClient));
         check.add(checkFields(searchService));
         check.add(checkFields(servicesDuration));
 
         for (Boolean checkInput : check) {
-            if(!checkInput)
+            if (!checkInput)
                 return false;
         }
 
         return true;
     }
 
-    private boolean checkFields(EditText editText){
+    private boolean checkFields(EditText editText) {
         int backgroundResource = editText.getText().toString().isEmpty() ? R.drawable.custom_invalid_input : R.drawable.custom_default_input;
         editText.setBackgroundResource(backgroundResource);
         return backgroundResource == R.drawable.custom_default_input;
@@ -362,10 +356,10 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
     public void saveEventFinish() {
         Intent intent = new Intent();
         if (event.checkId()) {
-            intent.putExtra("editEvent", event);
+            intent.putExtra(KEY_EDIT_EVENT, event);
             setResult(REQUEST_CODE_EDIT_EVENT, intent);
         } else {
-            intent.putExtra("newEvent", event);
+            intent.putExtra(KEY_NEW_EVENT, event);
             setResult(REQUEST_CODE_NEW_EVENT, intent);
         }
         CalendarUtil.selectedDate = event.getEventDate();
@@ -376,16 +370,16 @@ public class NewEventActivity extends AppCompatActivity implements ClientListAda
     public void onTimeSet(TimePicker view, int hour, int minute) {
         LocalTime timeWatch = LocalTime.of(hour, minute);
         String timeFormated = TimeUtil.formatLocalTime(timeWatch);
-            switch (Objects.requireNonNull(timePicker.getTag())){
-                case("startTime"):
-                    eventStartTime.setText(timeFormated);
-                    event.setStarTime(timeWatch);
-                    break;
-                case ("eventDuration"):
-                    servicesDuration.setText(timeFormated);
-                    eventDuration = timeWatch;
-                    break;
-            }
-        timePicker=null;
+        switch (Objects.requireNonNull(timePicker.getTag())) {
+            case (TAG_EVENT_START_TIME):
+                eventStartTime.setText(timeFormated);
+                event.setStarTime(timeWatch);
+                break;
+            case (TAG_EVENT_DURATION):
+                servicesDuration.setText(timeFormated);
+                eventDuration = timeWatch;
+                break;
+        }
+        timePicker = null;
     }
 }

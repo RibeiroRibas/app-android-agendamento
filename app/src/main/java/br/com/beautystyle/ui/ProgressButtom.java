@@ -17,9 +17,11 @@ import br.com.beautystyle.model.Client;
 
 public class ProgressButtom {
 
-    private View progressbar;
-    private TextView textView;
-    private Context context;
+    private final View progressbar;
+    private final TextView textView;
+    private final Context context;
+    private static final String TXT_IMPORT = "Importar";
+    private static final String TXT_IMPORTING = "Importando...";
 
     public ProgressButtom(View view, Context context) {
         progressbar = view.findViewById(R.id.custom_loading_progress_bar);
@@ -27,30 +29,30 @@ public class ProgressButtom {
         this.context = context;
     }
 
-    public void buttonActivated(){
+    public void buttonActivated() {
         progressbar.setVisibility(View.VISIBLE);
-        textView.setText("Importando...");
+        textView.setText(TXT_IMPORTING);
     }
+
     @SuppressLint("Range")
-    public List<Client> getContactList() {
+    public List<Client> getContactList(ListClientView listClientView) {
         List<Client> contactList = new ArrayList<>();
-        ListClientView listClientView = new ListClientView();
         Uri uri = ContactsContract.Contacts.CONTENT_URI;
-        Cursor cursor = context.getApplicationContext().getContentResolver().query(uri,null,null,null);
-        if(cursor.getCount()>0){
-            while(cursor.moveToNext()){
-                @SuppressLint("Range") String id =cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-                @SuppressLint("Range") String name =cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+        Cursor cursor = context.getApplicationContext().getContentResolver().query(uri, null, null, null);
+        if (cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                @SuppressLint("Range") String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
                 Uri uriPhone = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-                String selection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID+" =?";
-                Cursor phoneCursor = context.getApplicationContext().getContentResolver().query(uriPhone,null,selection,new String[]{id},null);
+                String selection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " =?";
+                Cursor phoneCursor = context.getApplicationContext().getContentResolver().query(uriPhone, null, selection, new String[]{id}, null);
                 @SuppressLint("Range") String number = null;
-                if(phoneCursor.moveToNext()){
+                if (phoneCursor.moveToNext()) {
                     number = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                 }
-                Client client = new Client(name,number);
-                if(!listClientView.checkContactList(client))
+                Client client = new Client(name, number);
+                if (!listClientView.checkContactList(client))
                     contactList.add(client);
                 phoneCursor.close();
             }
@@ -59,8 +61,9 @@ public class ProgressButtom {
         buttonFinished();
         return contactList;
     }
-    public void buttonFinished(){
+
+    private void buttonFinished() {
         progressbar.setVisibility(View.GONE);
-        textView.setText("Importar");
+        textView.setText(TXT_IMPORT);
     }
 }

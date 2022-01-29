@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/img_action_bar"
+        android:id="@+id/fragment_new_client_action_bar"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:background="@color/lilas"
+        android:contentDescription="@string/todo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -17,48 +19,51 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="Novo Cliente"
+        android:text="@string/new_cliente"
         android:textColor="@color/white"
         android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="@id/img_action_bar"
-        app:layout_constraintStart_toStartOf="@id/img_action_bar"
-        app:layout_constraintTop_toTopOf="@id/img_action_bar" />
+        app:layout_constraintBottom_toBottomOf="@id/fragment_new_client_action_bar"
+        app:layout_constraintStart_toStartOf="@id/fragment_new_client_action_bar"
+        app:layout_constraintTop_toTopOf="@id/fragment_new_client_action_bar" />
 
     <ImageView
-        android:id="@+id/img_save_service"
+        android:id="@+id/fragment_new_client_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/img_action_bar"
-        app:layout_constraintEnd_toEndOf="@id/img_action_bar"
-        app:layout_constraintTop_toTopOf="@id/img_action_bar"
-        app:srcCompat="@drawable/ic_check" />
+        app:layout_constraintBottom_toBottomOf="@id/fragment_new_client_action_bar"
+        app:layout_constraintEnd_toEndOf="@id/fragment_new_client_action_bar"
+        app:layout_constraintTop_toTopOf="@id/fragment_new_client_action_bar"
+        app:srcCompat="@drawable/ic_check"
+        android:contentDescription="@string/todo" />
 
     <EditText
-        android:id="@+id/edTxt_name_service"
+        android:id="@+id/fragment_new_client_name"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_margin="8dp"
         android:background="@drawable/custom_default_input"
-        android:hint="Nome"
+        android:hint="@string/name"
         android:inputType="text"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/img_action_bar" />
+        app:layout_constraintTop_toBottomOf="@+id/fragment_new_client_action_bar"
+        tools:ignore="Autofill" />
 
     <EditText
-        android:id="@+id/edTxt_duration_service"
+        android:id="@+id/fragment_new_client_phone"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/custom_default_input"
-        android:hint="Telefone"
+        android:hint="@string/phone"
         android:inputType="phone"
         android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="@+id/edTxt_name_service"
-        app:layout_constraintStart_toStartOf="@+id/edTxt_name_service"
-        app:layout_constraintTop_toBottomOf="@+id/edTxt_name_service" />
+        app:layout_constraintEnd_toEndOf="@+id/fragment_new_client_name"
+        app:layout_constraintStart_toStartOf="@+id/fragment_new_client_name"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_new_client_name"
+        tools:ignore="Autofill" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

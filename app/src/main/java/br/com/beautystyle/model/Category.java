@@ -2,9 +2,9 @@ package br.com.beautystyle.model;
 
 public enum Category {
 
-    OUTROS("Outros"),FIXO("Gasto Fixo"), ESMALTE("Esmalte"), LUZ("Luz"), AMOLACAO("Amolação");
+    OUTROS("Outros"),ALUGUEL("Aluguel"), ESMALTE("Esmalte"), LUZ("Luz"), AMOLACAO("Amolação"), AGUA("Água"), ALIMENTACAO("Alimentção");
 
-    private String description;
+    private final String description;
 
     Category(String description) {
         this.description = description;

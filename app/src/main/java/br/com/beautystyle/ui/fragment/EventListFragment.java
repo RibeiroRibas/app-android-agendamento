@@ -1,7 +1,8 @@
 package br.com.beautystyle.ui.fragment;
 
-import static br.com.beautystyle.ui.activity.ContantsEventActivity.REQUEST_CODE_EDIT_EVENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EVENT;
+import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_EDIT_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NEW_EVENT;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -35,16 +36,27 @@ import br.com.beautystyle.util.CalendarUtil;
 public class EventListFragment extends Fragment implements ListDaysAdaper.OnDayListener {
 
     private ListView eventList;
-    private ListEventView listEventView;
-    private ListDaysView listDaysView;
+    private final ListEventView listEventView;
+    private final ListDaysView listDaysView;
     private TextView monthAndYear;
     private ActivityResultLauncher<Intent> activityResultLauncher;
+
+    public EventListFragment(ListDaysView listDaysView, ListEventView listEventView) {
+        this.listDaysView = listDaysView;
+        this.listEventView = listEventView;
+        CalendarUtil.selectedDate = LocalDate.now();
+    }
+
+    public EventListFragment(ListDaysView listDaysView, ListEventView listEventView, LocalDate date) {
+        this.listDaysView = listDaysView;
+        this.listEventView = listEventView;
+        CalendarUtil.selectedDate = date;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        listEventView = new ListEventView(this.getActivity());
-        listDaysView = new ListDaysView(this);
+
     }
 
     @Override
@@ -52,13 +64,10 @@ public class EventListFragment extends Fragment implements ListDaysAdaper.OnDayL
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_list_event, container, false);
 
-        CalendarUtil.selectedDate = LocalDate.now();
-
         initWidgets(inflatedView);
-
-        setListDaysAdapter(inflatedView);// onClickListener in ListDaysAdapter
+        setDaysListAdapter(inflatedView);// onClickListener in ListDaysAdapter
         setEventListAdapter();
-        eventListOnClickListener(inflatedView);
+        eventListOnClickListener();
 
         monthAndYear.setText(CalendarUtil.formatMonthYear(CalendarUtil.selectedDate));
 
@@ -71,14 +80,13 @@ public class EventListFragment extends Fragment implements ListDaysAdaper.OnDayL
     public void onResume() {
         super.onResume();
         listEventView.eventUpdate();
-
     }
 
     @Override
     public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, @Nullable ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.fragment_list_event_menu, menu);
+        MenuInflater inflater = requireActivity().getMenuInflater();
+        inflater.inflate(R.menu.delete_menu, menu);
     }
 
     @Override
@@ -88,13 +96,13 @@ public class EventListFragment extends Fragment implements ListDaysAdaper.OnDayL
     }
 
     private void initWidgets(View inflatedView) {
-        eventList = inflatedView.findViewById(R.id.list_event_listview);
-        monthAndYear = inflatedView.findViewById(R.id.day_of_month_textview);
+        eventList = inflatedView.findViewById(R.id.fragment_list_event_list_view);
+        monthAndYear = inflatedView.findViewById(R.id.fragment_list_event_month_and_year);
     }
 
-    private void setListDaysAdapter(View inflatedView) {
-        RecyclerView dayOfMonth = inflatedView.findViewById(R.id.days_of_month_recycler_view);
-        listDaysView.setAdapter(dayOfMonth);
+    private void setDaysListAdapter(View inflatedView) {
+        RecyclerView dayOfMonth = inflatedView.findViewById(R.id.fragment_list_event_days_list_rv);
+        listDaysView.setAdapter(dayOfMonth, this);
     }
 
     private void setEventListAdapter() {
@@ -102,11 +110,11 @@ public class EventListFragment extends Fragment implements ListDaysAdaper.OnDayL
         listEventView.setAdapter(eventList);
     }
 
-    private void eventListOnClickListener(View inflatedView) {
+    private void eventListOnClickListener() {
         eventList.setOnItemClickListener((adapter, view, position, id) -> {
             Intent goToNewEventActivityEditMode = new Intent(requireActivity(), NewEventActivity.class);
             Event event = (Event) adapter.getItemAtPosition(position);
-            goToNewEventActivityEditMode.putExtra(KEY_EVENT, event);
+            goToNewEventActivityEditMode.putExtra(KEY_EDIT_EVENT, event);
             activityResultLauncher.launch(goToNewEventActivityEditMode);
         });
     }
@@ -126,14 +134,16 @@ public class EventListFragment extends Fragment implements ListDaysAdaper.OnDayL
     private void registerActivityResult() {
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             Intent intent = result.getData();
+            Event event;
             if (intent != null) {
                 if (result.getResultCode() == REQUEST_CODE_EDIT_EVENT) {
-                    Event event = (Event) intent.getSerializableExtra("editEvent");
+                    event = (Event) intent.getSerializableExtra(KEY_EDIT_EVENT);
                     listEventView.edit(event);
                 } else {
-                    Event event = (Event) intent.getSerializableExtra("newEvent");
+                    event = (Event) intent.getSerializableExtra(KEY_NEW_EVENT);
                     listEventView.save(event);
                 }
+                listDaysView.getScrollPosition(CalendarUtil.selectedDate);
             }
         });
     }

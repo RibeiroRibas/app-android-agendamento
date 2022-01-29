@@ -17,7 +17,7 @@
     <string name="category">Categoria</string>
     <string name="item_description">Descrição dos itens</string>
     <string name="save">Salvar</string>
-    <string name="amount">Valor Total</string>
+    <string name="total_value">Valor Total</string>
     <string name="others">Outros</string>
     <string name="expenses">Gastos</string>
     <string name="select_month">Selecione o Mês</string>
@@ -29,6 +29,36 @@
     <string name="amount_">Total de Ganhos:</string>
     <string name="total_expense">Total De Gastos:</string>
     <string name="left">Sobrou:</string>
+    <string name="event_date">Data do Agendamento</string>
+    <string name="start_time">Início ás:</string>
+    <string name="hrs">hrs</string>
+    <string name="client">Cliente</string>
+    <string name="search">Buscar</string>
+    <string name="service">Serviço</string>
+    <string name="duration">Duração</string>
+    <string name="default_coin_value">0,00</string>
+    <string name="gain">RECEBIDO</string>
+    <string name="not_received">NÃO RECEBIDO</string>
+    <string name="importing">Importar</string>
+    <string name="add_selected">Adicionar Selecionados</string>
+    <string name="new_cliente">Novo Cliente</string>
+    <string name="name">Nome</string>
+    <string name="phone">Telefone</string>
+    <string name="new_service">Novo Serviço</string>
+    <string name="service_name">Nome do Serviço</string>
+    <string name="duration_time">Tempo de Duração</string>
+    <string name="repeat">Repete (no primeiro dia de cada mês)</string>
+    <string name="do_not_repeat">Não Repete</string>
+    <string name="select_year">Selecione o Ano</string>
+    <string name="wait_a_moment">Aguarde um instante por favor…</string>
+    <string name="report">Relatório</string>
+    <string name="select_date">Selecione uma Data</string>
+    <string name="start_date">Data Inicial</string>
+    <string name="end_date">Data Final</string>
+    <string name="home">Inicio</string>
+    <string name="reports">Relatórios</string>
+    <string name="expense">Gastos</string>
+    <string name="calendar">Calendáro</string>
 
 
 </resources>

@@ -1,5 +1,7 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
+import static br.com.beautystyle.ui.adapter.ConstantsAdapter.IS_TODAY;
+
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -23,9 +25,10 @@ import java.util.List;
 
 public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDaysHolder> {
 
-    private final List<LocalDate> listDays = new ArrayList<>();
+    private final List<LocalDate> daysList = new ArrayList<>();
     private final OnDayListener mOnDayListener;
     int selectedPosition;
+    private ListDaysHolder listDaysHolder;
 
     public ListDaysAdaper(OnDayListener onDayListener) {
         this.mOnDayListener = onDayListener;
@@ -34,29 +37,34 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
     @NonNull
     @Override
     public ListDaysAdaper.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
         View createView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_days_week_button, parent, false);
-        return new ListDaysHolder(createView, mOnDayListener, listDays);
+        listDaysHolder = new ListDaysHolder(createView, mOnDayListener, daysList);
+        return listDaysHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull ListDaysAdaper.ListDaysHolder holder, int position) {
-
-        holder.setTextView(listDays.get(position), position);
-
+        holder.setTextView(daysList.get(position), position);
     }
 
     @Override
     public int getItemCount() {
-        return listDays.size();
+        return daysList.size();
     }
 
     public void publishAllDays() {
         List<LocalDate> createdList = CalendarUtil.createDaysList();
-        this.listDays.addAll(createdList);
-        int size2 = createdList.size();
-        notifyItemRangeInserted(0, size2);
+        this.daysList.addAll(createdList);
+        notifyItemRangeInserted(0, createdList.size());
+    }
+
+    public void onClickViewHolder(LocalDate date, int position){
+        listDaysHolder.onClickCalendar(date, position);
+    }
+
+    public int getPosition(LocalDate date){
+        return daysList.indexOf(date);
     }
 
     public class ListDaysHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -65,7 +73,6 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
         private final TextView dayWeek;
         private final OnDayListener onDayListener;
         private final List<LocalDate> listDays;
-
 
         public ListDaysHolder(@NonNull View itemView, OnDayListener onDayListener, List<LocalDate> listDays) {
             super(itemView);
@@ -91,7 +98,7 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
         }
 
         public void setTextView(LocalDate date, int position) {
-            String checkIsToday = LocalDate.now().equals(date) ? "TODAY" : CalendarUtil.formatDayWeek(date);
+            String checkIsToday = LocalDate.now().equals(date) ? IS_TODAY : CalendarUtil.formatDayWeek(date);
             if (CalendarUtil.selectedDate.equals(date)) {
                 Drawable drawable = ContextCompat.getDrawable(itemView.getContext(), R.drawable.shape_button_color2);
                 setDrawable(drawable);
@@ -116,10 +123,21 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
 
         @Override
         public void onClick(View v) {
-            notifyItemChanged(selectedPosition);
-            selectedPosition = getLayoutPosition();
-            notifyItemChanged(selectedPosition);
+            itemChanged(getLayoutPosition());
             onDayListener.onDayClick(listDays.get(getAdapterPosition()), selectedPosition);
+            onDayListener.onDayBinding(listDays.get(getAdapterPosition()));
+        }
+
+        private void itemChanged(int layoutPosition) {
+            notifyItemChanged(selectedPosition);
+            selectedPosition = layoutPosition;
+            notifyItemChanged(selectedPosition);
+        }
+
+        public void onClickCalendar(LocalDate date, int position) {
+            itemChanged(position);
+            onDayListener.onDayClick(date, selectedPosition);
+            onDayListener.onDayBinding(date);
         }
     }
 
