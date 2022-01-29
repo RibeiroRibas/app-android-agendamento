@@ -20,6 +20,7 @@ public class ServiceListAdapter extends BaseAdapter implements Filterable {
     private final Context context;
     private final List<Services> serviceListAll = new ArrayList<>();
     private final List<Services> serviceList = new ArrayList<>();
+    private List<Services> filteredListService;
 
     public ServiceListAdapter(Context context) {
         this.context = context;
@@ -62,7 +63,7 @@ public class ServiceListAdapter extends BaseAdapter implements Filterable {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
 
-                List<Services> filteredListService = new ArrayList<>();
+                filteredListService = new ArrayList<>();
 
                 if (constraint.toString().isEmpty()) {
                     filteredListService.addAll(serviceListAll);
@@ -82,7 +83,7 @@ public class ServiceListAdapter extends BaseAdapter implements Filterable {
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 serviceList.clear();
-                serviceList.addAll((List<Services>) results.values);
+                serviceList.addAll(filteredListService);
                 notifyDataSetChanged();
             }
         };

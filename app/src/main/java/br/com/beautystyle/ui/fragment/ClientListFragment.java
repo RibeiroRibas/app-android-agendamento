@@ -8,13 +8,9 @@ import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_EDIT_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_NEW_CLIENT;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,12 +24,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import br.com.beautystyle.model.Client;

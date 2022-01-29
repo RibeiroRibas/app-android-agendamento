@@ -76,6 +76,7 @@ public class NewExpenseActivity extends AppCompatActivity {
             setPurchaseDateDefault();
             expense.setCategory(Category.OUTROS);
             nRepeat.setChecked(true);
+            expense.setRepeatOrNot(Expense.RepeatOrNot.NREPEAT);
         }
     }
     

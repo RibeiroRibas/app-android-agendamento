@@ -67,8 +67,7 @@ public class ExpenseListFragment extends Fragment {
         setPositionDefault();
         launchNewExpenseActivityListener();
         setAdapterExpenses();
-        listExpenseView.setOnItemClickListener(activityResultLauncher);
-        registerActivityResult();
+        setExpenseListListener();
 
         return inflatedView;
     }
@@ -106,12 +105,14 @@ public class ExpenseListFragment extends Fragment {
         ArrayAdapter<String> adapterItens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, itemList);
         years.setAdapter(adapterItens);
     }
+
     private void setYearsListener() {
         years.setOnItemClickListener(((parent, view, position, id) -> {
             this.year = Integer.parseInt(parent.getItemAtPosition(position).toString());
             listExpenseView.publishResultsChangedList(monthValue, year);
         }));
     }
+
     private void setPositionDefault() {
         monthValue = LocalDate.now().getMonthValue();
         year = LocalDate.now().getYear();
@@ -123,6 +124,8 @@ public class ExpenseListFragment extends Fragment {
         ImageButton newSpending = inflatedView.findViewById(R.id.fragment_list_expense_save);
         newSpending.setOnClickListener(v -> {
             Intent intent = new Intent(requireActivity(), NewExpenseActivity.class);
+            if (activityResultLauncher == null)
+                registerActivityResult();
             activityResultLauncher.launch(intent);
         });
     }
@@ -133,7 +136,13 @@ public class ExpenseListFragment extends Fragment {
         registerForContextMenu(expenseList);
     }
 
-    private void registerActivityResult() {
+    private void setExpenseListListener() {
+        if (activityResultLauncher == null)
+            registerActivityResult();
+        listExpenseView.setOnItemClickListener(activityResultLauncher);
+    }
+
+    public void registerActivityResult() {
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             Intent intent = result.getData();
             if (intent != null) {

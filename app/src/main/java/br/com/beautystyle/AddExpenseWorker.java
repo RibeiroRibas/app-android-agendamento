@@ -35,7 +35,7 @@ public class AddExpenseWorker extends Worker {
                         newExpense.setDate(LocalDate.now());
                         dao.save(newExpense);
                         expense.setRepeatOrNot(Expense.RepeatOrNot.NREPEAT);
-                        expense.edit(expense);
+                        dao.edit(expense);
                     }
         }
 
