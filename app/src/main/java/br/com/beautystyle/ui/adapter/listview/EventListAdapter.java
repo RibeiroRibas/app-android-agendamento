@@ -12,25 +12,33 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Services;
+import com.example.beautystyle.R;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import br.com.beautystyle.ViewModel.ClientViewModel;
+import br.com.beautystyle.ViewModel.EventWithServicesViewModel;
+import br.com.beautystyle.data.db.references.EventWithServices;
+import br.com.beautystyle.domain.model.Event;
+import br.com.beautystyle.domain.model.Services;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.CreateListsUtil;
 import br.com.beautystyle.util.TimeUtil;
 
-import com.example.beautystyle.R;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 public class EventListAdapter extends BaseAdapter {
-    private final Context context;
-    private final List<Event> eventList = new ArrayList<>();
-    private String concatenate;
 
-    public EventListAdapter(Context context) {
+    private final Context context;
+    private final List<Event> eventList;
+    private String concatenate;
+    private final ClientViewModel clientViewModel;
+    private final EventWithServicesViewModel eventWithServicesViewModel;
+
+    public EventListAdapter(Context context, ClientViewModel clientViewModel, EventWithServicesViewModel eventWithServicesViewModel) {
         this.context = context;
+        this.clientViewModel = clientViewModel;
+        this.eventWithServicesViewModel = eventWithServicesViewModel;
+        this.eventList = new ArrayList<>();
     }
 
     @Override
@@ -46,41 +54,46 @@ public class EventListAdapter extends BaseAdapter {
     @Override
     public long getItemId(int position) {
         if (position < eventList.size()) {
-            return eventList.get(position).getId();
+            return eventList.get(position).getEventId();
         }
         return 0;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View viewCriada = createView(parent);
+        View inflatedView = inflateView(parent);
 
         if (position < eventList.size()) { // listEventTime.size + 2
-            setEvent(position, viewCriada);
+            onBindEvent(position, inflatedView);
         } else {// if position > listEventTime.size + 2 (increased size because list going to behind of navigation bottom).
-            viewCriada.setVisibility(View.INVISIBLE);
-            setLayoutParamCardView(viewCriada);
+            inflatedView.setVisibility(View.INVISIBLE);
+            setLayoutParamCardView(inflatedView);
         }
-
-        return viewCriada;
+        return inflatedView;
     }
 
-    private View createView(ViewGroup parent) {
+    private View inflateView(ViewGroup parent) {
         return LayoutInflater.from(context).inflate(R.layout.item_event, parent, false);
     }
 
-    private void setEvent(int position, View viewCriada) {
-        if (eventList.get(position).getEventDate() != null) {
-            SetBackgroundColor(viewCriada);
-            setStartTime(position, viewCriada);
-            setStartAndEndTime(position, viewCriada);
-            setNameClient(position, viewCriada);
-            setListServices(position, viewCriada);
-            setValue(position, viewCriada);
+    private void onBindEvent(int position, View inflatedView) {
+        if (eventList.get(position).checkId()) {
+            onBindClient(position,inflatedView);
+            onBindService(position, inflatedView);
+            SetBackgroundColor(inflatedView);
+            setStartTime(position, inflatedView);
+            setEventDuration(position, inflatedView);
+            setValue(position, inflatedView);
         } else {
-            setStartTime(position, viewCriada);
-            setLayoutParamCardView(viewCriada);
+            setStartTime(position, inflatedView);
+            setLayoutParamCardView(inflatedView);
         }
+    }
+
+    private void onBindClient(int position, View inflatedView) {
+        clientViewModel.getClientById(eventList.get(position).getClientId())
+                .doOnSuccess(client -> setNameClient(client.getName(), inflatedView))
+                .subscribe();
     }
 
     private void SetBackgroundColor(View viewCriada) {
@@ -97,31 +110,42 @@ public class EventListAdapter extends BaseAdapter {
         hourEvent.setText(timeFormated);
     }
 
-    private void setStartAndEndTime(int position, @NonNull View viewCriada) {
-        TextView timeOfEvent = viewCriada.findViewById(R.id.item_event_duration);
+    private void setEventDuration(int position, @NonNull View viewCriada) {
+        TextView eventDuration = viewCriada.findViewById(R.id.item_event_duration);
         String endTime = TimeUtil.formatLocalTime(eventList.get(position).getEndTime());
         String startTime = TimeUtil.formatLocalTime(eventList.get(position).getStarTime());
         concatenate = startTime + " - " + endTime;
-        timeOfEvent.setText(concatenate);
+        eventDuration.setText(concatenate);
     }
 
-    private void setNameClient(int position, View viewCriada) {
-        TextView nameClient = viewCriada.findViewById(R.id.item_event_name);
-        nameClient.setText(eventList.get(position).getClient().getName());
+    private void setNameClient(String name, View inflatedView) {
+        TextView nameClient = inflatedView.findViewById(R.id.item_event_name);
+        nameClient.setText(name);
     }
 
-    private void setListServices(int position, @NonNull View viewCriada) {
-        List<Services> listService = eventList.get(position).getListOfServices();
-        TextView nameService = viewCriada.findViewById(R.id.item_event_service);
-        nameService.setText("*  ");
-        for (Services service : listService) {
-            if (service != listService.get(listService.size() - 1)) {
-                concatenate = nameService.getText() + service.getName() + "\n \n" + "*  ";
-            } else {
-                concatenate = nameService.getText() + service.getName() + "\n";
+    private void onBindService(int position, @NonNull View viewCriada) {
+        eventWithServicesViewModel.getEventWithServices().doOnSuccess(eventWithServices -> {
+            List<Services> serviceList = getServiceList(eventWithServices,position);
+
+            TextView nameService = viewCriada.findViewById(R.id.item_event_service);
+            nameService.setText("*  ");
+            for (Services service : serviceList) {
+                if (service != serviceList.get(serviceList.size() - 1)) {
+                    concatenate = nameService.getText() + service.getName() + "\n \n" + "*  ";
+                } else {
+                    concatenate = nameService.getText() + service.getName() + "\n";
+                }
+                nameService.setText(concatenate);
             }
-            nameService.setText(concatenate);
-        }
+        }).subscribe();
+    }
+
+    private List<Services> getServiceList(List<EventWithServices> eventWithServices, int position) {
+        return eventWithServices.stream().filter(ev ->
+                ev.getEvent().getEventId() == (eventList.get(position).getEventId()))
+                .map(EventWithServices::getServiceList)
+                .findFirst()
+                .orElse(new ArrayList<>());
     }
 
     private void setValue(int position, View viewCriada) {
@@ -142,12 +166,11 @@ public class EventListAdapter extends BaseAdapter {
         cardView.setLayoutParams(cardViewParams);
     }
 
-    public void update(LocalDate dataDoEvento) {
-        CreateListsUtil.createListEventTest(dataDoEvento);
+    public void update(List<Event> eventList) {
+        CreateListsUtil.createListEventTest(eventList);
         this.eventList.clear();
         this.eventList.addAll(CreateListsUtil.listEvent);
         notifyDataSetChanged();
     }
-
 
 }

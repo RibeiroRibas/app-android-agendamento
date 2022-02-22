@@ -1,12 +1,22 @@
-package br.com.beautystyle.model;
+package br.com.beautystyle.domain.model;
+
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
+import java.util.List;
 
+
+@Entity
 public class Client implements Serializable {
-    private int Id = 0;
+
+    @PrimaryKey(autoGenerate = true)
+    private int id = 0;
     private String name;
     private String phone;
 
+    @Ignore
     public Client(String name, String phone) {
         this.name = name;
         this.phone = phone;
@@ -16,7 +26,7 @@ public class Client implements Serializable {
     }
 
     public int getId() {
-        return Id;
+        return id;
     }
 
     public String getPhone() {
@@ -28,7 +38,7 @@ public class Client implements Serializable {
     }
 
     public void setId(int id) {
-        Id = id;
+        this.id = id;
     }
 
     public String getName() {
@@ -37,5 +47,11 @@ public class Client implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean checkNameAndPhone(List<Client> clientList) {
+        return clientList.stream()
+                .anyMatch(c->c.getName().equals(getName()
+                )&&c.getPhone().equals(getPhone()));
     }
 }

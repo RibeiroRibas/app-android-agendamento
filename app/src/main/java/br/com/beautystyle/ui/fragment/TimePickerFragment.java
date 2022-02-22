@@ -10,11 +10,18 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 public class TimePickerFragment extends DialogFragment {
+
+    private final TimePickerDialog.OnTimeSetListener onTimeSetListener;
+
+    public TimePickerFragment(TimePickerDialog.OnTimeSetListener onTimeSetListener) {
+        this.onTimeSetListener = onTimeSetListener;
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         int hour = 7;
         int minute = 0;
-        return new TimePickerDialog(getActivity(), (TimePickerDialog.OnTimeSetListener) getActivity(),hour,minute, DateFormat.is24HourFormat(getActivity()));
+        return new TimePickerDialog(getActivity(), onTimeSetListener,hour,minute, DateFormat.is24HourFormat(getActivity()));
     }
 }

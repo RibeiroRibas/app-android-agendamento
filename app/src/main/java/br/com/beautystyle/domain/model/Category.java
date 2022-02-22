@@ -1,4 +1,8 @@
-package br.com.beautystyle.model;
+package br.com.beautystyle.domain.model;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum Category {
 
@@ -20,5 +24,11 @@ public enum Category {
                 return category;
         }
         return null;
+    }
+
+    public static List<String> getCategoriesList() {
+        return Stream.of(values())
+                .map(Category::getDescription)
+                .collect(Collectors.toList());
     }
 }

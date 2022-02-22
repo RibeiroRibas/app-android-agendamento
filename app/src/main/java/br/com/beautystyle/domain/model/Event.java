@@ -1,4 +1,8 @@
-package br.com.beautystyle.model;
+package br.com.beautystyle.domain.model;
+
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -6,27 +10,35 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+@Entity
 public class Event  implements Serializable {
+
     public enum StatusPagamento{
         RECEBIDO,NAORECEBIDO
     }
-    private int id = 0;
+    @PrimaryKey(autoGenerate = true)
+    private int eventId = 0;
+    private int clientId;
     private LocalDate eventDate;
     private LocalTime starTime;
     private LocalTime endTime;
     private BigDecimal valueEvent;
-    private List<Services> listOfServices;
-    private Client client;
     private StatusPagamento statusPagamento;
 
-    public Event(LocalDate eventDate, LocalTime starTime, LocalTime endTime, List<Services> listOfServices, Client client,StatusPagamento statusPagamento,BigDecimal valueEvent) {
-        this.eventDate = eventDate;
+    @Ignore
+    public Event(LocalTime starTime) {
         this.starTime = starTime;
-        this.endTime = endTime;
-        this.listOfServices = listOfServices;
-        this.client = client;
-        this.statusPagamento = statusPagamento;
-        this.valueEvent = valueEvent;
+    }
+
+    public Event() {
+    }
+
+    public int getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(int clientId) {
+        this.clientId = clientId;
     }
 
     public BigDecimal getValueEvent() {
@@ -37,9 +49,6 @@ public class Event  implements Serializable {
         this.valueEvent = valueEvent;
     }
 
-    public Event() {
-    }
-
     public StatusPagamento getStatusPagamento() {
         return statusPagamento;
     }
@@ -48,16 +57,12 @@ public class Event  implements Serializable {
         this.statusPagamento = statusPagamento;
     }
 
-    public Event(LocalTime starTime) {
-        this.starTime = starTime;
+    public int getEventId() {
+        return eventId;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    public void setEventId(int eventId) {
+        this.eventId = eventId;
     }
 
     public LocalTime getStarTime() {
@@ -72,10 +77,6 @@ public class Event  implements Serializable {
         return eventDate;
     }
 
-    public Client getClient() {
-        return client;
-    }
-
     public void setEventDate(LocalDate eventDate) {
         this.eventDate = eventDate;
     }
@@ -88,19 +89,26 @@ public class Event  implements Serializable {
         this.endTime = endTime;
     }
 
-    public void setListOfServices(List<Services> listOfServices) {
-        this.listOfServices = listOfServices;
-    }
-
-    public List<Services> getListOfServices() {
-        return listOfServices;
-    }
-
-    public void setClient(Client client) {
-        this.client = client;
-    }
-
     public boolean checkId(){
-        return id > 0;
+        return eventId > 0;
+    }
+
+    public LocalTime checkEndTime(List<Event> eventList) {
+        LocalTime reduzedEndTime = null;
+        for (Event ev : eventList) {
+            if (ev.getStarTime().isAfter(getStarTime())
+                    && getEndTime().isAfter(ev.getStarTime())
+                    && getEventId() != ev.getEventId()) {
+                reduzedEndTime = ev.getStarTime();
+            }
+        }
+        return reduzedEndTime;
+    }
+
+    public boolean checkStartTime(List<Event> eventList) {
+        return eventList.stream()
+                .filter(ev -> ev.getEventId() != getEventId())
+                .anyMatch(event1 -> !getStarTime().isBefore(event1.getStarTime()) &&
+                        getStarTime().isBefore(event1.getEndTime()));
     }
 }

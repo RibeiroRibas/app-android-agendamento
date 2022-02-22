@@ -15,37 +15,43 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import br.com.beautystyle.util.CalendarUtil;
-
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDaysHolder> {
+import br.com.beautystyle.util.CalendarUtil;
 
-    private final List<LocalDate> daysList = new ArrayList<>();
+public class DaysListAdapter extends RecyclerView.Adapter<DaysListAdapter.ListDaysHolder> {
+
+    private final List<LocalDate> daysList;
     private final OnDayListener mOnDayListener;
     int selectedPosition;
     private ListDaysHolder listDaysHolder;
 
-    public ListDaysAdaper(OnDayListener onDayListener) {
+    public DaysListAdapter(OnDayListener onDayListener) {
         this.mOnDayListener = onDayListener;
+        this.daysList = new ArrayList<>();
     }
 
     @NonNull
     @Override
-    public ListDaysAdaper.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View createView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_days_week_button, parent, false);
-        listDaysHolder = new ListDaysHolder(createView, mOnDayListener, daysList);
+    public DaysListAdapter.ListDaysHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View inflatedView = inflateView(parent);
+        listDaysHolder = new ListDaysHolder(inflatedView, mOnDayListener, daysList);
         return listDaysHolder;
     }
 
+    public View inflateView(ViewGroup parent){
+        return LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_days_week_button, parent, false);
+    }
+
     @Override
-    public void onBindViewHolder(@NonNull ListDaysAdaper.ListDaysHolder holder, int position) {
-        holder.setTextView(daysList.get(position), position);
+    public void onBindViewHolder(@NonNull DaysListAdapter.ListDaysHolder holder, int position) {
+        holder.onBindDays(daysList.get(position), position);
     }
 
     @Override
@@ -54,9 +60,20 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
     }
 
     public void publishAllDays() {
-        List<LocalDate> createdList = CalendarUtil.createDaysList();
+        List<LocalDate> createdList = createDaysList(CalendarUtil.selectedDate);
         this.daysList.addAll(createdList);
         notifyItemRangeInserted(0, createdList.size());
+    }
+
+    private List<LocalDate> createDaysList(LocalDate selectedDate) {
+            List<LocalDate> listDays = new ArrayList<>();
+            listDays.add(selectedDate);
+            for (int i = 1; i <= 365; i++) {
+                listDays.add(selectedDate.minusDays(i));
+                listDays.add(selectedDate.plusDays(i));
+            }
+            Collections.sort(listDays);
+            return listDays;
     }
 
     public void onClickViewHolder(LocalDate date, int position){
@@ -97,7 +114,7 @@ public class ListDaysAdaper extends RecyclerView.Adapter<ListDaysAdaper.ListDays
             buttonDay.setLayoutParams(layoutParams);
         }
 
-        public void setTextView(LocalDate date, int position) {
+        public void onBindDays(LocalDate date, int position) {
             String checkIsToday = LocalDate.now().equals(date) ? IS_TODAY : CalendarUtil.formatDayWeek(date);
             if (CalendarUtil.selectedDate.equals(date)) {
                 Drawable drawable = ContextCompat.getDrawable(itemView.getContext(), R.drawable.shape_button_color2);

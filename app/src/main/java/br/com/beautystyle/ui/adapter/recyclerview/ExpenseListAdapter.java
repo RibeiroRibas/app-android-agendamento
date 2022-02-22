@@ -1,6 +1,6 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
-import static br.com.beautystyle.ui.adapter.ConstantsAdapter.ITEM_MENU_DELETE;
+import static br.com.beautystyle.ui.adapter.ConstantsAdapter.ITEM_MENU_REMOVE;
 
 import android.content.Context;
 import android.view.ContextMenu;
@@ -18,8 +18,8 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.Expense;
-import br.com.beautystyle.ui.adapter.recyclerview.listener.OnItemClickListener;
+import br.com.beautystyle.domain.model.Expense;
+import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 
@@ -27,10 +27,10 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
 
     private final List<Expense> expenseList;
     private final Context context;
-    private OnItemClickListener onItemClickListener;
+    private AdapterListener.OnExpenseClickListener onItemClickListener;
 
-    public ExpenseListAdapter(List<Expense> expenseList, Context context) {
-        this.expenseList = new ArrayList<>(expenseList);
+    public ExpenseListAdapter(Context context) {
+        this.expenseList = new ArrayList<>();
         this.context = context;
     }
 
@@ -45,10 +45,10 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
     public void onBindViewHolder(@NonNull ExpenseViewHolder holder, int position) {
         if (position < expenseList.size()) {
             Expense expense = expenseList.get(position);
-            holder.setTextView(expense);
-            holder.setLayoutParamCardView(View.VISIBLE,250);
+            holder.onBindExpense(expense);
+            holder.setLayoutParamCardView(View.VISIBLE, 250);
         } else {
-            holder.setLayoutParamCardView(View.INVISIBLE,100);
+            holder.setLayoutParamCardView(View.INVISIBLE, 100);
         }
     }
 
@@ -59,7 +59,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
 
     public void publishResultsNew(Expense expense, int monthValue, int year) {
         expenseList.add(expense);
-        if (expense.getDate().getMonthValue() == monthValue && expense.getDate().getYear()==year)
+        if (expense.getDate().getMonthValue() == monthValue && expense.getDate().getYear() == year)
             notifyItemInserted(expenseList.indexOf(expense));
     }
 
@@ -81,12 +81,13 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
             notifyItemRangeRemoved(0, size);
         }
     }
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+
+    public void setOnItemClickListener(AdapterListener.OnExpenseClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
     }
 
     public void publishResultsChanged(Expense expense, int position) {
-        expenseList.set(position,expense);
+        expenseList.set(position, expense);
         notifyItemChanged(position);
     }
 
@@ -99,11 +100,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         notifyItemRemoved(position);
     }
 
-    public void publishAll(){
-        notifyItemRangeInserted(0, expenseList.size());
-    }
-
-    class ExpenseViewHolder extends RecyclerView.ViewHolder implements  View.OnCreateContextMenuListener{
+    class ExpenseViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
 
         private final TextView date, value, category, description;
         private final CardView cardView;
@@ -119,10 +116,10 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
             cardView = itemView.findViewById(R.id.item_expense_cardView);
             this.itemView = itemView;
             itemView.setOnCreateContextMenuListener(this);
-            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(expense,getAdapterPosition()));
+            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(expense, getAdapterPosition()));
         }
 
-        public void setTextView(Expense expense) {
+        public void onBindExpense(Expense expense) {
             this.expense = expense;
             String formatedDate = CalendarUtil.formatDate(expense.getDate());
             date.setText(formatedDate);
@@ -133,7 +130,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         }
 
         public void setLayoutParamCardView(int visibility, int height) {
-                        itemView.setVisibility(visibility);
+            itemView.setVisibility(visibility);
             ViewGroup.LayoutParams cardViewParams = cardView.getLayoutParams();
             cardViewParams.height = height;
             cardView.setLayoutParams(cardViewParams);
@@ -141,7 +138,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            menu.add(this.getAdapterPosition(), 1, 1, ITEM_MENU_DELETE);
+            menu.add(this.getAdapterPosition(), 1, 1, ITEM_MENU_REMOVE);
         }
     }
 }

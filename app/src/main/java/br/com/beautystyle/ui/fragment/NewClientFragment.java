@@ -2,10 +2,10 @@ package br.com.beautystyle.ui.fragment;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.INVALID_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_CLIENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NEW_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_EDIT_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_CLIENT;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -24,7 +24,7 @@ import com.example.beautystyle.R;
 
 import java.util.Objects;
 
-import br.com.beautystyle.model.Client;
+import br.com.beautystyle.domain.model.Client;
 
 public class NewClientFragment extends DialogFragment {
 
@@ -45,7 +45,7 @@ public class NewClientFragment extends DialogFragment {
 
         initWidgets(view);
         loadClient();
-        saveClientListener(view);
+        setResultClientListener(view);
     }
 
     @Override
@@ -68,8 +68,8 @@ public class NewClientFragment extends DialogFragment {
 
     private void loadClient() {
         Bundle bundle = getArguments();
-        if (bundle != null && getTag() != null && getTag().equals(TAG_EDIT_CLIENT)) {
-            client = (Client) bundle.getSerializable(KEY_EDIT_CLIENT);
+        if (bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_CLIENT)) {
+            client = (Client) bundle.getSerializable(KEY_UPDATE_CLIENT);
             position = bundle.getInt(KEY_POSITION, INVALID_POSITION);
             fillAllForm();
         }
@@ -80,11 +80,11 @@ public class NewClientFragment extends DialogFragment {
         phoneClient.setText(client.getPhone());
     }
 
-    private void saveClientListener(View inflateNewEventView) {
+    private void setResultClientListener(View inflateNewEventView) {
         ImageView saveClient = inflateNewEventView.findViewById(R.id.fragment_new_client_save);
         saveClient.setOnClickListener(v -> {
             if (checkInputNameClient()) {
-                saveClient();
+                setResult();
             }
         });
     }
@@ -99,13 +99,13 @@ public class NewClientFragment extends DialogFragment {
         return true;
     }
 
-    private void saveClient() {
+    private void setResult() {
         getClient();
         if (getTag() != null) {
-            if (getTag().equals(TAG_EDIT_CLIENT)) {
-                setResult(KEY_EDIT_CLIENT, position);
+            if (getTag().equals(TAG_UPDATE_CLIENT)) {
+                setResult(KEY_UPDATE_CLIENT, position);
             } else {
-                setResult(KEY_NEW_CLIENT, INVALID_POSITION);
+                setResult(KEY_INSERT_CLIENT, INVALID_POSITION);
             }
         }
         Objects.requireNonNull(getDialog()).dismiss();
@@ -118,7 +118,6 @@ public class NewClientFragment extends DialogFragment {
         result.putInt(KEY_POSITION, position);
         getParentFragmentManager().setFragmentResult(KEY_CLIENT, result);
     }
-
 
     private void getClient() {
         String name = nameClient.getText().toString();

@@ -1,30 +1,27 @@
-package br.com.beautystyle.model;
+package br.com.beautystyle.domain.model;
+
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
+@Entity
 public class Services implements Serializable {
+
+    @PrimaryKey(autoGenerate = true)
+    private int serviceId = 0;
     private String name;
     private BigDecimal valueOfService;
     private LocalTime timeOfDuration;
-    private int id = 0;
 
-    public Services(String name, BigDecimal valueOfService, LocalTime timeOfDuration) {
-        this.name = name;
-        this.valueOfService = valueOfService;
-        this.timeOfDuration = timeOfDuration;
+    public int getServiceId() {
+        return serviceId;
     }
 
-    public Services() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    public void setServiceId(int serviceId) {
+        this.serviceId = serviceId;
     }
 
     public String getName() {
@@ -50,4 +47,5 @@ public class Services implements Serializable {
     public void setTimeOfDuration(LocalTime timeOfDuration) {
         this.timeOfDuration = timeOfDuration;
     }
+
 }

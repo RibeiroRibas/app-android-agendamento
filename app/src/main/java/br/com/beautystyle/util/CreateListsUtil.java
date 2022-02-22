@@ -1,46 +1,25 @@
 package br.com.beautystyle.util;
 
-import androidx.annotation.NonNull;
-
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import br.com.beautystyle.dao.EventDao;
-import br.com.beautystyle.model.Category;
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Expense;
-import br.com.beautystyle.model.MonthsOfTheYear;
-import br.com.beautystyle.model.TypeOfReport;
+import br.com.beautystyle.data.db.references.EventServiceCroosRef;
+import br.com.beautystyle.domain.model.Event;
+import br.com.beautystyle.domain.model.Services;
 
-public class CreateListsUtil {
+public class CreateListsUtil   {
 
-    private static List<Event> ListEventBySelectedDate = new ArrayList<>();
     public static List<Event> listEvent;
     private static LocalTime startTime;
     private static LocalTime endTime;
 
-    public static void createListEventTest(LocalDate eventDate) {
-        ListEventBySelectedDate = findEventByDate(eventDate);
+    public static void createListEventTest(List<Event> eventList) {
         creatListEmptyEvent();
-        if (ListEventBySelectedDate.size() >= 1) {
-            createListEvent();
+        if (eventList.size() >= 1) {
+            createListEvent(eventList);
         }
-    }
-
-    @NonNull
-    private static List<Event> findEventByDate(LocalDate eventDate) {
-        EventDao dao = new EventDao();
-        return dao.listAll().stream()
-                .filter(ev -> ev.getEventDate()
-                        .equals(eventDate))
-                .sorted(Comparator.comparing(Event::getStarTime))
-                .collect(Collectors.toList());
     }
 
     public static void creatListEmptyEvent() {
@@ -58,8 +37,8 @@ public class CreateListsUtil {
         endTime = LocalTime.of(20, 0);
     }
 
-    private static void createListEvent() {
-        for (Event findedEvent : ListEventBySelectedDate) {
+    private static void createListEvent(List<Event> eventList) {
+        for (Event findedEvent : eventList) {
             boolean matched = false;
             for (int i = 0; i < listEvent.size(); i++) {
                 if (findedEvent.getStarTime().equals(listEvent.get(i).getStarTime())) {
@@ -79,92 +58,12 @@ public class CreateListsUtil {
         listEvent.sort(Comparator.comparing(Event::getStarTime));
     }
 
-    @NonNull
-    public static List<String> createCategoriesList() {
-        return Stream.of(Category.values())
-                .map(Category::getDescription)
-                .collect(Collectors.toList());
-    }
-
-    @NonNull
-    public static List<String> createTypeOfReportList() {
-        return Stream.of(TypeOfReport.values())
-                .map(TypeOfReport::getDescription)
-                .collect(Collectors.toList());
-    }
-
-    @NonNull
-    public static List<String> createMonthList() {
-        return Stream.of(MonthsOfTheYear.values())
-                .map(MonthsOfTheYear::getDescription)
-                .collect(Collectors.toList());
-    }
-
-    public static List<Object> createMonthlyReportList(LocalDate date, List<Expense> listExpense, List<Event> listEvent) {
-
-        List<Object> reportList = new ArrayList<>();
-        List<Expense> collect = listExpense.stream()
-                .filter(expense -> expense.getDate().getMonthValue() == date.getMonthValue()
-                        && expense.getDate().getYear() == date.getYear())
-                .collect(Collectors.toList());
-        reportList.addAll(collect);
-
-        reportList.addAll(listEvent.stream()
-                .filter(event -> event.getEventDate().getMonthValue() == date.getMonthValue()
-                        && event.getEventDate().getYear() == date.getYear())
-                .collect(Collectors.toList()));
-
-        return reportList;
-    }
-
-    public static List<Object> createDailyReportList(LocalDate date, List<Expense> listExpense, List<Event> listEvent) {
-
-        List<Object> reportList = new ArrayList<>();
-
-        reportList.addAll(listEvent.stream()
-                .filter(event -> event.getEventDate().equals(date))
-                .collect(Collectors.toList()));
-
-        reportList.addAll(listExpense.stream()
-                .filter(expense -> expense.getDate().equals(date))
-                .collect(Collectors.toList()));
-
-        return reportList;
-    }
-
-    public static List<String> CreateListYearsEvent(List<Event> listAll) {
-        return listAll.stream()
-                .map(Event::getEventDate)
-                .map(LocalDate::getYear)
-                .distinct()
-                .sorted(Comparator.comparing(Integer::intValue))
-                .map(Objects::toString)
-                .collect(Collectors.toList());
-    }
-
-    public static List<String> CreateListYearsExpense(List<Expense> listAll) {
-        return listAll.stream()
-                .map(Expense::getDate)
-                .map(LocalDate::getYear)
-                .distinct()
-                .sorted(Comparator.comparing(Integer::intValue))
-                .map(Objects::toString)
-                .collect(Collectors.toList());
-    }
-
-    public static List<Object> createPeriodReportList(LocalDate startDate, LocalDate endDate, List<Event> listEvent, List<Expense> listExpense) {
-        List<Object> reportList = new ArrayList<>();
-
-        reportList.addAll(listEvent.stream()
-                .filter(ev -> !ev.getEventDate().isBefore(startDate)
-                        && !ev.getEventDate().isAfter(endDate))
-                .collect(Collectors.toList()));
-
-        reportList.addAll(listExpense.stream().filter(ex -> !ex.getDate().isBefore(startDate)
-                && !ex.getDate().isAfter(endDate))
-                .collect(Collectors.toList()));
-
-        return reportList;
+    public static List<EventServiceCroosRef> createNewListServices(Long id, List<Services> servicesList) {
+            List<EventServiceCroosRef> eventServiceCroosNewList = new ArrayList<>();
+            for (Services service : servicesList) {
+                eventServiceCroosNewList.add(new EventServiceCroosRef(id, service.getServiceId()));
+            }
+            return eventServiceCroosNewList;
     }
 }
 

@@ -1,25 +1,26 @@
 package br.com.beautystyle.ui.fragment;
 
 public interface ConstantFragment {
-    String KEY_EDIT_EVENT = "editEvent";
-    String KEY_NEW_EVENT = "newEvent";
-    String KEY_EDIT_EXPENSE = "expense";
-    String KEY_CLIENT = "client";
-    String KEY_POSITION = "position";
-    int INVALID_POSITION = -1;
+    String KEY_UPDATE_EVENT = "updateEvent";
+    String KEY_INSERT_EVENT = "insertEvent";
+    String KEY_UPDATE_EXPENSE = "updateExpense";
     String KEY_RESULT_EXPENSE = "resultExpense";
-    String TAG_NEW_CLIENT = "newClientFragment";
+    String KEY_CLIENT = "client";
+    String TAG_INSERT_CLIENT = "tagInsertClient";
+    String TAG_UPDATE_CLIENT = "tagUpdateClient";
+    String KEY_UPDATE_CLIENT = "updateClient";
+    String KEY_INSERT_CLIENT = "insertClient";
+    String KEY_SERVICE = "service";
+    String TAG_UPDATE_SERVICE = "tagUpdateService";
+    String KEY_UPDATE_SERVICE = "updateService";
+    String KEY_INSERT_SERVICE = "insertService";
+    String TAG_INSERT_SERVICE = "tagInsertService";
+    String KEY_UPDATED_SERVICE = "updatedService";
+    String KEY_REPORT = "report";
     String KEY_DAILY_REPORT = "daily";
     String KEY_MONTHLY_REPORT = "monthly";
-    String KEY_REPORT = "report";
-    String TAG_EDIT_CLIENT = "editClientFragment";
-    String KEY_EDIT_CLIENT = "editClient";
-    String KEY_NEW_CLIENT = "newClient";
-    String KEY_SERVICE = "service";
-    String TAG_EDIT_SERVICE = "editServiceFragment";
-    String KEY_EDIT_SERVICE = "editService";
-    String KEY_NEW_SERVICE = "newService";
-    String TAG_NEW_SERVICE = "tagEditService";
+    String KEY_POSITION = "position";
+    int INVALID_POSITION = -1;
     String KEY_START_DATE = "startDate";
     String KEY_END_DATE = "endDate";
 }

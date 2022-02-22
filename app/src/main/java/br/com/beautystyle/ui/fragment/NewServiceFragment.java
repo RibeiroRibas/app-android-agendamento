@@ -1,9 +1,10 @@
 package br.com.beautystyle.ui.fragment;
 
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_SERVICE;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NEW_SERVICE;
+import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_DURATION;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_SERVICE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_EDIT_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_SERVICE;
 
 import android.app.TimePickerDialog;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,13 +27,13 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Objects;
 
-import br.com.beautystyle.model.Services;
+import br.com.beautystyle.domain.model.Services;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.TimeUtil;
 import me.abhinay.input.CurrencyEditText;
 import me.abhinay.input.CurrencySymbols;
 
-public class NewServiceFragment extends DialogFragment {
+public class NewServiceFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
 
     private EditText durationService, nameService;
     public CurrencyEditText valueService;
@@ -50,9 +52,10 @@ public class NewServiceFragment extends DialogFragment {
 
         initiWidgets(view);
         loadService();
-        setDurationServiceListener();
-        setValueServiceListener();
-        saveServiceListener(view);
+        //LISTENERS
+        durationServiceListener();
+        formatInputEditTextValueService();
+        setResultServiceListener(view);
 
     }
 
@@ -77,8 +80,8 @@ public class NewServiceFragment extends DialogFragment {
 
     private void loadService() {
         Bundle bundle = getArguments();
-        if (bundle != null && getTag() != null && getTag().equals(TAG_EDIT_SERVICE)) {
-            service = (Services) bundle.getSerializable(KEY_EDIT_SERVICE);
+        if (bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_SERVICE)) {
+            service = (Services) bundle.getSerializable(KEY_UPDATE_SERVICE);
             fillAllForm();
         }
     }
@@ -91,20 +94,14 @@ public class NewServiceFragment extends DialogFragment {
         valueService.setText(formatedValueService);
     }
 
-    private void setDurationServiceListener() {
+    private void durationServiceListener() {
         durationService.setOnClickListener(v2 -> {
-            TimePickerDialog.OnTimeSetListener onTimeSetListener = (view, hour, minute) -> {
-                String durationServiceFormated = TimeUtil.formatLocalTime(LocalTime.of(hour, minute));
-                durationService.setText(durationServiceFormated);
-            };
-            int hour = 7;
-            int minute = 0;
-            TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(), onTimeSetListener, hour, minute, true);
-            timePickerDialog.show();
+            DialogFragment timePicker = new TimePickerFragment(this);
+            timePicker.show(getParentFragmentManager(), TAG_EVENT_DURATION);
         });
     }
 
-    private void setValueServiceListener() {
+    private void formatInputEditTextValueService() {
         valueService.setCurrency(CurrencySymbols.NONE);
         valueService.setDelimiter(false);
         valueService.setSpacing(true);
@@ -112,12 +109,12 @@ public class NewServiceFragment extends DialogFragment {
         valueService.setSeparator(".");
     }
 
-    private void saveServiceListener(View inflateNewServiceView) {
+    private void setResultServiceListener(View inflateNewServiceView) {
         ImageView saveService = inflateNewServiceView.findViewById(R.id.fragment_new_service_save);
         saveService.setOnClickListener(v -> {
             if (checkInputService()) {
                 getService();
-                saveService();
+                setResult();
             }
         });
     }
@@ -145,11 +142,11 @@ public class NewServiceFragment extends DialogFragment {
         service.setValueOfService(value);
     }
 
-    private void saveService() {
-        if (getTag() != null && getTag().equals(TAG_EDIT_SERVICE)) {
-            setResult(KEY_EDIT_SERVICE);
+    private void setResult() {
+        if (getTag() != null && getTag().equals(TAG_UPDATE_SERVICE)) {
+            setResult(KEY_UPDATE_SERVICE);
         } else {
-            setResult(KEY_NEW_SERVICE);
+            setResult(KEY_INSERT_SERVICE);
         }
         Objects.requireNonNull(getDialog()).dismiss();
         getParentFragmentManager().beginTransaction().remove(this).commit();
@@ -161,4 +158,11 @@ public class NewServiceFragment extends DialogFragment {
         getParentFragmentManager().setFragmentResult(KEY_SERVICE, result);
     }
 
+    @Override
+    public void onTimeSet(TimePicker view, int hour, int minute) {
+        LocalTime timeWatch = LocalTime.of(hour, minute);
+        String timeFormated = TimeUtil.formatLocalTime(timeWatch);
+        durationService.setText(timeFormated);
+        service.setTimeOfDuration(timeWatch);
+    }
 }

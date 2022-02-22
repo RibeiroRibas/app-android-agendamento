@@ -14,16 +14,19 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.Services;
+import br.com.beautystyle.domain.model.Services;
 
 public class ServiceListAdapter extends BaseAdapter implements Filterable {
+
     private final Context context;
-    private final List<Services> serviceListAll = new ArrayList<>();
-    private final List<Services> serviceList = new ArrayList<>();
+    private final List<Services> serviceListAll;
+    private final List<Services> serviceList;
     private List<Services> filteredListService;
 
     public ServiceListAdapter(Context context) {
         this.context = context;
+        this.serviceList = new ArrayList<>();
+        this.serviceListAll = new ArrayList<>();
     }
 
     @Override
@@ -38,7 +41,7 @@ public class ServiceListAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public long getItemId(int position) {
-        return serviceList.get(position).getId();
+        return serviceList.get(position).getServiceId();
     }
 
     @Override
@@ -89,10 +92,10 @@ public class ServiceListAdapter extends BaseAdapter implements Filterable {
         };
     }
 
-    public void update(List<Services> listAll) {
-        serviceList.clear();
-        serviceList.addAll(listAll);
-        serviceListAll.addAll(listAll);
+    public void update(List<Services> serviceList) {
+        this.serviceList.clear();
+        this.serviceList.addAll(serviceList);
+        serviceListAll.addAll(serviceList);
         notifyDataSetChanged();
     }
 
@@ -102,9 +105,4 @@ public class ServiceListAdapter extends BaseAdapter implements Filterable {
         notifyDataSetChanged();
     }
 
-    public void save(Services service) {
-        serviceList.add(service);
-        serviceListAll.add(service);
-        notifyDataSetChanged();
-    }
 }

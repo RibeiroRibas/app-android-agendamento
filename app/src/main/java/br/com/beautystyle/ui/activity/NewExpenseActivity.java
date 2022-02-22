@@ -1,7 +1,7 @@
 package br.com.beautystyle.ui.activity;
 
 import static br.com.beautystyle.ui.activity.ContantsActivity.INVALID_POSITION;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_EDIT_EXPENSE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EXPENSE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_EXPENSE;
 
@@ -24,11 +24,10 @@ import java.util.List;
 import java.util.Objects;
 
 import br.com.beautystyle.ViewModel.CalendarViewModel;
-import br.com.beautystyle.model.Category;
-import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.domain.model.Category;
+import br.com.beautystyle.domain.model.Expense;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
-import br.com.beautystyle.util.CreateListsUtil;
 import me.abhinay.input.CurrencyEditText;
 import me.abhinay.input.CurrencySymbols;
 
@@ -50,12 +49,16 @@ public class NewExpenseActivity extends AppCompatActivity {
 
         initWidget();
         loadExpense();
-        setCategory();
-        calendarObserve();
-        setPurchaseDateListener();
+        setAdapterCategory();
         formatInputEditTextTotalPrice();
-        saveExpenseListener();
-        setRepeatOrNotListener();
+
+        // LISTENER
+        purchaseDateListener();
+        categoryListener();
+        repeatOrNotListener();
+        setResultListener();
+
+        calendarObserve();
     }
 
     private void initWidget() {
@@ -68,8 +71,8 @@ public class NewExpenseActivity extends AppCompatActivity {
     }
     private void loadExpense() {
         Intent data = getIntent();
-        if(data.hasExtra(KEY_EDIT_EXPENSE)){
-            Expense expense = (Expense) data.getSerializableExtra(KEY_EDIT_EXPENSE);
+        if(data.hasExtra(KEY_UPDATE_EXPENSE)){
+            Expense expense = (Expense) data.getSerializableExtra(KEY_UPDATE_EXPENSE);
             editItemPosition = data.getIntExtra(KEY_POSITION,INVALID_POSITION);
             FillAllForm(expense);
         }else{
@@ -98,37 +101,10 @@ public class NewExpenseActivity extends AppCompatActivity {
         purchaseDate.setText(todayDate);
         expense.setDate(LocalDate.now());
     }
-    private void setCategory() {
-        configureAdapter();
-        setOnItemClickListener();
-    }
-
-    private void configureAdapter() {
-        List<String> categoriesList = CreateListsUtil.createCategoriesList();
+    private void setAdapterCategory() {
+        List<String> categoriesList = Category.getCategoriesList();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, categoriesList);
         category.setAdapter(adapter);
-    }
-    
-    private void setOnItemClickListener() {
-        category.setOnItemClickListener(((parent, view, position, id) -> {
-            Category findedCategory = Category.getCategoryByDescription(parent.getItemAtPosition(position).toString());
-            expense.setCategory(findedCategory);
-        }));
-    }
-
-    private void calendarObserve() {
-        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
-        calendarViewModel.getDate().observe(this,this::setDate);
-    }
-
-    private void setDate(LocalDate date) {
-        expense.setDate(date);
-        String formatedDate = CalendarUtil.formatDate(date);
-        purchaseDate.setText(formatedDate);
-    }
-
-    private void setPurchaseDateListener() {
-        purchaseDate.setOnClickListener(v -> calendarViewModel.inflateCalendar(this));
     }
 
     private void formatInputEditTextTotalPrice() {
@@ -139,7 +115,18 @@ public class NewExpenseActivity extends AppCompatActivity {
         value.setSeparator(".");
     }
 
-    private void setRepeatOrNotListener() {
+    private void purchaseDateListener() {
+        purchaseDate.setOnClickListener(v -> calendarViewModel.inflateCalendar(this));
+    }
+
+    private void categoryListener() {
+        category.setOnItemClickListener(((parent, view, position, id) -> {
+            Category findedCategory = Category.getCategoryByDescription(parent.getItemAtPosition(position).toString());
+            expense.setCategory(findedCategory);
+        }));
+    }
+
+    private void repeatOrNotListener() {
         repeat.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 nRepeat.setChecked(false);
@@ -154,11 +141,11 @@ public class NewExpenseActivity extends AppCompatActivity {
         }));
     }
 
-    private void saveExpenseListener() {
+    private void setResultListener() {
         Button saveExpense = findViewById(R.id.activity_new_spending_save);
         saveExpense.setOnClickListener(v -> {
             setDescriptionAndPrice();
-            if(getIntent().hasExtra(KEY_EDIT_EXPENSE)){
+            if(getIntent().hasExtra(KEY_UPDATE_EXPENSE)){
                 setResultAndFinishActivity(4, editItemPosition);
             }else{
                 setResultAndFinishActivity(3, INVALID_POSITION);
@@ -178,5 +165,16 @@ public class NewExpenseActivity extends AppCompatActivity {
         intent.putExtra(KEY_POSITION,position);
         setResult(resultCode, intent);
         finish();
+    }
+
+    private void calendarObserve() {
+        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
+        calendarViewModel.getDate().observe(this,this::setDate);
+    }
+
+    private void setDate(LocalDate date) {
+        expense.setDate(date);
+        String formatedDate = CalendarUtil.formatDate(date);
+        purchaseDate.setText(formatedDate);
     }
 }

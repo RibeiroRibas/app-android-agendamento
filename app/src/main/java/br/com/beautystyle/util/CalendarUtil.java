@@ -3,26 +3,12 @@ package br.com.beautystyle.util;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class CalendarUtil {
 
     public static LocalDate selectedDate;
     private static String formatDate;
     private static DateTimeFormatter df;
-
-    public static List<LocalDate> createDaysList() {
-        List<LocalDate> listDays = new ArrayList<>();
-        listDays.add(selectedDate);
-        for (int i = 1; i <= 365; i++) {
-            listDays.add(selectedDate.minusDays(i));
-            listDays.add(selectedDate.plusDays(i));
-        }
-        Collections.sort(listDays);
-        return listDays;
-    }
 
     public static String formatDay(LocalDate date) {
         df = DateTimeFormatter.ofPattern("dd");

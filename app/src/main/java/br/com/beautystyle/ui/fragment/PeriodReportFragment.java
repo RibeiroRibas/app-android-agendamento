@@ -23,14 +23,12 @@ import br.com.beautystyle.util.CalendarUtil;
 public class PeriodReportFragment extends Fragment {
 
     private EditText startDate, endDate;
-    private final Bundle result = new Bundle();
     private CalendarViewModel calendarViewModel;
     int position = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -52,6 +50,7 @@ public class PeriodReportFragment extends Fragment {
 
     private void setDate(LocalDate date) {
         String dateFormated = CalendarUtil.formatDate(date);
+        Bundle result = new Bundle();
         if (position == 1) {
             startDate.setText(dateFormated);
             result.putSerializable(KEY_START_DATE, date);
