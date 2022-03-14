@@ -1,8 +1,6 @@
 package br.com.beautystyle.ViewModel;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -10,7 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import java.util.List;
 
 import br.com.beautystyle.data.repository.ClientRepository;
-import br.com.beautystyle.domain.model.Client;
+import br.com.beautystyle.model.Client;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -19,13 +17,12 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class ClientViewModel extends AndroidViewModel {
 
     private final ClientRepository repository;
-    @SuppressLint("StaticFieldLeak")
-    private final Context context;
+    private final Application application;
 
     public ClientViewModel(@NonNull Application application) {
         super(application);
         repository = new ClientRepository(application);
-        this.context = application;
+        this.application = application;
     }
 
     public Single<Client> getClientById(int id) {
@@ -33,9 +30,8 @@ public class ClientViewModel extends AndroidViewModel {
                 .subscribeOn(Schedulers.io());
     }
 
-
     public Completable delete(Client clientAtPosition) {
-       return  repository.delete(clientAtPosition);
+        return repository.delete(clientAtPosition);
     }
 
     public Completable update(Client client) {
@@ -51,10 +47,11 @@ public class ClientViewModel extends AndroidViewModel {
     }
 
     public Single<List<Client>> getContactListFromSmartPhone() {
-        return repository.getContactListFromSmartphone(context);
+        return repository.getContactListFromSmartphone(application);
     }
 
     public Single<Long[]> saveAllImportedClients(List<Client> contactList) {
         return repository.insertAll(contactList);
     }
+
 }

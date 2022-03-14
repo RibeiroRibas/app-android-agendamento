@@ -5,9 +5,9 @@ import android.content.Context;
 import java.time.LocalDate;
 import java.util.List;
 
-import br.com.beautystyle.data.db.BeautyStyleDatabase;
-import br.com.beautystyle.data.db.dao.RoomEventDao;
-import br.com.beautystyle.domain.model.Event;
+import br.com.beautystyle.data.database.BeautyStyleDatabase;
+import br.com.beautystyle.data.database.dao.RoomEventDao;
+import br.com.beautystyle.model.Event;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;

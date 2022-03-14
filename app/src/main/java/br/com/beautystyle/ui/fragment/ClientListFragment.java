@@ -1,11 +1,11 @@
 package br.com.beautystyle.ui.fragment;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_INSERT_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_CLIENT;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -33,14 +33,14 @@ import java.util.List;
 
 import br.com.beautystyle.ViewModel.ClientViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
-import br.com.beautystyle.domain.model.Client;
+import br.com.beautystyle.model.Client;
 import br.com.beautystyle.ui.ProgressButtom;
 import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
 import io.reactivex.rxjava3.disposables.Disposable;
 
 public class ClientListFragment extends Fragment {
 
-    private final EventViewModel eventViewModel;
+    private EventViewModel eventViewModel;
     private View inflateDView;
     private final ActivityResultLauncher<String> requestPermissionLauncher = getPermission();
     private static final String NO_PERMISSION = "Permissão Negada";
@@ -60,14 +60,11 @@ public class ClientListFragment extends Fragment {
         });
     }
 
-    public ClientListFragment(EventViewModel eventViewModel) {
-        this.eventViewModel = eventViewModel;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         clientViewModel = new ViewModelProvider(requireActivity()).get(ClientViewModel.class);
+        eventViewModel = new ViewModelProvider(requireActivity()).get(EventViewModel.class);
         adapter = new ClientListAdapter(getActivity());
     }
 
@@ -183,8 +180,8 @@ public class ClientListFragment extends Fragment {
         View importContactList = inflateDView.findViewById(R.id.fragment_list_client_import);
         importContactList.setOnClickListener(v -> {
            progressButtom = new ProgressButtom(v);
+            progressButtom.buttonActivated();
             if (checkPermission()) {
-                progressButtom.buttonActivated();
                 getContactListFromSmartphone();
             } else {
                 requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);

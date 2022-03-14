@@ -32,27 +32,25 @@ import java.util.List;
 
 import br.com.beautystyle.ViewModel.EventViewModel;
 import br.com.beautystyle.ViewModel.ServiceViewModel;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.model.Services;
 import br.com.beautystyle.ui.adapter.listview.ServiceListAdapter;
 
 public class ServiceListFragment extends Fragment {
 
-    private final List<Services> serviceList;
+    private List<Services> serviceList;
     private ListView listViewServices;
-    private final EventViewModel eventViewModel;
+    private  EventViewModel eventViewModel;
     private ServiceViewModel serviceViewModel;
     private ServiceListAdapter adapter;
 
-    public ServiceListFragment(EventViewModel eventViewModel) {
-        this.eventViewModel = eventViewModel;
-        serviceList = new ArrayList<>();
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serviceViewModel = new ViewModelProvider(requireActivity()).get(ServiceViewModel.class);
+        eventViewModel= new ViewModelProvider(requireActivity()).get(EventViewModel.class);
         adapter = new ServiceListAdapter(requireActivity());
+        serviceList = new ArrayList<>();
     }
 
     @Override
@@ -69,12 +67,14 @@ public class ServiceListFragment extends Fragment {
         newServiceListener(viewInflate);
         setFragmentResultListener();
 
-        observableServiceList();
-
         return viewInflate;
     }
 
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        observableServiceList();
+    }
 
     @Override
     public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, @Nullable ContextMenu.ContextMenuInfo menuInfo) {

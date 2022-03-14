@@ -8,7 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import java.util.List;
 
 import br.com.beautystyle.data.repository.ServiceRepository;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.model.Services;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 

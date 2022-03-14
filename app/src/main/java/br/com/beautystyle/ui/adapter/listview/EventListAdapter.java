@@ -19,9 +19,9 @@ import java.util.List;
 
 import br.com.beautystyle.ViewModel.ClientViewModel;
 import br.com.beautystyle.ViewModel.EventWithServicesViewModel;
-import br.com.beautystyle.data.db.references.EventWithServices;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.data.database.references.EventWithServices;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.CreateListsUtil;
 import br.com.beautystyle.util.TimeUtil;

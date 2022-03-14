@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
@@ -20,27 +21,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Expense;
-import br.com.beautystyle.domain.model.MonthsOfTheYear;
+import br.com.beautystyle.ViewModel.ReportViewModel;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.MonthsOfTheYear;
 import br.com.beautystyle.util.CalendarUtil;
 
 public class MonthlyReportFragment extends Fragment {
 
     private int monthValue, yearValue = -1;
     private AutoCompleteTextView monthsOfTheYear, years;
-    private final List<Event> eventList;
-    private final List<Expense> expenseList;
-
-    public MonthlyReportFragment(List<Event> eventList, List<Expense> expenseList) {
-        this.eventList = eventList;
-        this.expenseList = expenseList;
-    }
+    private ReportViewModel reportViewModel;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        reportViewModel = new ViewModelProvider(requireActivity()).get(ReportViewModel.class);
     }
 
     @Override
@@ -48,60 +44,48 @@ public class MonthlyReportFragment extends Fragment {
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_report_monthly, container, false);
 
-        setAdapterMonthsOfTheYear(inflatedView);
+        initWidgets(inflatedView);
+        setAdapters();
         adapterMonthOfTheYearListener();
-        setAdapterYears(inflatedView);
         adapterYearsListener();
 
         return inflatedView;
     }
 
-    private void setAdapterMonthsOfTheYear(View inflatedView) {
+    private void setAdapters() {
+        reportViewModel.getEventList().observe(getViewLifecycleOwner(),eventList->
+            reportViewModel.getExpenseList().observe(getViewLifecycleOwner(),expenseList ->{
+                setAdapterYears(eventList,expenseList);
+                setAdapterMonthsOfTheYear();
+            })
+        );
+    }
+
+    private void initWidgets(View inflatedView) {
+        years = inflatedView.findViewById(R.id.fragment_report_monthly_year);
         monthsOfTheYear = inflatedView.findViewById(R.id.fragment_report_monthly_month);
+    }
+
+    private void setAdapterMonthsOfTheYear() {
         setAdapter(monthsOfTheYear, MonthsOfTheYear.getMonthList());
-        monthsOfTheYear.setText(CalendarUtil.formatMonth(LocalDate.now()), false);
     }
 
     private void adapterMonthOfTheYearListener() {
         monthValue = LocalDate.now().getMonthValue();//value default;
+        monthsOfTheYear.setText(CalendarUtil.formatMonth(LocalDate.now()), false);
         monthsOfTheYear.setOnItemClickListener((parent, view, position, id) -> {
             monthValue = position + 1;
             setFragmentResult();
         });
     }
 
-    private void setAdapterYears(View inflatedView) {
-        years = inflatedView.findViewById(R.id.fragment_report_monthly_year);
-        setAdapter(years, createListYearsEvent());
+    private void setAdapterYears(List<Event> eventList, List<Expense> expenseList) {
+        List<String> yearsList = createListYearsEvent(eventList,expenseList);
+        setAdapter(years, yearsList);
         years.setText(CalendarUtil.formatYear(LocalDate.now()), false);
     }
 
-    private List<String> createListYearsEvent() {
-        List<String> expenseYears = mapedExpenseList();
-        List<String> eventYears = mapedEventList();
-        assert eventYears != null;
-        return eventYears.size() >= expenseList.size() ? eventYears : expenseYears;
-    }
 
-    private List<String> mapedExpenseList() {
-        return  expenseList.stream()
-                .map(Expense::getDate)
-                .map(LocalDate::getYear)
-                .distinct()
-                .sorted(Comparator.comparing(Integer::intValue))
-                .map(Objects::toString)
-                .collect(Collectors.toList());
-    }
-
-    private List<String> mapedEventList() {
-        return  eventList.stream()
-                .map(Event::getEventDate)
-                .map(LocalDate::getYear)
-                .distinct()
-                .sorted(Comparator.comparing(Integer::intValue))
-                .map(Objects::toString)
-                .collect(Collectors.toList());
-    }
 
     private void adapterYearsListener() {
         yearValue = LocalDate.now().getYear();//value default
@@ -123,5 +107,30 @@ public class MonthlyReportFragment extends Fragment {
         getParentFragmentManager().setFragmentResult(KEY_REPORT, result);
     }
 
+    private List<String> createListYearsEvent(List<Event> eventList, List<Expense> expenseList) {
+        List<String> expenseYears = mapedExpenseList(expenseList);
+        List<String> eventYears = mapedEventList(eventList);
+        assert eventYears != null;
+        return eventYears.size() >= expenseList.size() ? eventYears : expenseYears;
+    }
 
+    private List<String> mapedExpenseList(List<Expense> expenseList) {
+        return  expenseList.stream()
+                .map(Expense::getDate)
+                .map(LocalDate::getYear)
+                .distinct()
+                .sorted(Comparator.comparing(Integer::intValue))
+                .map(Objects::toString)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> mapedEventList(List<Event> eventList) {
+        return  eventList.stream()
+                .map(Event::getEventDate)
+                .map(LocalDate::getYear)
+                .distinct()
+                .sorted(Comparator.comparing(Integer::intValue))
+                .map(Objects::toString)
+                .collect(Collectors.toList());
+    }
 }

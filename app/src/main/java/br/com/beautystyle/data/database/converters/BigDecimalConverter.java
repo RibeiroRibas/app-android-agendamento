@@ -1,4 +1,4 @@
-package br.com.beautystyle.data.db.converters;
+package br.com.beautystyle.data.database.converters;
 
 import androidx.room.TypeConverter;
 

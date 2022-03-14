@@ -4,17 +4,29 @@ import android.app.Application;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.List;
 
 import br.com.beautystyle.data.repository.ExpenseRepository;
-import br.com.beautystyle.domain.model.Expense;
+import br.com.beautystyle.model.Expense;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 
 public class ExpenseViewModel extends AndroidViewModel {
 
     private final ExpenseRepository repository;
+    private final MutableLiveData<List<Expense>> mExpenseList = new MutableLiveData<>();
+
+    public void add(List<Expense> expenseList) {
+        mExpenseList.setValue(expenseList);
+    }
+
+    public LiveData<List<Expense>> getExpenseList() {
+        return mExpenseList;
+    }
 
     public ExpenseViewModel(@NonNull Application application) {
         super(application);
@@ -33,7 +45,7 @@ public class ExpenseViewModel extends AndroidViewModel {
         return repository.delete(expense);
     }
 
-    public Single<List<Expense>> getAll() {
+    public Observable<List<Expense>> getAll() {
         return repository.getAll();
     }
 }

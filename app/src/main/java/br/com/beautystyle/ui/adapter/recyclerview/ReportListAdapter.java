@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.beautystyle.ViewModel.ClientViewModel;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Expense;
-import br.com.beautystyle.domain.model.Report;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.Report;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 

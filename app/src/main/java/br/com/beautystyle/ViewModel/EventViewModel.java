@@ -10,9 +10,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import br.com.beautystyle.data.repository.EventRepository;
-import br.com.beautystyle.domain.model.Client;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.model.Client;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;

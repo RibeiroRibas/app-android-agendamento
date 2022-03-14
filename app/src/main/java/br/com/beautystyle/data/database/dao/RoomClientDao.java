@@ -1,4 +1,4 @@
-package br.com.beautystyle.data.db.dao;
+package br.com.beautystyle.data.database.dao;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -8,7 +8,7 @@ import androidx.room.Update;
 
 import java.util.List;
 
-import br.com.beautystyle.domain.model.Client;
+import br.com.beautystyle.model.Client;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 

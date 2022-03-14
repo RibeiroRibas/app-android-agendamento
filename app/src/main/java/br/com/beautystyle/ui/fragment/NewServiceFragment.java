@@ -1,9 +1,9 @@
 package br.com.beautystyle.ui.fragment;
 
 import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_DURATION;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_SERVICE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_SERVICE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_SERVICE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_SERVICE;
 
 import android.app.TimePickerDialog;
@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,17 +26,18 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Objects;
 
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.model.Services;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.TimeUtil;
 import me.abhinay.input.CurrencyEditText;
 import me.abhinay.input.CurrencySymbols;
 
-public class NewServiceFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener{
+public class NewServiceFragment extends DialogFragment{
 
     private EditText durationService, nameService;
     public CurrencyEditText valueService;
     private Services service = new Services();
+    private final TimePickerDialog.OnTimeSetListener listener = timePickerDialogListener();
 
     @Nullable
     @Override
@@ -50,6 +50,7 @@ public class NewServiceFragment extends DialogFragment implements TimePickerDial
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        restoreTimePickerListener(savedInstanceState);
         initiWidgets(view);
         loadService();
         //LISTENERS
@@ -65,6 +66,14 @@ public class NewServiceFragment extends DialogFragment implements TimePickerDial
         setLayoutParamsDialog();
     }
 
+    private void restoreTimePickerListener(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            TimePickerFragment tpf = (TimePickerFragment) getParentFragmentManager().findFragmentByTag(TAG_EVENT_DURATION);
+            if (tpf != null) {
+                tpf.setOnTimeSetListener(listener);
+            }
+        }
+    }
     private void setLayoutParamsDialog() {
         WindowManager.LayoutParams params = Objects.requireNonNull(getDialog()).getWindow().getAttributes();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -95,10 +104,12 @@ public class NewServiceFragment extends DialogFragment implements TimePickerDial
     }
 
     private void durationServiceListener() {
-        durationService.setOnClickListener(v2 -> {
-            DialogFragment timePicker = new TimePickerFragment(this);
-            timePicker.show(getParentFragmentManager(), TAG_EVENT_DURATION);
-        });
+        durationService.setOnClickListener(v2 ->
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .add(TimePickerFragment.newInstance(listener), TAG_EVENT_DURATION)
+                    .commit()
+        );
     }
 
     private void formatInputEditTextValueService() {
@@ -158,11 +169,12 @@ public class NewServiceFragment extends DialogFragment implements TimePickerDial
         getParentFragmentManager().setFragmentResult(KEY_SERVICE, result);
     }
 
-    @Override
-    public void onTimeSet(TimePicker view, int hour, int minute) {
-        LocalTime timeWatch = LocalTime.of(hour, minute);
-        String timeFormated = TimeUtil.formatLocalTime(timeWatch);
-        durationService.setText(timeFormated);
-        service.setTimeOfDuration(timeWatch);
+    private TimePickerDialog.OnTimeSetListener timePickerDialogListener() {
+        return (view, hour, minute) -> {
+            LocalTime timeWatch = LocalTime.of(hour, minute);
+            String timeFormated = TimeUtil.formatLocalTime(timeWatch);
+            durationService.setText(timeFormated);
+            service.setTimeOfDuration(timeWatch);
+        };
     }
 }

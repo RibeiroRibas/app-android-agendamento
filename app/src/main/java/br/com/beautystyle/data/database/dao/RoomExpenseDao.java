@@ -1,4 +1,4 @@
-package br.com.beautystyle.data.db.dao;
+package br.com.beautystyle.data.database.dao;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -8,15 +8,16 @@ import androidx.room.Update;
 
 import java.util.List;
 
-import br.com.beautystyle.domain.model.Expense;
+import br.com.beautystyle.model.Expense;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 
 @Dao
 public interface RoomExpenseDao {
 
     @Query("SELECT * FROM expense")
-    Single<List<Expense>> getAll();
+    Observable<List<Expense>> getAll();
 
     @Delete
     Completable delete(Expense selectedExpense);
@@ -26,7 +27,5 @@ public interface RoomExpenseDao {
 
     @Update
     Completable update(Expense expense);
-
-
 
 }

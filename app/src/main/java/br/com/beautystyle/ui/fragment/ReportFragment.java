@@ -27,13 +27,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import br.com.beautystyle.ViewModel.EventViewModel;
+import br.com.beautystyle.ViewModel.ExpenseViewModel;
 import br.com.beautystyle.ViewModel.ReportViewModel;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Expense;
-import br.com.beautystyle.domain.model.Report;
-import br.com.beautystyle.domain.model.TypeOfReport;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.TypeOfReport;
 import br.com.beautystyle.ui.adapter.recyclerview.ReportListAdapter;
 import br.com.beautystyle.util.CoinUtil;
+import br.com.beautystyle.util.CreateListsUtil;
 
 public class ReportFragment extends Fragment {
 
@@ -41,57 +44,81 @@ public class ReportFragment extends Fragment {
     private ReportViewModel reportViewModel;
     private ReportListAdapter adapter;
     private View inflatedView;
-    private final List<Event> eventList;
-    private final List<Expense> expenseList;
-
-    public ReportFragment(List<Event> eventList, List<Expense> expenseList) {
-        this.eventList = new ArrayList<>(eventList);
-        this.expenseList = new ArrayList<>(expenseList);
-    }
+    private List<Event> eventList;
+    private List<Expense> expenseList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        reportViewModel = new ViewModelProvider(requireActivity()).get(ReportViewModel.class);
+        getListsFromDatabase();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         inflatedView = inflater.inflate(R.layout.fragment_report, container, false);
-
-        setAdapterTypeOfReport();
-        setTypeOfReportListener();
-        beginMonthlyReportFragment();
         setAdapterReport();
-        setFragmentResultListener();
-        reportLiveDataViewModel();
+        TypeOfReportListener();
+        fragmentResultListener();
+
+        getEventAndExpenseListObserve();
+        reportViewModel.getReportList().observe(getViewLifecycleOwner(), this::updateViews);
 
         return inflatedView;
     }
 
+    private void getEventAndExpenseListObserve() {
+        reportViewModel.getEventList().observe(getViewLifecycleOwner(), eventList ->
+            reportViewModel.getExpenseList().observe(getViewLifecycleOwner(), expenseList -> {
+                initEventAndExpenseList(eventList, expenseList);
+                setAdapterTypeOfReport();
+            })
+        );
+    }
+
+    private void initEventAndExpenseList(List<Event> eventList, List<Expense> expenseList) {
+        this.expenseList = expenseList;
+        this.eventList = eventList;
+    }
+
+    private void getListsFromDatabase() {
+        ExpenseViewModel expenseViewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
+        EventViewModel eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+        eventViewModel.getAll().doOnSuccess(eventList ->
+                expenseViewModel.getAll()
+                        .doOnNext(expenseList -> {
+                            reportViewModel.addEventList(eventList);
+                            reportViewModel.addExpenseList(expenseList);
+                        })
+                        .subscribe()
+        ).subscribe();
+    }
+
     private void setAdapterTypeOfReport() {
-        typeOfReport = inflatedView.findViewById(R.id.fragment_report_type_of_);
         List<String> typeOfReportList = TypeOfReport.getTypeOfReportList();
         ArrayAdapter<String> adapteritens = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, typeOfReportList);
+
         typeOfReport.setAdapter(adapteritens);
     }
 
-    private void setTypeOfReportListener() {
-        typeOfReport.setText(typeOfReport.getAdapter().getItem(0).toString(), false);
+    private void TypeOfReportListener() {
+        typeOfReport = inflatedView.findViewById(R.id.fragment_report_type_of_);
         typeOfReport.setOnItemClickListener((parent, view, position, id) -> {
+            CreateListsUtil.reportListRef = true;
             switch (position) {
                 case 0://monthly
-                    replaceFragment(new MonthlyReportFragment(eventList, expenseList));
-                    reportViewModel.add(createMonthlyReportList(LocalDate.now()));
+                    replaceFragment(new MonthlyReportFragment());
+                    reportViewModel.addReportList(createMonthlyReportList(LocalDate.now()));
                     break;
                 case 1://daily
                     replaceFragment(new DailyReportFragment());
-                    reportViewModel.add(createDailyReportList(LocalDate.now()));
+                    reportViewModel.addReportList(createDailyReportList(LocalDate.now()));
                     break;
                 case 2://by period
                     replaceFragment(new PeriodReportFragment());
                     adapter.removeItemRange();
-                    onBindDataReport("R$ 0,00", "R$ 0,00", "R$ 0,00");
+                    onBindOverView("R$ 0,00", "R$ 0,00", "R$ 0,00");
                     break;
             }
         });
@@ -104,31 +131,24 @@ public class ReportFragment extends Fragment {
                 .commit();
     }
 
-    private void beginMonthlyReportFragment() {
-        getChildFragmentManager()
-                .beginTransaction()
-                .add(R.id.fragment_report_container, new MonthlyReportFragment(eventList, expenseList))
-                .commit();
-    }
-
     private void setAdapterReport() {
         RecyclerView reportList = inflatedView.findViewById(R.id.fragment_report_rv);
         adapter = new ReportListAdapter(requireActivity().getApplication());
         reportList.setAdapter(adapter);
     }
 
-    private void setFragmentResultListener() {
+    private void fragmentResultListener() {
         getChildFragmentManager().setFragmentResultListener(KEY_REPORT, this, (requestKey, result) -> {
             if (result.containsKey(KEY_MONTHLY_REPORT)) {
                 LocalDate date = (LocalDate) result.getSerializable(KEY_MONTHLY_REPORT);
-                reportViewModel.add(createMonthlyReportList(date));
+                reportViewModel.addReportList(createMonthlyReportList(date));
             } else if (result.containsKey(KEY_DAILY_REPORT)) {
                 LocalDate selectedDate = (LocalDate) result.getSerializable(KEY_DAILY_REPORT);
-                reportViewModel.add(createDailyReportList(selectedDate));
+                reportViewModel.addReportList(createDailyReportList(selectedDate));
             } else if (result.containsKey(KEY_START_DATE)) {
                 LocalDate startDate = (LocalDate) result.getSerializable(KEY_START_DATE);
                 LocalDate endDate = (LocalDate) result.getSerializable(KEY_END_DATE);
-                reportViewModel.add(createPeriodReportList(startDate, endDate));
+                reportViewModel.addReportList(createPeriodReportList(startDate, endDate));
             }
         });
     }
@@ -143,7 +163,7 @@ public class ReportFragment extends Fragment {
                 .filter(expense -> expense.getDate().equals(selectedDate))
                 .collect(Collectors.toList());
 
-        return createReportList(filteredEventList,filteredExpenseList);
+        return createReportList(filteredEventList, filteredExpenseList);
     }
 
     private List<Report> createPeriodReportList(LocalDate startDate, LocalDate endDate) {
@@ -157,27 +177,22 @@ public class ReportFragment extends Fragment {
                 && !ex.getDate().isAfter(endDate))
                 .collect(Collectors.toList());
 
-        return createReportList(filteredEventList,filteredExpenseList);
+        return createReportList(filteredEventList, filteredExpenseList);
     }
 
     private List<Report> createReportList(List<Event> filteredEventList, List<Expense> filteredExpenseList) {
         List<Report> reportList = new ArrayList<>();
         for (Event ev : filteredEventList) {
-            reportList.add(new Report(ev.getEventDate(),ev));
+            reportList.add(new Report(ev.getEventDate(), ev));
         }
 
         for (Expense ex : filteredExpenseList) {
-            reportList.add(new Report(ex.getDate(),ex));
+            reportList.add(new Report(ex.getDate(), ex));
         }
         reportList.sort(Comparator.comparing(Report::getDate));
         return reportList;
     }
 
-    private void reportLiveDataViewModel() {
-        reportViewModel = new ViewModelProvider(requireActivity()).get(ReportViewModel.class);
-        reportViewModel.getReportList().observe(requireActivity(), this::updateViews);
-        reportViewModel.add(createMonthlyReportList(LocalDate.now()));
-    }
 
     private List<Report> createMonthlyReportList(LocalDate date) {
 
@@ -192,30 +207,37 @@ public class ReportFragment extends Fragment {
                 .sorted(Comparator.comparing(Expense::getDate))
                 .collect(Collectors.toList());
 
-        return createReportList(filteredEventList,filteredExpenseList);
+        return createReportList(filteredEventList, filteredExpenseList);
     }
 
     private void updateViews(List<Report> filteredList) {
-        BigDecimal valueExpense = new BigDecimal(0);
-        BigDecimal valueGain = new BigDecimal(0);
-        for (Report report : filteredList) {
-            if (report.getExpense()!=null) {
-                valueExpense = valueExpense.add(report.getExpense().getPrice());
-            } else {
-                valueGain = valueGain.add(report.getEvent().getValueEvent());
+        if(CreateListsUtil.reportListRef){
+            BigDecimal valueExpense = new BigDecimal(0);
+            BigDecimal valueGain = new BigDecimal(0);
+            for (Report report : filteredList) {
+                if (report.getExpense() != null) {
+                    valueExpense = valueExpense.add(report.getExpense().getPrice());
+                } else {
+                    valueGain = valueGain.add(report.getEvent().getValueEvent());
+                }
             }
+            onBindOverView(CoinUtil.formatBr(valueGain), CoinUtil.formatBr(valueExpense), CoinUtil.formatBr(valueGain.subtract(valueExpense)));
+            adapter.publishResultsFilteredList(filteredList);
         }
-        onBindDataReport(CoinUtil.formatBr(valueGain), CoinUtil.formatBr(valueExpense), CoinUtil.formatBr(valueGain.subtract(valueExpense)));
-        adapter.publishResultsFilteredList(filteredList);
     }
 
-    private void onBindDataReport(String valueGain, String valueExpense, String valueLeft) {
+    private void onBindOverView(String valueGain, String valueExpense, String valueLeft) {
         TextView amount = inflatedView.findViewById(R.id.fragment_report_amount);
         TextView leftValue = inflatedView.findViewById(R.id.fragment_report_value_left);
         TextView expense = inflatedView.findViewById(R.id.fragment_report_expense);
         amount.setText(valueGain);
         expense.setText(valueExpense);
         leftValue.setText(valueLeft);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
 }

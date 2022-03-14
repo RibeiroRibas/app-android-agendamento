@@ -23,12 +23,16 @@ import br.com.beautystyle.util.CalendarUtil;
 public class PeriodReportFragment extends Fragment {
 
     private EditText startDate, endDate;
+    private Bundle result;
     private CalendarViewModel calendarViewModel;
-    int position = 0;
+    int position;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
+        position = 0;
+        result = new Bundle();
     }
 
     @Override
@@ -36,42 +40,48 @@ public class PeriodReportFragment extends Fragment {
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_report_period, container, false);
 
-        setStartDateOnClickListener(inflatedView);
-        setEndDateOnCLickListener(inflatedView);
-        calendarObserve();
+        initWidgets(inflatedView);
+        startDateListener();
+        endDateListener();
+
+        calendarViewModel.getDate().observe(requireActivity(), this::setDate);
 
         return inflatedView;
     }
 
-    private void calendarObserve() {
-        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
-        calendarViewModel.getDate().observe(requireActivity(), this::setDate);
+    private void initWidgets(View inflatedView) {
+        endDate = inflatedView.findViewById(R.id.et_fragment_report_period_end_date);
+        startDate = inflatedView.findViewById(R.id.fragment_report_period_start_date);
     }
 
     private void setDate(LocalDate date) {
         String dateFormated = CalendarUtil.formatDate(date);
-        Bundle result = new Bundle();
         if (position == 1) {
             startDate.setText(dateFormated);
-            result.putSerializable(KEY_START_DATE, date);
         } else if (position == 2) {
             endDate.setText(dateFormated);
-            result.putSerializable(KEY_END_DATE, date);
         }
+
         if (!startDate.getText().toString().isEmpty() && !endDate.getText().toString().isEmpty())
-            getParentFragmentManager().setFragmentResult(KEY_REPORT, result);
+            setFragmentResult();
     }
 
-    private void setEndDateOnCLickListener(View inflatedView) {
-        endDate = inflatedView.findViewById(R.id.et_fragment_report_period_end_date);
+    private void setFragmentResult() {
+        LocalDate mStartDate = CalendarUtil.fromStringToLocalDate(startDate.getText().toString());
+        LocalDate mEndDAte = CalendarUtil.fromStringToLocalDate(endDate.getText().toString());
+        result.putSerializable(KEY_START_DATE, mStartDate);
+        result.putSerializable(KEY_END_DATE, mEndDAte);
+        getParentFragmentManager().setFragmentResult(KEY_REPORT, result);
+    }
+
+    private void endDateListener() {
         endDate.setOnClickListener(v -> {
             position = 2;
             calendarViewModel.inflateCalendar(requireActivity());
         });
     }
 
-    private void setStartDateOnClickListener(View inflatedView) {
-        startDate = inflatedView.findViewById(R.id.fragment_report_period_start_date);
+    private void startDateListener() {
         startDate.setOnClickListener(v -> {
             position = 1;
             calendarViewModel.inflateCalendar(requireActivity());

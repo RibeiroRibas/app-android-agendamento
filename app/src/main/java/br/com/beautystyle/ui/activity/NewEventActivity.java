@@ -1,14 +1,14 @@
 package br.com.beautystyle.ui.activity;
 
 import static android.content.ContentValues.TAG;
-import static br.com.beautystyle.ui.activity.ContantsActivity.KEY_INSERT_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_NEW_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_DURATION;
 import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_START_TIME;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATED_SERVICE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EVENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -17,11 +17,9 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TimePicker;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
@@ -40,10 +38,10 @@ import br.com.beautystyle.ViewModel.CalendarViewModel;
 import br.com.beautystyle.ViewModel.ClientViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
 import br.com.beautystyle.ViewModel.EventWithServicesViewModel;
-import br.com.beautystyle.data.db.references.EventWithServices;
-import br.com.beautystyle.domain.model.Client;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.data.database.references.EventWithServices;
+import br.com.beautystyle.model.Client;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
 import br.com.beautystyle.ui.fragment.ClientListFragment;
 import br.com.beautystyle.ui.fragment.ServiceListFragment;
 import br.com.beautystyle.ui.fragment.TimePickerFragment;
@@ -54,7 +52,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import me.abhinay.input.CurrencyEditText;
 import me.abhinay.input.CurrencySymbols;
 
-public class NewEventActivity extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener {
+public class NewEventActivity extends AppCompatActivity {
 
     private EditText searchClient, searchService, eventDate, eventStartTime, servicesDuration;
     private CurrencyEditText valueOfTheServices;
@@ -62,17 +60,18 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
     private List<Services> serviceList;
     private Event event = new Event();
     private LocalTime eventDuration;
-    private DialogFragment timePicker;
     private CalendarViewModel calendarViewModel;
     private EventViewModel eventViewModel;
     private int editedServices = 0;
     private Disposable disposable;
+    private final TimePickerDialog.OnTimeSetListener listener = timePickerDialogListener();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
 
+        restoreTimePickerListener(savedInstanceState);
         initWidgets();
         loadEvent();
 
@@ -93,8 +92,21 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
         checkRequiredFieldsAndSaveListener();
     }
 
+    private void restoreTimePickerListener(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            TimePickerFragment tpf = (TimePickerFragment) getSupportFragmentManager().findFragmentByTag(TAG_EVENT_START_TIME);
+            TimePickerFragment tpf2 = (TimePickerFragment) getSupportFragmentManager().findFragmentByTag(TAG_EVENT_DURATION);
+            if (tpf != null) {
+                tpf.setOnTimeSetListener(listener);
+            } else if (tpf2 != null) {
+                tpf2.setOnTimeSetListener(listener);
+            }
+        }
+    }
+
     private void initWidgets() {
         eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+        Log.i(TAG, "initWidgets: ");
         eventDuration = LocalTime.of(0, 0);
         serviceList = new ArrayList<>();
         eventDate = findViewById(R.id.activity_new_event_event_date);
@@ -178,10 +190,12 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
     }
 
     private void eventStartTimeListener() {
-        eventStartTime.setOnClickListener(v -> {
-            timePicker = new TimePickerFragment(this);
-            timePicker.show(getSupportFragmentManager(), TAG_EVENT_START_TIME);
-        });
+        eventStartTime.setOnClickListener(v ->
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(TimePickerFragment.newInstance(listener), TAG_EVENT_START_TIME)
+                    .commit()
+        );
     }
 
     private void clientListener() {
@@ -189,7 +203,7 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
             if (getSupportFragmentManager().findFragmentById(R.id.activity_new_event_container_client) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.activity_new_event_container_client, new ClientListFragment(eventViewModel))
+                        .add(R.id.activity_new_event_container_client, new ClientListFragment())
                         .commit();
         });
     }
@@ -199,16 +213,18 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
             if (getSupportFragmentManager().findFragmentById(R.id.activity_new_event_container_service) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.activity_new_event_container_service, new ServiceListFragment(eventViewModel))
+                        .add(R.id.activity_new_event_container_service, new ServiceListFragment())
                         .commit();
         });
     }
 
     private void eventDurationListener() {
-        servicesDuration.setOnClickListener(v -> {
-            timePicker = new TimePickerFragment(this);
-            timePicker.show(getSupportFragmentManager(), TAG_EVENT_DURATION);
-        });
+        servicesDuration.setOnClickListener(v ->
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(TimePickerFragment.newInstance(listener), TAG_EVENT_DURATION)
+                    .commit()
+        );
     }
 
     private void paymentStatusListener() {
@@ -250,7 +266,6 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
     }
 
     private void setClient(Client client) {
-        Log.i(TAG, "setClient: id " + client.getId());
         event.setClientId(client.getId());
         searchClient.setText(client.getName());
     }
@@ -387,10 +402,15 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
     private void setResultEvent() {
         Intent intent = new Intent();
         intent.putExtra(KEY_SERVICE, (Serializable) serviceList);
-        if (event.checkId()) {
-            intent.putExtra(KEY_UPDATED_SERVICE, editedServices);
-            intent.putExtra(KEY_UPDATE_EVENT, event);
-            setResult(REQUEST_CODE_UPDATE_EVENT, intent);
+        if (getIntent().hasExtra(KEY_UPDATE_EVENT)) {
+            if (event.checkId()) {
+                intent.putExtra(KEY_UPDATED_SERVICE, editedServices);
+                intent.putExtra(KEY_UPDATE_EVENT, event);
+                setResult(REQUEST_CODE_UPDATE_EVENT, intent);
+            } else {
+                intent.putExtra(KEY_INSERT_EVENT, event);
+                setResult(REQUEST_CODE_NEW_EVENT, intent);
+            }
         } else {
             intent.putExtra(KEY_INSERT_EVENT, event);
             setResult(REQUEST_CODE_NEW_EVENT, intent);
@@ -399,22 +419,18 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
         finish();
     }
 
-    @Override
-    public void onTimeSet(TimePicker view, int hour, int minute) {
-        LocalTime timeWatch = LocalTime.of(hour, minute);
-        String timeFormated = TimeUtil.formatLocalTime(timeWatch);
-        if(timePicker.getTag()!=null) {
-            switch (timePicker.getTag()) {
-                case (TAG_EVENT_START_TIME):
-                    eventStartTime.setText(timeFormated);
-                    event.setStarTime(timeWatch);
-                    break;
-                case (TAG_EVENT_DURATION):
-                    servicesDuration.setText(timeFormated);
-                    eventDuration = timeWatch;
-                    break;
+    private TimePickerDialog.OnTimeSetListener timePickerDialogListener() {
+        return (view, hour, minute) -> {
+            LocalTime timeWatch = LocalTime.of(hour, minute);
+            String timeFormated = TimeUtil.formatLocalTime(timeWatch);
+            if (getSupportFragmentManager().findFragmentByTag(TAG_EVENT_START_TIME) != null) {
+                eventStartTime.setText(timeFormated);
+                event.setStarTime(timeWatch);
+            } else {
+                servicesDuration.setText(timeFormated);
+                eventDuration = timeWatch;
             }
-        }
+        };
     }
 
     @Override
@@ -422,5 +438,6 @@ public class NewEventActivity extends AppCompatActivity implements TimePickerDia
         super.onDestroy();
         if (disposable != null)
             disposable.dispose();
+
     }
 }

@@ -14,7 +14,7 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.model.Services;
 
 public class ServiceListAdapter extends BaseAdapter implements Filterable {
 

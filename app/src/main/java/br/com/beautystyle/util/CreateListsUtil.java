@@ -5,15 +5,16 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import br.com.beautystyle.data.db.references.EventServiceCroosRef;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.data.database.references.EventServiceCroosRef;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
 
 public class CreateListsUtil   {
 
     public static List<Event> listEvent;
     private static LocalTime startTime;
     private static LocalTime endTime;
+    public static boolean reportListRef;
 
     public static void createListEventTest(List<Event> eventList) {
         creatListEmptyEvent();

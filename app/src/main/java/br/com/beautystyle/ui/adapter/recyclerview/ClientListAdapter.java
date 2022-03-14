@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.com.beautystyle.domain.model.Client;
+import br.com.beautystyle.model.Client;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 
 public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder> {

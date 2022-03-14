@@ -18,7 +18,7 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.domain.model.Expense;
+import br.com.beautystyle.model.Expense;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
@@ -57,9 +57,9 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         return expenseList.size() + 2;
     }
 
-    public void publishResultsNew(Expense expense, int monthValue, int year) {
+    public void publishResultsNew(Expense expense) {
         expenseList.add(expense);
-        if (expense.getDate().getMonthValue() == monthValue && expense.getDate().getYear() == year)
+        if (expense.getDate().getMonthValue() == CalendarUtil.monthValue && expense.getDate().getYear() == CalendarUtil.year)
             notifyItemInserted(expenseList.indexOf(expense));
     }
 

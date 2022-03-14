@@ -47,7 +47,7 @@
     <string name="new_service">Novo Serviço</string>
     <string name="service_name">Nome do Serviço</string>
     <string name="duration_time">Tempo de Duração</string>
-    <string name="repeat">Repete (no primeiro dia de cada mês)</string>
+    <string name="repeat">Repete</string>
     <string name="do_not_repeat">Não Repete</string>
     <string name="select_year">Selecione o Ano</string>
     <string name="wait_a_moment">Aguarde um instante por favor…</string>

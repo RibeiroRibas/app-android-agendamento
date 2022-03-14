@@ -7,8 +7,8 @@ import androidx.lifecycle.AndroidViewModel;
 
 import java.util.List;
 
-import br.com.beautystyle.data.db.references.EventServiceCroosRef;
-import br.com.beautystyle.data.db.references.EventWithServices;
+import br.com.beautystyle.data.database.references.EventServiceCroosRef;
+import br.com.beautystyle.data.database.references.EventWithServices;
 import br.com.beautystyle.data.repository.EventWithServicesRepository;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;

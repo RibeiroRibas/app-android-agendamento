@@ -4,9 +4,9 @@ import android.content.Context;
 
 import java.util.List;
 
-import br.com.beautystyle.data.db.BeautyStyleDatabase;
-import br.com.beautystyle.data.db.dao.RoomServiceDao;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.data.database.BeautyStyleDatabase;
+import br.com.beautystyle.data.database.dao.RoomServiceDao;
+import br.com.beautystyle.model.Services;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;

@@ -1,4 +1,4 @@
-package br.com.beautystyle.data.db.converters;
+package br.com.beautystyle.data.database.converters;
 
 import androidx.room.TypeConverter;
 
@@ -8,8 +8,8 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import br.com.beautystyle.data.db.references.EventServiceCroosRef;
-import br.com.beautystyle.domain.model.Client;
+import br.com.beautystyle.data.database.references.EventServiceCroosRef;
+import br.com.beautystyle.model.Client;
 
 public class ListObjectConverter {
 

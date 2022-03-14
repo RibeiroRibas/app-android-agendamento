@@ -7,6 +7,8 @@ import java.time.format.FormatStyle;
 public class CalendarUtil {
 
     public static LocalDate selectedDate;
+    public static int monthValue;
+    public static int year;
     private static String formatDate;
     private static DateTimeFormatter df;
 
@@ -51,6 +53,11 @@ public class CalendarUtil {
         df = DateTimeFormatter.ofPattern("E");
         formatDate = df.format(date);
         return formatDate;
+    }
+
+    public static LocalDate fromStringToLocalDate(String date){
+        df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return LocalDate.parse(date,df);
     }
 }
 

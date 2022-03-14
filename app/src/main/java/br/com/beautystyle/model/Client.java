@@ -1,4 +1,4 @@
-package br.com.beautystyle.domain.model;
+package br.com.beautystyle.model;
 
 import androidx.room.Entity;
 import androidx.room.Ignore;

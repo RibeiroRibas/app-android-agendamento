@@ -4,10 +4,10 @@ import android.content.Context;
 
 import java.util.List;
 
-import br.com.beautystyle.data.db.BeautyStyleDatabase;
-import br.com.beautystyle.data.db.dao.RoomEventWithServicesDao;
-import br.com.beautystyle.data.db.references.EventServiceCroosRef;
-import br.com.beautystyle.data.db.references.EventWithServices;
+import br.com.beautystyle.data.database.BeautyStyleDatabase;
+import br.com.beautystyle.data.database.dao.RoomEventWithServicesDao;
+import br.com.beautystyle.data.database.references.EventServiceCroosRef;
+import br.com.beautystyle.data.database.references.EventWithServices;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;

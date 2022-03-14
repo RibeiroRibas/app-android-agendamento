@@ -36,8 +36,8 @@ import java.util.List;
 import br.com.beautystyle.ViewModel.ClientViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
 import br.com.beautystyle.ViewModel.EventWithServicesViewModel;
-import br.com.beautystyle.domain.model.Event;
-import br.com.beautystyle.domain.model.Services;
+import br.com.beautystyle.model.Event;
+import br.com.beautystyle.model.Services;
 import br.com.beautystyle.ui.ListDaysView;
 import br.com.beautystyle.ui.activity.NewEventActivity;
 import br.com.beautystyle.ui.adapter.listview.EventListAdapter;
@@ -49,34 +49,28 @@ import io.reactivex.rxjava3.disposables.Disposable;
 public class EventListFragment extends Fragment implements DaysListAdapter.OnDayListener {
 
     private ListView eventList;
-    private final ListDaysView listDaysView;
+    private ListDaysView listDaysView;
     private TextView monthAndYear;
     private ActivityResultLauncher<Intent> activityResultLauncher;
     private EventListAdapter adapterEventList;
-    private final EventViewModel eventViewModel;
+    private  EventViewModel eventViewModel;
     private ClientViewModel clientViewModel;
-    private final EventWithServicesViewModel eventWithServicesViewModel;
+    private  EventWithServicesViewModel eventWithServicesViewModel;
     private Disposable disposable;
-
-    public EventListFragment(ListDaysView listDaysView, LocalDate date, EventViewModel eventViewModel, EventWithServicesViewModel eventWithServicesViewModel) {
-        this.listDaysView = listDaysView;
-        CalendarUtil.selectedDate = date;
-        this.eventViewModel = eventViewModel;
-        this.eventWithServicesViewModel = eventWithServicesViewModel;
-
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         clientViewModel = new ViewModelProvider(requireActivity()).get(ClientViewModel.class);
+        listDaysView = new ListDaysView();
+        eventViewModel = new ViewModelProvider(requireActivity()).get(EventViewModel.class);
+        eventWithServicesViewModel = new ViewModelProvider(requireActivity()).get(EventWithServicesViewModel.class);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_list_event, container, false);
-
         initWidgets(inflatedView);
         setDaysListAdapter(inflatedView);// onClickListener in ListDaysAdapter
         setEventListAdapter();
@@ -102,6 +96,12 @@ public class EventListFragment extends Fragment implements DaysListAdapter.OnDay
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         checkRemove(item);
         return super.onContextItemSelected(item);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        eventViewModel.add(CalendarUtil.selectedDate);
     }
 
     public void checkRemove(final MenuItem itemId) {
@@ -202,14 +202,13 @@ public class EventListFragment extends Fragment implements DaysListAdapter.OnDay
 
     private void insertEvent(Event event, List<Services> servicesList) {
         eventViewModel.insert(event).doOnSuccess((id) ->
-            eventWithServicesViewModel.insert(CreateListsUtil.createNewListServices(id, servicesList))
+                eventWithServicesViewModel.insert(CreateListsUtil.createNewListServices(id, servicesList))
                     .doOnComplete(() -> listDaysView.toScrollPosition(event.getEventDate())).subscribe())
                 .subscribe();
     }
 
     private void observeEventList() {
         eventViewModel.getEventDate().observe(requireActivity(), this::updateEventList);
-        eventViewModel.add(CalendarUtil.selectedDate);
     }
 
     private void updateEventList(LocalDate date) {

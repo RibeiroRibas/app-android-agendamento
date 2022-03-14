@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Objects;
 
 import br.com.beautystyle.ViewModel.CalendarViewModel;
-import br.com.beautystyle.domain.model.Category;
-import br.com.beautystyle.domain.model.Expense;
+import br.com.beautystyle.model.Category;
+import br.com.beautystyle.model.Expense;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 import me.abhinay.input.CurrencyEditText;
@@ -49,7 +49,6 @@ public class NewExpenseActivity extends AppCompatActivity {
 
         initWidget();
         loadExpense();
-        setAdapterCategory();
         formatInputEditTextTotalPrice();
 
         // LISTENER
@@ -59,6 +58,12 @@ public class NewExpenseActivity extends AppCompatActivity {
         setResultListener();
 
         calendarObserve();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setAdapterCategory();
     }
 
     private void initWidget() {
@@ -97,7 +102,8 @@ public class NewExpenseActivity extends AppCompatActivity {
     }
     
     private void setPurchaseDateDefault(){
-        String todayDate = CalendarUtil.formatDate(LocalDate.now());
+        LocalDate date = LocalDate.of(CalendarUtil.year,CalendarUtil.monthValue,LocalDate.now().getDayOfMonth());
+        String todayDate = CalendarUtil.formatDate(date);
         purchaseDate.setText(todayDate);
         expense.setDate(LocalDate.now());
     }
@@ -173,6 +179,8 @@ public class NewExpenseActivity extends AppCompatActivity {
     }
 
     private void setDate(LocalDate date) {
+        CalendarUtil.monthValue = date.getMonthValue();
+        CalendarUtil.year = date.getYear();
         expense.setDate(date);
         String formatedDate = CalendarUtil.formatDate(date);
         purchaseDate.setText(formatedDate);

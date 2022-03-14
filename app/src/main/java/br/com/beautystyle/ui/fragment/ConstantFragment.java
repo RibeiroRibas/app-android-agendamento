@@ -2,7 +2,7 @@ package br.com.beautystyle.ui.fragment;
 
 public interface ConstantFragment {
     String KEY_UPDATE_EVENT = "updateEvent";
-    String KEY_INSERT_EVENT = "insertEvent";
+    String KEY_INSERT_EVENT = "newEvent";
     String KEY_UPDATE_EXPENSE = "updateExpense";
     String KEY_RESULT_EXPENSE = "resultExpense";
     String KEY_CLIENT = "client";

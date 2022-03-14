@@ -1,22 +1,24 @@
-package br.com.beautystyle.data.db.dao;
+package br.com.beautystyle.data.database.dao;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.RoomWarnings;
 import androidx.room.Transaction;
 
 import java.util.List;
 
-import br.com.beautystyle.data.db.references.EventServiceCroosRef;
-import br.com.beautystyle.data.db.references.EventWithServices;
+import br.com.beautystyle.data.database.references.EventServiceCroosRef;
+import br.com.beautystyle.data.database.references.EventWithServices;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
 @Dao
 public interface RoomEventWithServicesDao {
 
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Transaction
     @Query("SELECT * FROM EventServiceCroosRef ")
     Single<List<EventWithServices>> getEventWithServices();

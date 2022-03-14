@@ -1,4 +1,4 @@
-package br.com.beautystyle.data.db.references;
+package br.com.beautystyle.data.database.references;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

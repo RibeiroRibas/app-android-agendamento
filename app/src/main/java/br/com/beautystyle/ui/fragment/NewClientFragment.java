@@ -2,9 +2,9 @@ package br.com.beautystyle.ui.fragment;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.INVALID_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_CLIENT;
 
 import android.os.Bundle;
@@ -24,7 +24,7 @@ import com.example.beautystyle.R;
 
 import java.util.Objects;
 
-import br.com.beautystyle.domain.model.Client;
+import br.com.beautystyle.model.Client;
 
 public class NewClientFragment extends DialogFragment {
 
@@ -44,13 +44,14 @@ public class NewClientFragment extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         initWidgets(view);
-        loadClient();
         setResultClientListener(view);
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        loadClient();
         setLayoutParamsDialog();
     }
 
