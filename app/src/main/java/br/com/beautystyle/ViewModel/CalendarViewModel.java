@@ -34,7 +34,7 @@ public class CalendarViewModel extends ViewModel {
     private void setOnDateChangeListener(View inflatedCalendar, AlertDialog dialogBuilderCalendar) {
         CalendarView calendar = inflatedCalendar.findViewById(R.id.dialog_calendar_view);
         calendar.setOnDateChangeListener(((view, year, month, dayOfMonth) -> {
-            add(LocalDate.of(year, month + 1, dayOfMonth));
+            this.add(LocalDate.of(year, month + 1, dayOfMonth));
             dialogBuilderCalendar.dismiss();
         }));
     }

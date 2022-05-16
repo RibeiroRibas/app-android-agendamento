@@ -18,7 +18,7 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.entities.Expense;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;

@@ -157,7 +157,7 @@
             app:layout_constraintEnd_toEndOf="@+id/activity_new_event_client" />
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/activity_new_event_container_service"
+            android:id="@+id/activity_new_event_container_job"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="@+id/activity_new_event_duration"
@@ -171,9 +171,9 @@
             android:layout_marginTop="8dp"
             android:text="@string/total_value"
             app:layout_constraintStart_toStartOf="@+id/activity_new_event_client"
-            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_service" />
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_job" />
 
-        <me.abhinay.input.CurrencyEditText
+        <EditText
             android:id="@+id/activity_new_event_value"
             android:layout_width="0dp"
             android:layout_height="48dp"
@@ -185,7 +185,8 @@
             android:text="@string/default_coin_value"
             app:layout_constraintEnd_toStartOf="@+id/activity_new_event_cb_not_received"
             app:layout_constraintStart_toStartOf="@+id/activity_new_event_tv3"
-            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv7" />
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_tv7"
+            tools:ignore="Autofill"/>
 
         <CheckBox
             android:id="@+id/activity_new_event_cb_received"
@@ -193,7 +194,7 @@
             android:layout_height="wrap_content"
             android:text="@string/gain"
             app:layout_constraintStart_toStartOf="@+id/activity_new_event_cb_not_received"
-            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_service" />
+            app:layout_constraintTop_toBottomOf="@+id/activity_new_event_container_job" />
 
         <CheckBox
             android:id="@+id/activity_new_event_cb_not_received"

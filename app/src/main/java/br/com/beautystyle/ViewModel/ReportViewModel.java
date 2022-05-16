@@ -6,22 +6,31 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.entities.Event;
+import br.com.beautystyle.model.entities.Expense;
 import br.com.beautystyle.model.Report;
 
 public class ReportViewModel extends ViewModel {
 
-    private final MutableLiveData<List<Report>> mReportList = new MutableLiveData<>();
-    private MutableLiveData<List<Event>> eventList= new MutableLiveData<>();
-    private MutableLiveData<List<Expense>> expenseList = new MutableLiveData<>();
+    private MutableLiveData<List<Report>> mReportList;
+    private MutableLiveData<List<Event>> eventList;
+    private MutableLiveData<List<Expense>> expenseList;
 
-    public LiveData<List<Report>> getReportList() {
-        return mReportList;
+    public void addEventList(List<Event> eventList) {
+        this.eventList.setValue(eventList);
     }
+
+    public void addExpenseList(List<Expense> expenseList) { this.expenseList.setValue(expenseList); }
 
     public void addReportList(List<Report> reportList) {
         mReportList.setValue(reportList);
+    }
+
+    public LiveData<List<Report>> getReportList() {
+        if(mReportList == null){
+            mReportList = new MutableLiveData<>();
+        }
+        return mReportList;
     }
 
     public LiveData<List<Event>> getEventList() {
@@ -31,20 +40,12 @@ public class ReportViewModel extends ViewModel {
         return eventList;
     }
 
-    public void addEventList(List<Event> eventList) {
-        this.eventList.setValue(eventList);
-    }
-
     public LiveData<List<Expense>> getExpenseList() {
         if (expenseList == null) {
             expenseList = new MutableLiveData<>();
 
         }
         return expenseList;
-    }
-
-    public void addExpenseList(List<Expense> expenseList) {
-        this.expenseList.setValue(expenseList);
     }
 
 }

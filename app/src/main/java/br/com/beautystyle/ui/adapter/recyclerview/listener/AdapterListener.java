@@ -1,7 +1,7 @@
 package br.com.beautystyle.ui.adapter.recyclerview.listener;
 
-import br.com.beautystyle.model.Client;
-import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entities.Expense;
 
 public class AdapterListener {
 

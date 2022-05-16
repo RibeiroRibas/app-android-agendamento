@@ -1,9 +1,9 @@
 package br.com.beautystyle.ui.activity;
 
 import static br.com.beautystyle.ui.activity.ContantsActivity.INVALID_POSITION;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EXPENSE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_EXPENSE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EXPENSE;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,19 +24,18 @@ import java.util.List;
 import java.util.Objects;
 
 import br.com.beautystyle.ViewModel.CalendarViewModel;
-import br.com.beautystyle.model.Category;
-import br.com.beautystyle.model.Expense;
+import br.com.beautystyle.model.entities.Expense;
+import br.com.beautystyle.model.enuns.Category;
+import br.com.beautystyle.model.enuns.RepeatOrNot;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
-import me.abhinay.input.CurrencyEditText;
-import me.abhinay.input.CurrencySymbols;
+import br.com.beautystyle.util.MoneyTextWatcher;
 
 public class NewExpenseActivity extends AppCompatActivity {
 
-    private CurrencyEditText value;
     private Expense expense = new Expense();
     private int editItemPosition;
-    private EditText purchaseDate;
+    private EditText purchaseDate, value;
     private AutoCompleteTextView category;
     private CheckBox nRepeat, repeat;
     private EditText description;
@@ -49,7 +48,6 @@ public class NewExpenseActivity extends AppCompatActivity {
 
         initWidget();
         loadExpense();
-        formatInputEditTextTotalPrice();
 
         // LISTENER
         purchaseDateListener();
@@ -68,6 +66,7 @@ public class NewExpenseActivity extends AppCompatActivity {
 
     private void initWidget() {
         value = findViewById(R.id.activity_new_spending_price);
+        value.addTextChangedListener(new MoneyTextWatcher(value));
         purchaseDate = findViewById(R.id.activity_new_spending_date);
         description = findViewById(R.id.activity_new_spending_description);
         category = findViewById(R.id.activity_new_spending_category);
@@ -84,7 +83,7 @@ public class NewExpenseActivity extends AppCompatActivity {
             setPurchaseDateDefault();
             expense.setCategory(Category.OUTROS);
             nRepeat.setChecked(true);
-            expense.setRepeatOrNot(Expense.RepeatOrNot.NREPEAT);
+            expense.setRepeatOrNot(RepeatOrNot.NREPEAT);
         }
     }
     
@@ -94,7 +93,7 @@ public class NewExpenseActivity extends AppCompatActivity {
         category.setText(expense.getCategory().getDescription());
         description.setText(expense.getDescription());
         value.setText(CoinUtil.formatBrWithoutSymbol(expense.getPrice()));
-        if(expense.getRepeatOrNot().equals(Expense.RepeatOrNot.REPEAT)){
+        if(expense.getRepeatOrNot().equals(RepeatOrNot.REPEAT)){
             repeat.setChecked(true);
         }else{
             nRepeat.setChecked(true);
@@ -105,20 +104,12 @@ public class NewExpenseActivity extends AppCompatActivity {
         LocalDate date = LocalDate.of(CalendarUtil.year,CalendarUtil.monthValue,LocalDate.now().getDayOfMonth());
         String todayDate = CalendarUtil.formatDate(date);
         purchaseDate.setText(todayDate);
-        expense.setDate(LocalDate.now());
+        expense.setDate(date);
     }
     private void setAdapterCategory() {
         List<String> categoriesList = Category.getCategoriesList();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, categoriesList);
         category.setAdapter(adapter);
-    }
-
-    private void formatInputEditTextTotalPrice() {
-        value.setCurrency(CurrencySymbols.NONE);
-        value.setDelimiter(false);
-        value.setSpacing(true);
-        value.setDecimals(true);
-        value.setSeparator(".");
     }
 
     private void purchaseDateListener() {
@@ -136,13 +127,13 @@ public class NewExpenseActivity extends AppCompatActivity {
         repeat.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 nRepeat.setChecked(false);
-                expense.setRepeatOrNot(Expense.RepeatOrNot.REPEAT);
+                expense.setRepeatOrNot(RepeatOrNot.REPEAT);
             }
         });
         nRepeat.setOnCheckedChangeListener(((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 repeat.setChecked(false);
-                expense.setRepeatOrNot(Expense.RepeatOrNot.NREPEAT);
+                expense.setRepeatOrNot(RepeatOrNot.NREPEAT);
             }
         }));
     }
@@ -161,7 +152,7 @@ public class NewExpenseActivity extends AppCompatActivity {
 
     private void setDescriptionAndPrice(){
         expense.setDescription(description.getText().toString());
-        String formatedPrice = CoinUtil.formatBrBigDecimal(Objects.requireNonNull(value.getText()).toString());
+        String formatedPrice = CoinUtil.formatPriceSave(Objects.requireNonNull(value.getText()).toString());
         expense.setPrice(new BigDecimal(formatedPrice));
     }
 

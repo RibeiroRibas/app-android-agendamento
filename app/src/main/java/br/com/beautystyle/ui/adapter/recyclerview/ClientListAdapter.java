@@ -19,26 +19,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.com.beautystyle.model.Client;
+import br.com.beautystyle.model.entities.Client;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 
 public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder> {
 
     private final List<Client> clientList;
-    private final List<Client> clientListAll;
+    private final List<Client> filterClientList;
     private final Context context;
     private AdapterListener.OnClientClickListener onItemClickListener;
 
     public ClientListAdapter(Context context) {
         this.context = context;
         this.clientList = new ArrayList<>();
-        this.clientListAll = new ArrayList<>();
+        this.filterClientList = new ArrayList<>();
     }
 
     @NonNull
     @Override
     public ListClientHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View createdView = LayoutInflater.from(context).inflate(R.layout.item_service_and_client, parent, false);
+        View createdView = LayoutInflater.from(context).inflate(R.layout.item_job_and_client, parent, false);
         return new ListClientHolder(createdView);
     }
 
@@ -60,62 +60,65 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
     }
 
     public void filteredClient(String newText) {
-        List<Client> filteredClientLIst = new ArrayList<>();
         if (newText.isEmpty()) {
-            itemInserted(filteredClientLIst);
+            itemRangeInserted();
         } else {
-            itemRemoved(newText, filteredClientLIst);
+            itemRangeRemoved(newText);
         }
     }
 
-    private void itemRemoved(String newText, List<Client> filteredClientList) {
-        for (Client client : clientList) {
-            if (!client.getName().toLowerCase().contains(newText.toLowerCase())) {
-                filteredClientList.add(client);
-            }
-        }
+    private void itemRangeRemoved(String newText) {
+        List<Client> filteredClientList = clientList.stream().filter(client ->
+            !client.getName().toLowerCase().contains(newText.toLowerCase())
+        ).collect(Collectors.toList());
         for (Client client : filteredClientList) {
             int index = clientList.indexOf(client);
-            clientList.remove(client);
-            notifyItemRemoved(index);
+            itemRemoved(client,index);
         }
     }
 
-    private void itemInserted(List<Client> filteredListClient) {
-        if (clientList.isEmpty()) {
-            filteredListClient = clientListAll;
-        }
-        for (Client c : clientList) {
-            filteredListClient = clientListAll.stream().filter(client -> client != c).collect(Collectors.toList());
-        }
-        for (Client c : filteredListClient) {
-            clientList.add(c);
-            notifyItemInserted(clientList.indexOf(c));
-        }
+    private void itemRemoved(Client client, int index) {
+        clientList.remove(client);
+        notifyItemRemoved(index);
+    }
+
+    private void itemRangeInserted() {
+        notifyItemRangeRemoved(0,this.clientList.size());
+        this.clientList.clear();
+        this.clientList.addAll(filterClientList);
+        notifyItemRangeInserted(0, this.clientList.size());
     }
 
     public void publishResultsInsert(Client client) {
         clientList.add(client);
-        clientListAll.add(client);
+        filterClientList.add(client);
         notifyItemInserted(clientList.indexOf(client));
     }
 
     public void publishClientList(List<Client> clientList) {
-        int size = this.clientList.isEmpty() ? 0 : this.clientList.size();
+        notifyItemRangeRemoved(0,this.clientList.size());
+        this.clientList.clear();
         this.clientList.addAll(clientList);
-        clientListAll.addAll(clientList);
-        notifyItemRangeInserted(size, this.clientList.size());
+        filterClientList.clear();
+        filterClientList.addAll(clientList);
+        notifyItemRangeInserted(0, this.clientList.size());
+    }
+
+    public void publishContactList(List<Client> contactList){
+        int size = clientList.size();
+        clientList.addAll(contactList);
+        filterClientList.addAll(contactList);
+        notifyItemRangeInserted(size, clientList.size());
     }
 
     public void publishResultsRemoved(Client client, int position) {
-        clientList.remove(client);
-        clientListAll.remove(client);
-        notifyItemRemoved(position);
+        itemRemoved(client,position);
+        filterClientList.remove(client);
     }
 
     public void publishResultsUpdate(Client client, int position) {
         clientList.set(position, client);
-        clientListAll.set(position, client);
+        filterClientList.set(position, client);
         notifyItemChanged(position, client);
     }
 

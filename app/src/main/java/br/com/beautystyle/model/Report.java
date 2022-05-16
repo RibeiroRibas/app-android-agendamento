@@ -2,6 +2,9 @@ package br.com.beautystyle.model;
 
 import java.time.LocalDate;
 
+import br.com.beautystyle.model.entities.Event;
+import br.com.beautystyle.model.entities.Expense;
+
 public class Report {
 
     private LocalDate date;

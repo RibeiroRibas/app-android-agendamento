@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -16,10 +17,12 @@ import com.example.beautystyle.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.ViewModel.ClientViewModel;
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Expense;
 import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entities.Event;
+import br.com.beautystyle.model.entities.Expense;
+import br.com.beautystyle.repository.ClientRepository;
+import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 
@@ -82,7 +85,8 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
 
         private final CardView cardView;
         private final TextView date, name, value;
-        private final ClientViewModel clientViewModel;
+        private final ClientRepository repository;
+        private final Application context;
 
         public ReportViewHolder(@NonNull View itemView, Application context) {
             super(itemView);
@@ -90,7 +94,8 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
             this.date = itemView.findViewById(R.id.item_report_date_tv);
             this.name = itemView.findViewById(R.id.item_report_name_tv);
             this.value = itemView.findViewById(R.id.item_report_value_tv);
-            this.clientViewModel = new ClientViewModel(context);
+            this.repository = new ClientRepository(context);
+            this.context=context;
         }
 
         public void onBindReport(Report report) {
@@ -107,8 +112,23 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
         }
 
         private void onBindClient(Event event) {
-            clientViewModel.getClientById(event.getClientId())
-                    .doOnSuccess(client -> name.setText(client.getName())).subscribe();
+            repository.getById(event.getClient(), new ResultsCallBack<Client>() {
+                @Override
+                public void onSuccess(Client client) {
+                    name.setText(client.getName());
+                }
+
+                @Override
+                public void onError(String erro) {
+                    showError(erro);
+                }
+            });
+        }
+
+        private void showError(String message) {
+            Toast.makeText(context,
+                    message,
+                    Toast.LENGTH_LONG).show();
         }
 
         private void onBindEvent(Event event) {

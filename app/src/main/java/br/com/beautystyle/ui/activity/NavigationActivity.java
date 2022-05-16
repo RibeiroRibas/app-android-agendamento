@@ -1,13 +1,15 @@
 package br.com.beautystyle.ui.activity;
 
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_NEW_EVENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_JOB;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -30,27 +32,29 @@ import java.util.List;
 import br.com.beautystyle.AddExpenseWorker;
 import br.com.beautystyle.ViewModel.CalendarViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
-import br.com.beautystyle.ViewModel.EventWithServicesViewModel;
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Services;
+import br.com.beautystyle.database.room.references.EventWithJobs;
+import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entities.Event;
+import br.com.beautystyle.model.entities.Job;
+import br.com.beautystyle.repository.EventRepository;
+import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.ui.fragment.ConstantFragment;
-import br.com.beautystyle.ui.fragment.EventListFragment;
-import br.com.beautystyle.ui.fragment.ExpenseListFragment;
-import br.com.beautystyle.ui.fragment.ReportFragment;
+import br.com.beautystyle.ui.fragment.event.EventListFragment;
+import br.com.beautystyle.ui.fragment.expense.ExpenseListFragment;
+import br.com.beautystyle.ui.fragment.report.ReportFragment;
 import br.com.beautystyle.util.CalendarUtil;
-import br.com.beautystyle.util.CreateListsUtil;
 
 public class NavigationActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> activityResultLauncher;
     private BottomNavigationView bottomNavigationView;
     private CalendarViewModel calendarViewModel;
-    private EventViewModel eventViewModel;
-    private EventWithServicesViewModel eventWithServicesViewModel;
+    private EventRepository repository;
     private static final String ID_EVENT_FRAGMENT = "home";
     private static final String ID_REPORT_FRAGMENT = "report";
     private static final String ID_EXPENSE_FRAGMENT = "expense";
     private final WorkRequest workRequest = new OneTimeWorkRequest.Builder(AddExpenseWorker.class).build();
+    private EventViewModel eventViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +65,7 @@ public class NavigationActivity extends AppCompatActivity {
         CalendarUtil.selectedDate = LocalDate.now();
 
         initWidgets();
+
         removeShadowBottomNavigation();
         startHomeFragment(savedInstanceState);
 
@@ -73,19 +78,20 @@ public class NavigationActivity extends AppCompatActivity {
         WorkManager.getInstance(this).enqueue(workRequest);
     }
 
+    private void initWidgets() {
+        eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+        bottomNavigationView = findViewById(R.id.activity_navigation_bottom);
+        repository = new EventRepository(this);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull String name, @NonNull Context context, @NonNull AttributeSet attrs) {
         return super.onCreateView(name, context, attrs);
     }
 
-    private void initWidgets() {
-        eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
-        eventWithServicesViewModel = new ViewModelProvider(this).get(EventWithServicesViewModel.class);
-        bottomNavigationView = findViewById(R.id.activity_navigation_bottom);
-    }
-
     private void removeShadowBottomNavigation() {
+
         bottomNavigationView.setBackground(null);
     }
 
@@ -107,7 +113,7 @@ public class NavigationActivity extends AppCompatActivity {
                     replaceContainer(ID_EVENT_FRAGMENT, new EventListFragment());
                     return true;
                 case (R.id.report):
-                    CreateListsUtil.reportListRef = false;
+//                    CreateListsUtil.reportListRef = false;
                     replaceContainer(ID_REPORT_FRAGMENT, new ReportFragment());
                     return true;
                 case (R.id.expense):
@@ -126,7 +132,6 @@ public class NavigationActivity extends AppCompatActivity {
     private void replaceContainer(String id, Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .addToBackStack(id)
                 .replace(R.id.activity_navigation_container, fragment,null)
                 .commit();
     }
@@ -156,15 +161,30 @@ public class NavigationActivity extends AppCompatActivity {
             if (result.getResultCode() == REQUEST_CODE_NEW_EVENT) {
                 Intent intent = result.getData();
                 if (intent != null) {
-                    List<Services> servicesList = (List<Services>) intent.getSerializableExtra(KEY_SERVICE);
-                    Event event = (Event) intent.getSerializableExtra(ConstantFragment.KEY_INSERT_EVENT);
-                    eventViewModel.insert(event).doOnSuccess((id) ->
-                        eventWithServicesViewModel.insert(CreateListsUtil.createNewListServices(id, servicesList))
-                                .doOnComplete(()-> setDate(event.getEventDate()))
-                                .subscribe()
-                    ).subscribe();
+                    List<Job> jobList = (List<Job>) intent.getSerializableExtra(KEY_JOB);
+                    EventWithJobs eventWithJobs = (EventWithJobs) intent.getSerializableExtra(ConstantFragment.KEY_INSERT_EVENT);
+                    Client client = (Client) intent.getSerializableExtra(KEY_CLIENT);
+                    insertEvent(eventWithJobs.getEvent(), jobList, client);
                 }
             }
         });
+    }
+
+    private void insertEvent(Event event, List<Job> jobList, Client client) {
+            repository.insert(event, jobList, client, new ResultsCallBack<Event>() {
+                @Override
+                public void onSuccess(Event event) {
+                    eventViewModel.add(event.getEventDate());
+                }
+
+                @Override
+                public void onError(String erro) {
+                    showErrorMessage(erro);
+                }
+            });
+    }
+
+    private void showErrorMessage(String error) {
+        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
     }
 }

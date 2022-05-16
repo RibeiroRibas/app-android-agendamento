@@ -4,16 +4,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.time.LocalDate;
 
-import br.com.beautystyle.ui.adapter.recyclerview.DaysListAdapter;
+import br.com.beautystyle.ui.adapter.recyclerview.ListDaysAdapter;
 
-public class ListDaysView {
+public class ListDaysView{
 
-    private DaysListAdapter adapter;
+    private ListDaysAdapter adapter;
     private RecyclerView dayOfMonth;
     private static int toPosition;
 
-    public void setAdapter(RecyclerView dayOfMonth, DaysListAdapter.OnDayListener context) {
-        this.adapter = new DaysListAdapter(context);
+    public void setAdapter(RecyclerView dayOfMonth, ListDaysAdapter.OnDayListener context) {
+        this.adapter = new ListDaysAdapter(context);
         this.dayOfMonth = dayOfMonth;
         dayOfMonth.setAdapter(adapter);
         adapter.publishAllDays();
@@ -28,7 +28,11 @@ public class ListDaysView {
     }
 
     public void toScrollPosition(LocalDate date) {
-        int position = adapter.getPosition(date);
+        int position = getPosition(date);
         adapter.onClickViewHolder(date, position);
     }
+    public int getPosition(LocalDate date){
+        return adapter.getPosition(date);
+    }
+
 }

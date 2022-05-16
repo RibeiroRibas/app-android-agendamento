@@ -9,20 +9,18 @@ import androidx.lifecycle.MutableLiveData;
 import java.time.LocalDate;
 import java.util.List;
 
-import br.com.beautystyle.data.repository.EventRepository;
-import br.com.beautystyle.model.Client;
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Services;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
+import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entities.Job;
 
 public class EventViewModel extends AndroidViewModel {
 
-    private final EventRepository eventRepository;
     private MutableLiveData<Client> clientLive;
-    private MutableLiveData<List<Services>> serviceListLiveData;
+    private MutableLiveData<List<Job>> serviceListLiveData;
     private MutableLiveData<LocalDate> eventDate;
+
+    public EventViewModel(@NonNull Application application) {
+        super(application);
+    }
 
     public MutableLiveData<LocalDate> getEventDate(){
         if(eventDate ==null){
@@ -35,14 +33,14 @@ public class EventViewModel extends AndroidViewModel {
         this.eventDate.setValue(date);
     }
 
-    public MutableLiveData<List<Services>> getServiceListLiveData(){
+    public MutableLiveData<List<Job>> getServiceListLiveData(){
         if(serviceListLiveData ==null){
             serviceListLiveData = new MutableLiveData<>();
         }
         return serviceListLiveData;
     }
 
-    public void add(List<Services> serviceList){
+    public void add(List<Job> serviceList){
         this.serviceListLiveData.setValue(serviceList);
     }
 
@@ -55,28 +53,4 @@ public class EventViewModel extends AndroidViewModel {
 
     public void add(Client client){clientLive.setValue(client);}
 
-    public EventViewModel(@NonNull Application application) {
-        super(application);
-        eventRepository = new EventRepository(application);
-    }
-
-    public Single<Long> insert(Event event){
-        return eventRepository.insert(event);
-    }
-
-    public Completable delete(Event chosedEvent) {
-        return eventRepository.delete(chosedEvent);
-    }
-
-    public Completable update(Event event){
-       return eventRepository.update(event);
-    }
-
-    public Observable<List<Event>> getByDate(LocalDate date){
-        return eventRepository.getByDate(date);
-    }
-
-    public Single<List<Event>> getAll(){
-        return eventRepository.getAll();
-    }
 }

@@ -1,5 +1,7 @@
 package br.com.beautystyle.util;
 
+import static br.com.beautystyle.util.MoneyTextWatcher.getCurrencySymbol;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -27,11 +29,14 @@ public class CoinUtil {
                 .replace(FORMAT_PADRAO, FORMAT_DESEJADO);
     }
 
-    public static String formatBrBigDecimal(String valor) {
-        valor = valor.replace(".", "")
-                .replace(",", ".")
-                .trim()
-                .substring(1);
-        return valor;
+    public static String formatPriceSave(String price) {
+        //Ex - price = $ 5555555
+        //return = 55555.55 para salvar no banco de dados
+        String replaceable = String.format("[%s,.\\s]", getCurrencySymbol());
+        String cleanString = price.replaceAll(replaceable, "");
+        StringBuilder stringBuilder = new StringBuilder(cleanString.replaceAll(" ", ""));
+
+        return String.valueOf(stringBuilder.insert(cleanString.length() - 2, '.'));
+
     }
 }

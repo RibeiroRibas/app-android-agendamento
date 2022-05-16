@@ -1,12 +1,9 @@
 package br.com.beautystyle.ui.fragment;
 
-import static android.content.ContentValues.TAG;
-
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,7 +26,6 @@ public class TimePickerFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Log.i(TAG, "onCreateDialog: ");
         return new TimePickerDialog(requireActivity(), onTimeSetListener, 7, 0, DateFormat.is24HourFormat(getActivity()));
     }
 

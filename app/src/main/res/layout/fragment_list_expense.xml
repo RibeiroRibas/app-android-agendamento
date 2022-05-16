@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="br.com.beautystyle.ui.fragment.ExpenseListFragment">
+    tools:context="br.com.beautystyle.ui.fragment.expense.ExpenseListFragment">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/fragment_list_expense_til"

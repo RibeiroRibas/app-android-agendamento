@@ -85,7 +85,7 @@
         app:layout_constraintStart_toStartOf="@+id/activity_new_spending_description"
         app:layout_constraintTop_toBottomOf="@+id/activity_new_spending_description" />
 
-    <me.abhinay.input.CurrencyEditText
+    <EditText
         android:id="@+id/activity_new_spending_price"
         android:layout_width="0dp"
         android:layout_height="48dp"
@@ -95,7 +95,8 @@
         android:text="@string/default_coin_value"
         app:layout_constraintEnd_toStartOf="@id/activity_new_spending_save"
         app:layout_constraintStart_toStartOf="@id/activity_new_spending_tv"
-        app:layout_constraintTop_toBottomOf="@id/activity_new_spending_tv" />
+        app:layout_constraintTop_toBottomOf="@id/activity_new_spending_tv"
+        tools:ignore="Autofill"/>
 
     <Button
         android:id="@+id/activity_new_spending_save"

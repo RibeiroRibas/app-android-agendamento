@@ -1,22 +1,21 @@
 package br.com.beautystyle.ui.activity;
 
-import static android.content.ContentValues.TAG;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_NEW_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_DURATION;
 import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_START_TIME;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_EVENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_SERVICE;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATED_SERVICE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_JOB;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EVENT;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,42 +28,42 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import br.com.beautystyle.ViewModel.CalendarViewModel;
-import br.com.beautystyle.ViewModel.ClientViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
-import br.com.beautystyle.ViewModel.EventWithServicesViewModel;
-import br.com.beautystyle.data.database.references.EventWithServices;
-import br.com.beautystyle.model.Client;
-import br.com.beautystyle.model.Event;
-import br.com.beautystyle.model.Services;
-import br.com.beautystyle.ui.fragment.ClientListFragment;
-import br.com.beautystyle.ui.fragment.ServiceListFragment;
+import br.com.beautystyle.database.room.references.EventWithJobs;
+import br.com.beautystyle.model.EventDto;
+import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entities.Event;
+import br.com.beautystyle.model.entities.Job;
+import br.com.beautystyle.model.enuns.StatusPagamento;
+import br.com.beautystyle.repository.ClientRepository;
+import br.com.beautystyle.repository.EventRepository;
+import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.ui.fragment.TimePickerFragment;
+import br.com.beautystyle.ui.fragment.client.ClientListFragment;
+import br.com.beautystyle.ui.fragment.job.JobListFragment;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
+import br.com.beautystyle.util.MoneyTextWatcher;
+import br.com.beautystyle.util.SortByEventStartTime;
 import br.com.beautystyle.util.TimeUtil;
-import io.reactivex.rxjava3.disposables.Disposable;
-import me.abhinay.input.CurrencyEditText;
-import me.abhinay.input.CurrencySymbols;
 
 public class NewEventActivity extends AppCompatActivity {
 
-    private EditText searchClient, searchService, eventDate, eventStartTime, servicesDuration;
-    private CurrencyEditText valueOfTheServices;
+    private EditText searchClient, searchJob, eventDate, eventStartTime, eventDuration, valueOfTheJobs;
     private CheckBox statusNaoRecebido, statusRecebido;
-    private List<Services> serviceList;
-    private Event event = new Event();
-    private LocalTime eventDuration;
+    private List<Job> jobList;
+    private EventWithJobs event = new EventWithJobs(new Event());
+    private LocalTime jobsDuration;
     private CalendarViewModel calendarViewModel;
     private EventViewModel eventViewModel;
-    private int editedServices = 0;
-    private Disposable disposable;
+    private EventRepository repository;
     private final TimePickerDialog.OnTimeSetListener listener = timePickerDialogListener();
+    private Client client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,11 +78,9 @@ public class NewEventActivity extends AppCompatActivity {
         eventDateListener();
         eventStartTimeListener();
         clientListener();
-        serviceListener();
+        jobListener();
         eventDurationListener();
         paymentStatusListener();
-
-        formatInputEditTextValueService();
 
         calendarObserve();
         clientObserver();
@@ -106,14 +103,15 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void initWidgets() {
         eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
-        Log.i(TAG, "initWidgets: ");
-        eventDuration = LocalTime.of(0, 0);
-        serviceList = new ArrayList<>();
+        repository = new EventRepository(this);
+        jobsDuration = LocalTime.of(0, 0);
+        jobList = new ArrayList<>();
         eventDate = findViewById(R.id.activity_new_event_event_date);
-        searchService = findViewById(R.id.activity_new_event_service);
+        searchJob = findViewById(R.id.activity_new_event_service);
         searchClient = findViewById(R.id.activity_new_event_client);
-        valueOfTheServices = findViewById(R.id.activity_new_event_value);
-        servicesDuration = findViewById(R.id.activity_new_event_duration);
+        valueOfTheJobs = findViewById(R.id.activity_new_event_value);
+        valueOfTheJobs.addTextChangedListener(new MoneyTextWatcher(valueOfTheJobs));
+        eventDuration = findViewById(R.id.activity_new_event_duration);
         eventStartTime = findViewById(R.id.activity_new_event_start_time);
         statusRecebido = findViewById(R.id.activity_new_event_cb_received);
         statusNaoRecebido = findViewById(R.id.activity_new_event_cb_not_received);
@@ -123,62 +121,78 @@ public class NewEventActivity extends AppCompatActivity {
     private void loadEvent() {
         Intent intentEvent = getIntent();
         if (intentEvent.hasExtra(KEY_UPDATE_EVENT)) {
-            event = (Event) intentEvent.getSerializableExtra(KEY_UPDATE_EVENT);
-            if (event.getEndTime() == null) { // new event mode (click event list)
-                eventStartTime.setText(TimeUtil.formatLocalTime(event.getStarTime()));
-                setStatusAndDateEvent();
-            } else { // update event mode (click event list)
+            event = (EventWithJobs) intentEvent.getSerializableExtra(KEY_UPDATE_EVENT);
+            if (isUpdateEvent())
                 fillAllForm();
-            }
         } else { // new event mode (click Fab button)
             setStatusAndDateEvent();
         }
     }
 
+    private boolean isUpdateEvent() {
+        if (event.getEvent().getEndTime() == null) { // new event mode (click event list)
+            eventStartTime.setText(TimeUtil.formatLocalTime(event.getEvent().getStarTime()));
+            setStatusAndDateEvent();
+            return false;
+        }
+        return true;
+    }
+
     private void setStatusAndDateEvent() {
         statusNaoRecebido.setChecked(true); // value default
-        event.setStatusPagamento(Event.StatusPagamento.NAORECEBIDO);
+        event.getEvent().setStatusPagamento(StatusPagamento.NAORECEBIDO);
         eventDate.setText(CalendarUtil.formatDate(CalendarUtil.selectedDate));
-        event.setEventDate(CalendarUtil.selectedDate);
+        event.getEvent().setEventDate(CalendarUtil.selectedDate);
     }
 
 
     private void fillAllForm() {
-        eventDate.setText(CalendarUtil.formatDate(event.getEventDate()));
-        eventStartTime.setText(TimeUtil.formatLocalTime(event.getStarTime()));
-
+        eventDate.setText(CalendarUtil.formatDate(event.getEvent().getEventDate()));
+        eventStartTime.setText(TimeUtil.formatLocalTime(event.getEvent().getStarTime()));
         fillClient();
-        fillServiceList();
-
-        eventDuration = event.getEndTime().minusHours(event.getStarTime().getHour())
-                .minusMinutes(event.getStarTime().getMinute());
-        servicesDuration.setText(TimeUtil.formatLocalTime(eventDuration));
-        valueOfTheServices.setText(CoinUtil.formatBrWithoutSymbol(event.getValueEvent()));
-
+        fillJobList();
+        jobsDuration = getEventDuration();
+        eventDuration.setText(TimeUtil.formatLocalTime(jobsDuration));
+        valueOfTheJobs.setText(CoinUtil.formatBrWithoutSymbol(event.getEvent().getValueEvent()));
         setStatusPagamentoEditMode();
     }
 
-    private void fillClient() {
-        ClientViewModel clientViewModel = new ViewModelProvider(this).get(ClientViewModel.class);
-        clientViewModel.getClientById(event.getClientId()).doOnSuccess(
-                client -> searchClient.setText(client.getName())).subscribe();
+    private LocalTime getEventDuration() {
+        return event.getEvent().getEndTime().minusHours(event.getEvent().getStarTime().getHour())
+                .minusMinutes(event.getEvent().getStarTime().getMinute());
     }
 
-    private void fillServiceList() {
-        EventWithServicesViewModel eventWithServicesViewModel = new ViewModelProvider(this).get(EventWithServicesViewModel.class);
-        eventWithServicesViewModel.getEventWithServices().doOnSuccess(eventWithServices -> {
-            List<Services> serviceList = eventWithServices.stream().filter(ev ->
-                    ev.getEvent().getEventId() == (event.getEventId()))
-                    .map(EventWithServices::getServiceList)
-                    .findFirst()
-                    .orElse(new ArrayList<>());
-            this.serviceList.addAll(serviceList);
-            setServicesName();
-        }).subscribe();
+    private void fillClient() {
+        ClientRepository repository = new ClientRepository(this);
+        repository.getById(event.getEvent().getClient(), new ResultsCallBack<Client>() {
+            @Override
+            public void onSuccess(Client result) {
+                client = result;
+                searchClient.setText(result.getName());
+            }
+
+            @Override
+            public void onError(String erro) {
+                showError(erro);
+            }
+        });
+
+
+    }
+
+    private void showError(String message) {
+        Toast.makeText(this,
+                message,
+                Toast.LENGTH_LONG).show();
+    }
+
+    private void fillJobList() {
+        this.jobList.addAll(event.getJobList());
+        setJobName();
     }
 
     private void setStatusPagamentoEditMode() {
-        if (event.getStatusPagamento() == Event.StatusPagamento.NAORECEBIDO) {
+        if (event.getEvent().getStatusPagamento() == StatusPagamento.NAORECEBIDO) {
             statusNaoRecebido.setChecked(true);
         } else {
             statusRecebido.setChecked(true);
@@ -191,10 +205,10 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void eventStartTimeListener() {
         eventStartTime.setOnClickListener(v ->
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(TimePickerFragment.newInstance(listener), TAG_EVENT_START_TIME)
-                    .commit()
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .add(TimePickerFragment.newInstance(listener), TAG_EVENT_START_TIME)
+                        .commit()
         );
     }
 
@@ -208,46 +222,46 @@ public class NewEventActivity extends AppCompatActivity {
         });
     }
 
-    private void serviceListener() {
-        searchService.setOnClickListener(v -> {
-            if (getSupportFragmentManager().findFragmentById(R.id.activity_new_event_container_service) == null)
+    private void jobListener() {
+        searchJob.setOnClickListener(v -> {
+            if (getSupportFragmentManager().findFragmentById(R.id.activity_new_event_container_job) == null)
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .add(R.id.activity_new_event_container_service, new ServiceListFragment())
+                        .add(R.id.activity_new_event_container_job, new JobListFragment())
                         .commit();
         });
     }
 
     private void eventDurationListener() {
-        servicesDuration.setOnClickListener(v ->
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(TimePickerFragment.newInstance(listener), TAG_EVENT_DURATION)
-                    .commit()
+        eventDuration.setOnClickListener(v ->
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .add(TimePickerFragment.newInstance(listener), TAG_EVENT_DURATION)
+                        .commit()
         );
     }
 
     private void paymentStatusListener() {
-        statusRecebido.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (buttonView.isChecked()) {
-                statusNaoRecebido.setChecked(false);
-                event.setStatusPagamento(Event.StatusPagamento.RECEBIDO);
-            }
-        });
+        isReceivedPayment();
+        isNotReceivedPayment();
+    }
+
+    private void isNotReceivedPayment() {
         statusNaoRecebido.setOnCheckedChangeListener(((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 statusRecebido.setChecked(false);
-                event.setStatusPagamento(Event.StatusPagamento.NAORECEBIDO);
+                event.getEvent().setStatusPagamento(StatusPagamento.NAORECEBIDO);
             }
         }));
     }
 
-    private void formatInputEditTextValueService() {
-        valueOfTheServices.setCurrency(CurrencySymbols.NONE);
-        valueOfTheServices.setDelimiter(false);
-        valueOfTheServices.setSpacing(true);
-        valueOfTheServices.setDecimals(true);
-        valueOfTheServices.setSeparator(".");
+    private void isReceivedPayment() {
+        statusRecebido.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isChecked()) {
+                statusNaoRecebido.setChecked(false);
+                event.getEvent().setStatusPagamento(StatusPagamento.RECEBIDO);
+            }
+        });
     }
 
     private void calendarObserve() {
@@ -256,7 +270,7 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void setDate(LocalDate date) {
-        event.setEventDate(date);
+        event.getEvent().setEventDate(date);
         String formatDateOfEvent = CalendarUtil.formatDate(date);
         eventDate.setText(formatDateOfEvent);
     }
@@ -266,7 +280,8 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void setClient(Client client) {
-        event.setClientId(client.getId());
+        this.client = client;
+        event.getEvent().setClient(client.getClientId());
         searchClient.setText(client.getName());
     }
 
@@ -274,75 +289,99 @@ public class NewEventActivity extends AppCompatActivity {
         eventViewModel.getServiceListLiveData().observe(this, this::setServices);
     }
 
-    private void setServices(List<Services> serviceList) {
-        searchService.getText().clear();
-        if (!serviceList.isEmpty()) {
-            editedServices = 1; // 1 = true
-            this.serviceList.clear();
-            this.serviceList.addAll(serviceList);
-            setServicesName();
+    private void setServices(List<Job> jobList) {
+        searchJob.getText().clear();
+        if (!jobList.isEmpty()) {
+            this.jobList.clear();
+            this.jobList.addAll(jobList);
+            setJobName();
             setEventDuration();
-            setValueOfTheServices();
+            setValueOfTheJobs();
         }
     }
 
-    private void setServicesName() {
+    private void setJobName() {
+        StringBuilder builder = createStringBuilder();
+        searchJob.setText(builder.toString());
+    }
+
+    private StringBuilder createStringBuilder() {
         StringBuilder builder = new StringBuilder();
-        for (Services service : serviceList) {
-            builder.append(service.getName());
+        for (Job job : jobList) {
+            builder.append(job.getName());
             builder.append(", ");
         }
         builder.delete(builder.length() - 2, builder.length() - 1);
-        searchService.setText(builder.toString());
+        return builder;
     }
 
     private void setEventDuration() {
-        eventDuration = TimeUtil.sumTimeOfServices(serviceList.stream()
-                .map(Services::getTimeOfDuration)
+        jobsDuration = TimeUtil.sumTimeOfServices(jobList.stream()
+                .map(Job::getDurationTime)
                 .collect(Collectors.toList()));
-        servicesDuration.setText(TimeUtil.formatLocalTime(eventDuration));
+        eventDuration.setText(TimeUtil.formatLocalTime(jobsDuration));
     }
 
-    private void setValueOfTheServices() {
-        BigDecimal sumValueOfServices = serviceList.stream()
-                .map(Services::getValueOfService)
+    private void setValueOfTheJobs() {
+        BigDecimal sumValueOfServices = jobList.stream()
+                .map(Job::getValueOfJob)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        valueOfTheServices.setText(CoinUtil.formatBrWithoutSymbol(sumValueOfServices));
+        valueOfTheJobs.setText(CoinUtil.formatBrWithoutSymbol(sumValueOfServices));
     }
 
     private void checkRequiredFieldsAndSaveListener() {
         Button btnSaveEvent = findViewById(R.id.activity_new_event_btn_save_event);
         btnSaveEvent.setOnClickListener(v -> {
             setEndTimeAndValueService();
-            if (checkRequiredFields()) {
-                disposable = eventViewModel.getByDate(event.getEventDate()).subscribe(this::checkTimeAndSetResult);
-            } else {
-                requiredFieldsAlertDialog();
+            checkRequiredFields();
+        });
+    }
+
+    private void checkRequiredFields() {
+        if (checkFields()) {
+            getByDateFromApi();
+        } else {
+            requiredFieldsAlertDialog();
+        }
+    }
+
+    private void getByDateFromApi() {
+        repository.getByDateFromApi(event.getEvent().getEventDate(), new ResultsCallBack<List<EventDto>>() {
+            @Override
+            public void onSuccess(List<EventDto> resultado) {
+                checkTimeAndSetResult(EventWithJobs.convert(resultado));
+            }
+
+            @Override
+            public void onError(String erro) {
+                showError(erro);
             }
         });
     }
 
     private void setEndTimeAndValueService() {
-        LocalTime eventEndTime = event.getStarTime().plusHours(eventDuration.getHour()).plusMinutes(eventDuration.getMinute());
-        event.setEndTime(eventEndTime);
-        BigDecimal valueService = new BigDecimal(CoinUtil.formatBrBigDecimal(Objects.requireNonNull(valueOfTheServices.getText()).toString()));
-        event.setValueEvent(valueService);
+        LocalTime eventEndTime = event.getEvent().getStarTime().plusHours(jobsDuration.getHour()).plusMinutes(jobsDuration.getMinute());
+        event.getEvent().setEndTime(eventEndTime);
+        BigDecimal valueService = new BigDecimal(CoinUtil.formatPriceSave(Objects.requireNonNull(valueOfTheJobs.getText()).toString()));
+        event.getEvent().setValueEvent(valueService);
     }
 
-    private boolean checkRequiredFields() {
-
-        List<Boolean> check = new ArrayList<>();
-        check.add(checkFields(eventStartTime));
-        check.add(checkFields(searchClient));
-        check.add(checkFields(searchService));
-        check.add(checkFields(servicesDuration));
-
-        for (Boolean checkInput : check) {
+    private boolean checkFields() {
+        List<Boolean> checkListFields = createCheckListFields();
+        for (Boolean checkInput : checkListFields) {
             if (!checkInput)
                 return false;
         }
-
         return true;
+    }
+
+    private List<Boolean> createCheckListFields() {
+        List<Boolean> checkList = new ArrayList<>();
+        checkList.add(checkFields(eventStartTime));
+        checkList.add(checkFields(searchClient));
+        checkList.add(checkFields(searchJob));
+        checkList.add(checkFields(eventDuration));
+        return checkList;
     }
 
     private boolean checkFields(EditText editText) {
@@ -359,20 +398,29 @@ public class NewEventActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void checkTimeAndSetResult(List<Event> eventList) {
-        eventList.sort(Comparator.comparing(Event::getStarTime));
+    private void checkTimeAndSetResult(List<EventWithJobs> eventList) {
+        eventList.sort(new SortByEventStartTime());
         if (checkStartAndEndTimeAlertDialog(eventList))
             setResultEvent();
     }
 
-    private boolean checkStartAndEndTimeAlertDialog(List<Event> eventList) {
-        LocalTime reduzedEndTime = event.checkEndTime(eventList);
-        if (event.checkStartTime(eventList)) {
+    private boolean checkStartAndEndTimeAlertDialog(List<EventWithJobs> eventList) {
+        return isStartTimeAvaliable(eventList) && isEndTimeAvaliable(eventList);
+    }
+
+    private boolean isEndTimeAvaliable(List<EventWithJobs> eventList) {
+        LocalTime reduzedEndTime = event.getEvent().checkEndTime(eventList);
+        if (reduzedEndTime != null) {
+            eventEndTimeAlertDialog(reduzedEndTime);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isStartTimeAvaliable(List<EventWithJobs> eventList) {
+        if (event.getEvent().checkStartTime(eventList)) {
             eventStartTimeAlerDialog();
             eventStartTime.setBackgroundResource(R.drawable.custom_invalid_input);
-            return false;
-        } else if (reduzedEndTime != null) {
-            eventEndTimeAlertDialog(reduzedEndTime);
             return false;
         }
         return true;
@@ -392,52 +440,72 @@ public class NewEventActivity extends AppCompatActivity {
                 .setTitle("Tempo de duração excede o tempo disponível na agenda!")
                 .setMessage("Deseja reduzir o tempo de duração?")
                 .setPositiveButton("Sim", (dialogInterface, i) -> {
-                    event.setEndTime(reduzedEndTime);
+                    event.getEvent().setEndTime(reduzedEndTime);
                     setResultEvent();
                 })
-                .setNegativeButton("Não", (dialogInterface, i) -> servicesDuration.setBackgroundResource(R.drawable.custom_invalid_input))
+                .setNegativeButton("Não", (dialogInterface, i) ->
+                        eventDuration.setBackgroundResource(R.drawable.custom_invalid_input))
                 .show();
     }
 
     private void setResultEvent() {
-        Intent intent = new Intent();
-        intent.putExtra(KEY_SERVICE, (Serializable) serviceList);
+        Intent intent = newIntent();
+        setResult(intent);
+        CalendarUtil.selectedDate = event.getEvent().getEventDate();
+        finish();
+    }
+
+    private void setResult(Intent intent) {
         if (getIntent().hasExtra(KEY_UPDATE_EVENT)) {
-            if (event.checkId()) {
-                intent.putExtra(KEY_UPDATED_SERVICE, editedServices);
-                intent.putExtra(KEY_UPDATE_EVENT, event);
-                setResult(REQUEST_CODE_UPDATE_EVENT, intent);
-            } else {
-                intent.putExtra(KEY_INSERT_EVENT, event);
-                setResult(REQUEST_CODE_NEW_EVENT, intent);
-            }
-        } else {
+            isUpdateEvent(intent);
+            isNewEvent(intent);
+        } else {//new event click fab button
+            isNewEvent(intent);
+        }
+    }
+
+    private Intent newIntent() {
+        Intent intent = new Intent();
+        intent.putExtra(KEY_JOB, (Serializable) jobList);
+        intent.putExtra(KEY_CLIENT, client);
+        return intent;
+    }
+
+    private void isNewEvent(Intent intent) {
+        if (!event.getEvent().checkId()) {
             intent.putExtra(KEY_INSERT_EVENT, event);
             setResult(REQUEST_CODE_NEW_EVENT, intent);
         }
-        CalendarUtil.selectedDate = event.getEventDate();
-        finish();
+    }
+
+    private void isUpdateEvent(Intent intent) {
+        if (event.getEvent().checkId()) {
+            intent.putExtra(KEY_UPDATE_EVENT, event);
+            setResult(REQUEST_CODE_UPDATE_EVENT, intent);
+        }
     }
 
     private TimePickerDialog.OnTimeSetListener timePickerDialogListener() {
         return (view, hour, minute) -> {
             LocalTime timeWatch = LocalTime.of(hour, minute);
             String timeFormated = TimeUtil.formatLocalTime(timeWatch);
-            if (getSupportFragmentManager().findFragmentByTag(TAG_EVENT_START_TIME) != null) {
-                eventStartTime.setText(timeFormated);
-                event.setStarTime(timeWatch);
-            } else {
-                servicesDuration.setText(timeFormated);
-                eventDuration = timeWatch;
-            }
+            isStartTimeDiaolog(timeWatch, timeFormated);
+            isEventDurationDialog(timeWatch, timeFormated);
         };
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (disposable != null)
-            disposable.dispose();
+    private void isEventDurationDialog(LocalTime timeWatch, String timeFormated) {
+        if (getSupportFragmentManager().findFragmentByTag(TAG_EVENT_DURATION) != null) {
+            eventDuration.setText(timeFormated);
+            jobsDuration = timeWatch;
+        }
+    }
 
+
+    private void isStartTimeDiaolog(LocalTime timeWatch, String timeFormated) {
+        if (getSupportFragmentManager().findFragmentByTag(TAG_EVENT_START_TIME) != null) {
+            eventStartTime.setText(timeFormated);
+            event.getEvent().setStarTime(timeWatch);
+        }
     }
 }

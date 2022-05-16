@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/activity_list_service_and_client_menu_remove"
+        android:id="@+id/fragment_job_and_client_list_menu_remove"
         android:title="@string/remove" />
 </menu>

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="br.com.beautystyle.ui.fragment.DailyReportFragment">
+    tools:context="br.com.beautystyle.ui.fragment.report.DailyReportFragment">
 
     <EditText
         android:id="@+id/fragment_report_period_start_date"
