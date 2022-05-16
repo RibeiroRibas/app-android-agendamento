@@ -161,7 +161,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="@+id/activity_new_event_duration"
-            app:layout_constraintStart_toStartOf="@+id/activity_new_event_service"
+            app:lgitayout_constraintStart_toStartOf="@+id/activity_new_event_service"
             app:layout_constraintTop_toBottomOf="@+id/activity_new_event_service" />
 
         <TextView
