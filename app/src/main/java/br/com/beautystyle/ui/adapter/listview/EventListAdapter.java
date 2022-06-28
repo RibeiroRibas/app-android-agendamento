@@ -1,57 +1,63 @@
 package br.com.beautystyle.ui.adapter.listview;
 
+import static android.content.ContentValues.TAG;
+import static br.com.beautystyle.util.ConstantsUtil.DESIRED_FORMAT;
+
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 
 import com.example.beautystyle.R;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.database.room.references.EventWithJobs;
-import br.com.beautystyle.model.entities.Client;
-import br.com.beautystyle.model.entities.Job;
+import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
+import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.model.entity.Event;
+import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.model.enuns.StatusPagamento;
-import br.com.beautystyle.repository.ClientRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.CreateListsUtil;
+import br.com.beautystyle.util.SortByJobName;
 import br.com.beautystyle.util.TimeUtil;
 
 public class EventListAdapter extends BaseAdapter {
 
     private final Context context;
-    private final List<EventWithJobs> eventListWithJobs;
+    private final List<EventWithClientAndJobs> events;
 
     public EventListAdapter(Context context) {
         this.context = context;
-        this.eventListWithJobs = new ArrayList<>();
+        this.events = new ArrayList<>();
     }
 
     @Override
     public int getCount() {
-        return eventListWithJobs.size() + 2;
+        return events.size() + 2;
     }
 
     @Override
     public Object getItem(int position) {
-        return eventListWithJobs.get(position);
+        return events.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        if (position < eventListWithJobs.size()) {
-            return eventListWithJobs.get(position).getEvent().getEventId();
+        if (position < events.size()) {
+            return events.get(position).getEvent().getEventId();
         }
         return 0;
     }
@@ -59,7 +65,7 @@ public class EventListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View inflatedView = inflateView(parent);
-        if (position < eventListWithJobs.size()) { // listEventTime.size + 2
+        if (position < events.size()) { // listEventTime.size + 2
             onBindEvent(position, inflatedView);
         } else {// if position > listEventTime.size + 2 (increased size because list going to behind of navigation bottom).
             inflatedView.setVisibility(View.INVISIBLE);
@@ -73,58 +79,65 @@ public class EventListAdapter extends BaseAdapter {
     }
 
     private void onBindEvent(int position, View inflatedView) {
-        if (eventListWithJobs.get(position).getEvent().checkId()) {
-            onBindClient(position, inflatedView);
-            onBindJob(position, inflatedView);
-            SetBackgroundColor(inflatedView);
-            setStartTime(position, inflatedView);
-            setEventDuration(position, inflatedView);
-            setValue(position, inflatedView);
+        EventWithClientAndJobs event = events.get(position);
+        if (event.getEvent().checkIsEmptyEvent()) {
+            onBindClient(event.getClient(), inflatedView);
+            onBindJob(event.getJobs(), inflatedView);
+            SetBackgroundColor(event, inflatedView);
+            setStartTime(event.getEvent(), inflatedView);
+            setEventDuration(event.getEvent(), inflatedView);
+            setEventValue(event.getEvent(), inflatedView);
         } else {
-            setStartTime(position, inflatedView);
+            setStartTime(event.getEvent(), inflatedView);
             setLayoutParamCardView(inflatedView);
         }
     }
 
-    private void onBindClient(int position, View inflatedView) {
-        ClientRepository repository = new ClientRepository(context);
-        repository.getById(eventListWithJobs.get(position).getEvent().getClient(), new ResultsCallBack<Client>() {
-            @Override
-            public void onSuccess(Client client) {
-                setNameClient(client.getName(), inflatedView);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showError(erro);
-            }
-        });
+    private void onBindClient(Client client, View inflatedView) {
+        if (client != null) {
+            setNameClient(client.getName(), inflatedView);
+        }
     }
 
-    private void showError(String message) {
-        Toast.makeText(context,
-                message,
-                Toast.LENGTH_LONG).show();
-    }
-
-    private void SetBackgroundColor(View viewCriada) {
+    private void SetBackgroundColor(EventWithClientAndJobs event, View viewCriada) {
         ImageView imageview = viewCriada.findViewById(R.id.item_event_toolbar);
-        imageview.setBackgroundColor(Color.parseColor("#FFFF00"));
-
         CardView cardView = viewCriada.findViewById(R.id.item_event_cardView);
-        cardView.setBackgroundColor(Color.parseColor("#FFFCBB"));
+        if (isEventNotComplete(event.getEvent())
+                && isEventScheduleByClient(event.getClient())) {
+            imageview.setBackgroundColor(Color.parseColor("#FACDEC"));
+            cardView.setCardBackgroundColor(Color.parseColor("#FEE2F5"));
+        } else if (isEventNotComplete(event.getEvent()) &&
+                !isEventScheduleByClient(event.getClient())) {
+            imageview.setBackgroundColor(Color.parseColor("#FFFF00"));
+            cardView.setCardBackgroundColor(Color.parseColor("#FFFCBB"));
+        }
     }
 
-    private void setStartTime(int position, View viewCriada) {
+    private boolean isEventScheduleByClient(Client client) {
+        try {
+            return client.isClientAnUser();
+        } catch (Exception e) {
+            Log.i(TAG, "client user id is null" + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isEventNotComplete(Event event) {
+        return event.getEventDate().isAfter(LocalDate.now()) ||
+                event.getEndTime().isAfter(LocalTime.now()) &&
+                        event.getEventDate().equals(LocalDate.now());
+    }
+
+    private void setStartTime(Event event, View viewCriada) {
         TextView hourEvent = viewCriada.findViewById(R.id.item_event_start_time);
-        String timeFormated = TimeUtil.formatLocalTime(eventListWithJobs.get(position).getEvent().getStarTime());
+        String timeFormated = TimeUtil.formatLocalTime(event.getStarTime());
         hourEvent.setText(timeFormated);
     }
 
-    private void setEventDuration(int position, @NonNull View viewCriada) {
+    private void setEventDuration(Event event, @NonNull View viewCriada) {
         TextView eventDuration = viewCriada.findViewById(R.id.item_event_duration);
-        String endTime = TimeUtil.formatLocalTime(eventListWithJobs.get(position).getEvent().getEndTime());
-        String startTime = TimeUtil.formatLocalTime(eventListWithJobs.get(position).getEvent().getStarTime());
+        String endTime = TimeUtil.formatLocalTime(event.getEndTime());
+        String startTime = TimeUtil.formatLocalTime(event.getStarTime());
         String concatenate = startTime + " - " + endTime;
         eventDuration.setText(concatenate);
     }
@@ -134,30 +147,49 @@ public class EventListAdapter extends BaseAdapter {
         nameClient.setText(name);
     }
 
-    private void onBindJob(int position, @NonNull View viewCriada) {
-        List<Job> jobList = eventListWithJobs.get(position).getJobList();
+    private void onBindJob(List<Job> jobs, @NonNull View viewCriada) {
+        jobs.sort(new SortByJobName());
         TextView jobName = viewCriada.findViewById(R.id.item_event_service);
-        jobName.setText("*  ");
-        String concatenate;
-        for (Job service : jobList) {
-            if (service != jobList.get(jobList.size() - 1)) {
-                concatenate = jobName.getText() + service.getName() + "\n \n" + "*  ";
-            } else {
-                concatenate = jobName.getText() + service.getName() + "\n";
+        concatenateJobsName(jobs, jobName);
+    }
+
+    private void concatenateJobsName(List<Job> jobList, TextView jobName) {
+        if (!jobList.isEmpty()) {
+            jobName.setText("*  ");
+            String concatJobNames;
+            for (Job job : jobList) {
+                if (isLastIndex(jobList, job)) {
+                    concatJobNames = jobName.getText() + job.getName() + "\n";
+                } else {
+                    concatJobNames = jobName.getText() + job.getName() + "\n \n" + "*  ";
+                }
+                jobName.setText(concatJobNames);
             }
-            jobName.setText(concatenate);
         }
     }
 
-    private void setValue(int position, View viewCriada) {
+    private boolean isLastIndex(List<Job> jobList, Job job) {
+        return job == jobList.get(jobList.size() - 1);
+    }
+
+    private void setEventValue(Event event, View viewCriada) {
         TextView value = viewCriada.findViewById(R.id.item_event_status_cash);
-        String formatedValue = (CoinUtil.formatBr(eventListWithJobs.get(position).getEvent().getValueEvent()));
+        BigDecimal valueEvent = event.getValueEvent();
+        String formatedValue = (CoinUtil.format(valueEvent, DESIRED_FORMAT));
         value.setText(formatedValue);
-        if (eventListWithJobs.get(position).getEvent().getStatusPagamento().equals(StatusPagamento.RECEBIDO)) {
+        checkPaymentStatus(event, value);
+    }
+
+    private void checkPaymentStatus(Event event, TextView value) {
+        if (isReceived(event)) {
             value.setTextColor(Color.parseColor("#228C22"));
         } else {
             value.setTextColor(Color.parseColor("#FF0000"));
         }
+    }
+
+    private boolean isReceived(Event event) {
+        return event.getStatusPagamento().equals(StatusPagamento.RECEBIDO);
     }
 
     private void setLayoutParamCardView(@NonNull View viewCriada) {
@@ -167,10 +199,10 @@ public class EventListAdapter extends BaseAdapter {
         cardView.setLayoutParams(cardViewParams);
     }
 
-    public void update(List<EventWithJobs> eventWithJobs) {
-        CreateListsUtil.createEventList(eventWithJobs);
-        this.eventListWithJobs.clear();
-        this.eventListWithJobs.addAll(CreateListsUtil.listEventWithJobs);
+    public void updateAdapterListView(List<EventWithClientAndJobs> eventWithClientAndJobs) {
+        CreateListsUtil.createEventList(eventWithClientAndJobs);
+        this.events.clear();
+        this.events.addAll(CreateListsUtil.events);
         notifyDataSetChanged();
     }
 }

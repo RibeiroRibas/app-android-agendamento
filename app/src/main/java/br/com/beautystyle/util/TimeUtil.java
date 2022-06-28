@@ -13,7 +13,7 @@ public class TimeUtil {
         return time.format(timeFormatter);
     }
 
-    public static LocalTime sumTimeOfServices(List<LocalTime> listTimeService) {
+    public static LocalTime sumTimeOfJobs(List<LocalTime> listTimeService) {
         LocalTime timeOfDuration = LocalTime.of(0, 0, 0);
         for (LocalTime timeOfService : listTimeService) {
             timeOfDuration = timeOfDuration.plusHours(timeOfService.getHour());

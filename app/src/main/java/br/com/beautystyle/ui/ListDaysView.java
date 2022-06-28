@@ -10,26 +10,25 @@ public class ListDaysView{
 
     private ListDaysAdapter adapter;
     private RecyclerView dayOfMonth;
-    private static int toPosition;
+    private int toPosition = 365;
 
     public void setAdapter(RecyclerView dayOfMonth, ListDaysAdapter.OnDayListener context) {
         this.adapter = new ListDaysAdapter(context);
-        this.dayOfMonth = dayOfMonth;
         dayOfMonth.setAdapter(adapter);
         adapter.publishAllDays();
-        toPosition = 363; //start position default
-        dayOfMonth.scrollToPosition(toPosition);
+        this.dayOfMonth = dayOfMonth;
+        this.dayOfMonth.scrollToPosition(toPosition);
     }
 
-    public void changeScrollPosition(int fromPosition) {
-        int position = toPosition < fromPosition ? fromPosition + 2 : fromPosition - 2;
-        dayOfMonth.scrollToPosition(position);
+    public void changeScrollPosition(LocalDate eventDate) {
+        int fromPosition = getPosition(eventDate);
+        toPosition = toPosition < fromPosition ? fromPosition + 2 : fromPosition - 2;
+        dayOfMonth.scrollToPosition(toPosition);
         toPosition = fromPosition;
     }
 
     public void toScrollPosition(LocalDate date) {
-        int position = getPosition(date);
-        adapter.onClickViewHolder(date, position);
+        adapter.onClickViewHolder(date);
     }
     public int getPosition(LocalDate date){
         return adapter.getPosition(date);

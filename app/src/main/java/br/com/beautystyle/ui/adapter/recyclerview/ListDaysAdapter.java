@@ -1,6 +1,7 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
-import static br.com.beautystyle.ui.adapter.ConstantsAdapter.IS_TODAY;
+import static br.com.beautystyle.util.ConstantsUtil.DD;
+import static br.com.beautystyle.util.ConstantsUtil.E;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -30,6 +31,7 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
     private final OnDayListener mOnDayListener;
     int selectedPosition;
     private ListDaysHolder listDaysHolder;
+    private final static String IS_TODAY = "HOJE";
 
     public ListDaysAdapter(OnDayListener onDayListener) {
         this.mOnDayListener = onDayListener;
@@ -61,6 +63,9 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
 
     public void publishAllDays() {
         List<LocalDate> createdList = createDaysList(CalendarUtil.selectedDate);
+        int size = this.daysList.size();
+        this.daysList.clear();
+        notifyItemRangeRemoved(0,size);
         this.daysList.addAll(createdList);
         notifyItemRangeInserted(0, createdList.size());
     }
@@ -68,7 +73,7 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
     private List<LocalDate> createDaysList(LocalDate selectedDate) {
             List<LocalDate> listDays = new ArrayList<>();
             listDays.add(selectedDate);
-            for (int i = 1; i <= 365; i++) {
+            for (int i = 1; i <= 364; i++) {
                 listDays.add(selectedDate.minusDays(i));
                 listDays.add(selectedDate.plusDays(i));
             }
@@ -76,8 +81,8 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
             return listDays;
     }
 
-    public void onClickViewHolder(LocalDate date, int position){
-        listDaysHolder.onClickCalendar(date, position);
+    public void onClickViewHolder(LocalDate date){
+        listDaysHolder.onClickCalendar(date, getPosition(date));
     }
 
     public int getPosition(LocalDate date){
@@ -115,7 +120,7 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
         }
 
         public void onBindDays(LocalDate date, int position) {
-            String checkIsToday = LocalDate.now().equals(date) ? IS_TODAY : CalendarUtil.formatDayWeek(date);
+            String checkIsToday = LocalDate.now().equals(date) ? IS_TODAY : CalendarUtil.formatLocalDate(date, E);
             if (CalendarUtil.selectedDate.equals(date)) {
                 Drawable drawable = ContextCompat.getDrawable(itemView.getContext(), R.drawable.shape_button_color2);
                 setDrawable(drawable);
@@ -132,7 +137,7 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
         }
 
         private void setText(String formatedDay, int typeFace, LocalDate date, int textColor) {
-            buttonDay.setText(CalendarUtil.formatDay(date));
+            buttonDay.setText(CalendarUtil.formatLocalDate(date, DD));
             buttonDay.setTextColor(textColor);
             dayWeek.setTypeface(null, typeFace);
             dayWeek.setText(formatedDay);

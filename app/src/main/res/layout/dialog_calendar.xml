@@ -6,5 +6,8 @@
     <CalendarView
         android:id="@+id/dialog_calendar_view"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:theme="@style/CalenderViewCustom"
+        android:weekDayTextAppearance="@style/CalenderViewWeekCustomText"
+        />
 </RelativeLayout>

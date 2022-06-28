@@ -1,32 +1,35 @@
 package br.com.beautystyle.ui.activity;
 
 import static br.com.beautystyle.ui.activity.ContantsActivity.INVALID_POSITION;
+import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_INSERT_EXPENSE;
+import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EXPENSE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NAME_CATEGORY;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_CATEGORY;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_EXPENSE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EXPENSE;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_CALENDAR_VIEW;
+import static br.com.beautystyle.util.ConstantsUtil.DD_MM_YYYY;
+import static br.com.beautystyle.util.ConstantsUtil.REMOVE_SYMBOL;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 
-import br.com.beautystyle.ViewModel.CalendarViewModel;
-import br.com.beautystyle.model.entities.Expense;
-import br.com.beautystyle.model.enuns.Category;
+import br.com.beautystyle.model.entity.Expense;
 import br.com.beautystyle.model.enuns.RepeatOrNot;
+import br.com.beautystyle.ui.fragment.CalendarViewFragment;
+import br.com.beautystyle.ui.fragment.expense.CategoryListFragment;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.MoneyTextWatcher;
@@ -34,12 +37,11 @@ import br.com.beautystyle.util.MoneyTextWatcher;
 public class NewExpenseActivity extends AppCompatActivity {
 
     private Expense expense = new Expense();
-    private int editItemPosition;
-    private EditText purchaseDate, value;
-    private AutoCompleteTextView category;
+    private int itemPosition;
+    private EditText purchaseDate, purchaseValue, categoryEditTxt, expenseDescription;
     private CheckBox nRepeat, repeat;
-    private EditText description;
-    private CalendarViewModel calendarViewModel;
+    private final CalendarViewFragment calendarViewFragment = new CalendarViewFragment();
+    private final static String TAG_EXPENSE_LIST = "expenseList";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,84 +54,88 @@ public class NewExpenseActivity extends AppCompatActivity {
         // LISTENER
         purchaseDateListener();
         categoryListener();
-        repeatOrNotListener();
-        setResultListener();
+        checkBoxListener();
+        btnSaveExpenseListener();
+        setFragmentResultListener();
 
-        calendarObserve();
+        onCalendarClickListener();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setAdapterCategory();
-    }
 
     private void initWidget() {
-        value = findViewById(R.id.activity_new_spending_price);
-        value.addTextChangedListener(new MoneyTextWatcher(value));
-        purchaseDate = findViewById(R.id.activity_new_spending_date);
-        description = findViewById(R.id.activity_new_spending_description);
-        category = findViewById(R.id.activity_new_spending_category);
-        repeat = findViewById(R.id.activity_new_expend_repeat);
-        nRepeat = findViewById(R.id.activity_new_expend_do_not_repeat);
+        purchaseValue = findViewById(R.id.activity_new_expense_value);
+        purchaseValue.addTextChangedListener(new MoneyTextWatcher(purchaseValue));
+        purchaseDate = findViewById(R.id.activity_new_expense_date);
+        expenseDescription = findViewById(R.id.activity_new_expense_list_view);
+        categoryEditTxt = findViewById(R.id.activity_new_expense_category);
+        repeat = findViewById(R.id.activity_new_expense_repeat);
+        nRepeat = findViewById(R.id.activity_new_expense_do_not_repeat);
     }
+
     private void loadExpense() {
         Intent data = getIntent();
-        if(data.hasExtra(KEY_UPDATE_EXPENSE)){
+        if (data.hasExtra(KEY_UPDATE_EXPENSE)) {
             Expense expense = (Expense) data.getSerializableExtra(KEY_UPDATE_EXPENSE);
-            editItemPosition = data.getIntExtra(KEY_POSITION,INVALID_POSITION);
+            itemPosition = data.getIntExtra(KEY_POSITION, INVALID_POSITION);
             FillAllForm(expense);
-        }else{
-            setPurchaseDateDefault();
-            expense.setCategory(Category.OUTROS);
+        } else {
+            setPurchaseDate(LocalDate.now());
             nRepeat.setChecked(true);
             expense.setRepeatOrNot(RepeatOrNot.NREPEAT);
         }
     }
-    
+
     private void FillAllForm(Expense expense) {
         this.expense = expense;
-        purchaseDate.setText(CalendarUtil.formatDate(expense.getDate()));
-        category.setText(expense.getCategory().getDescription());
-        description.setText(expense.getDescription());
-        value.setText(CoinUtil.formatBrWithoutSymbol(expense.getPrice()));
-        if(expense.getRepeatOrNot().equals(RepeatOrNot.REPEAT)){
+        purchaseDate.setText(CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY));
+        categoryEditTxt.setText(expense.getCategory());
+        expenseDescription.setText(expense.getDescription());
+        purchaseValue.setText(CoinUtil.format(expense.getPrice(), REMOVE_SYMBOL));
+        setCheckBoxRepeatOrNot();
+    }
+
+    private void setCheckBoxRepeatOrNot() {
+        if (expense.getRepeatOrNot().equals(RepeatOrNot.REPEAT)) {
             repeat.setChecked(true);
-        }else{
+        } else {
             nRepeat.setChecked(true);
         }
     }
-    
-    private void setPurchaseDateDefault(){
-        LocalDate date = LocalDate.of(CalendarUtil.year,CalendarUtil.monthValue,LocalDate.now().getDayOfMonth());
-        String todayDate = CalendarUtil.formatDate(date);
-        purchaseDate.setText(todayDate);
-        expense.setDate(date);
-    }
-    private void setAdapterCategory() {
-        List<String> categoriesList = Category.getCategoriesList();
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, categoriesList);
-        category.setAdapter(adapter);
+
+    private void setPurchaseDate(LocalDate date) {
+            expense.setExpenseDate(date);
+            String formatedDate = CalendarUtil.formatLocalDate(date, DD_MM_YYYY);
+            purchaseDate.setText(formatedDate);
     }
 
     private void purchaseDateListener() {
-        purchaseDate.setOnClickListener(v -> calendarViewModel.inflateCalendar(this));
+        purchaseDate.setOnClickListener(v -> {
+            calendarViewFragment.show(getSupportFragmentManager(), TAG_CALENDAR_VIEW);
+        });
     }
 
     private void categoryListener() {
-        category.setOnItemClickListener(((parent, view, position, id) -> {
-            Category findedCategory = Category.getCategoryByDescription(parent.getItemAtPosition(position).toString());
-            expense.setCategory(findedCategory);
-        }));
+        categoryEditTxt.setOnClickListener(v -> {
+            CategoryListFragment categoryListFragment = new CategoryListFragment();
+            categoryListFragment.show(getSupportFragmentManager(), TAG_EXPENSE_LIST);
+        });
     }
 
-    private void repeatOrNotListener() {
+    private void checkBoxListener() {
+        checkBoxRepeatListener();
+        checkboxNRepeatListener();
+    }
+
+    private void checkBoxRepeatListener() {
         repeat.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 nRepeat.setChecked(false);
                 expense.setRepeatOrNot(RepeatOrNot.REPEAT);
             }
         });
+    }
+
+    private void checkboxNRepeatListener() {
         nRepeat.setOnCheckedChangeListener(((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 repeat.setChecked(false);
@@ -138,42 +144,60 @@ public class NewExpenseActivity extends AppCompatActivity {
         }));
     }
 
-    private void setResultListener() {
-        Button saveExpense = findViewById(R.id.activity_new_spending_save);
+    private void btnSaveExpenseListener() {
+        Button saveExpense = findViewById(R.id.activity_new_expense_save);
         saveExpense.setOnClickListener(v -> {
-            setDescriptionAndPrice();
-            if(getIntent().hasExtra(KEY_UPDATE_EXPENSE)){
-                setResultAndFinishActivity(4, editItemPosition);
-            }else{
-                setResultAndFinishActivity(3, INVALID_POSITION);
+            setExpense();
+            if (getIntent().hasExtra(KEY_UPDATE_EXPENSE)) {
+                setResultAndFinishActivity(REQUEST_CODE_UPDATE_EXPENSE);
+            } else {
+                setResultAndFinishActivity(REQUEST_CODE_INSERT_EXPENSE);
             }
         });
     }
 
-    private void setDescriptionAndPrice(){
-        expense.setDescription(description.getText().toString());
-        String formatedPrice = CoinUtil.formatPriceSave(Objects.requireNonNull(value.getText()).toString());
-        expense.setPrice(new BigDecimal(formatedPrice));
+    private void setExpense() {
+        expense.setDescription(expenseDescription.getText().toString());
+        String formatedPurchaseValue = formatPurchaseValue();
+        expense.setPrice(new BigDecimal(formatedPurchaseValue));
     }
 
-    private void setResultAndFinishActivity(int resultCode,int position) {
-        Intent intent = new Intent();
-        intent.putExtra(KEY_RESULT_EXPENSE, expense);
-        intent.putExtra(KEY_POSITION,position);
+    private String formatPurchaseValue() {
+        return CoinUtil.formatPriceSave(Objects.requireNonNull(purchaseValue.getText()).toString());
+    }
+
+    private void setResultAndFinishActivity(int resultCode) {
+        Intent intent = createIntent();
         setResult(resultCode, intent);
         finish();
     }
 
-    private void calendarObserve() {
-        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
-        calendarViewModel.getDate().observe(this,this::setDate);
+    private Intent createIntent() {
+        Intent intent = new Intent();
+        intent.putExtra(KEY_RESULT_EXPENSE, expense);
+        intent.putExtra(KEY_POSITION, itemPosition);
+        return intent;
     }
 
-    private void setDate(LocalDate date) {
-        CalendarUtil.monthValue = date.getMonthValue();
-        CalendarUtil.year = date.getYear();
-        expense.setDate(date);
-        String formatedDate = CalendarUtil.formatDate(date);
-        purchaseDate.setText(formatedDate);
+    private void setFragmentResultListener() {
+        getSupportFragmentManager().setFragmentResultListener(KEY_RESULT_CATEGORY,
+                this, (requestKey, result) -> {
+                    if (result.containsKey(KEY_NAME_CATEGORY)) {
+                        String categoryName = result.getString(KEY_NAME_CATEGORY);
+                        expense.setCategory(categoryName);
+                        categoryEditTxt.setText(categoryName);
+                    }
+                }
+        );
     }
+
+    private void onCalendarClickListener() {
+        calendarViewFragment.setOnCalendarClickListener((view, year, month, dayOfMonth) -> {
+            LocalDate selectedDate = LocalDate.of(year, month + 1, dayOfMonth);
+            CalendarUtil.selectedDate = selectedDate;
+            setPurchaseDate(selectedDate);
+            calendarViewFragment.dismiss();
+        });
+    }
+
 }

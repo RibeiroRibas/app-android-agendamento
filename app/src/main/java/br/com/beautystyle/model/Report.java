@@ -1,25 +1,22 @@
 package br.com.beautystyle.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-
-import br.com.beautystyle.model.entities.Event;
-import br.com.beautystyle.model.entities.Expense;
 
 public class Report {
 
+    private String clientName;
     private LocalDate date;
-    private Event event;
-    private Expense expense;
+    private BigDecimal eventValue;
+    private String expenceCategory;
+    private BigDecimal expenseValue;
 
-
-    public Report(LocalDate date, Event event) {
-        this.date = date;
-        this.event = event;
+    public String getClientName() {
+        return clientName;
     }
 
-    public Report(LocalDate date, Expense expense) {
-        this.date = date;
-        this.expense = expense;
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
     }
 
     public LocalDate getDate() {
@@ -30,20 +27,27 @@ public class Report {
         this.date = date;
     }
 
-    public Event getEvent() {
-        return event;
+    public BigDecimal getEventValue() {
+        return eventValue;
     }
 
-    public void setEvent(Event event) {
-        this.event = event;
+    public void setEventValue(BigDecimal eventValue) {
+        this.eventValue = eventValue;
     }
 
-    public Expense getExpense() {
-        return expense;
+    public String getExpenceCategory() {
+        return expenceCategory;
     }
 
-    public void setExpense(Expense expense) {
-        this.expense = expense;
+    public void setExpenceCategory(String expenceCategory) {
+        this.expenceCategory = expenceCategory;
+    }
+
+    public BigDecimal getExpenseValue() {
+        return expenseValue;
+    }
+
+    public void setExpenseValue(BigDecimal expenseValue) {
+        this.expenseValue = expenseValue;
     }
 }
-

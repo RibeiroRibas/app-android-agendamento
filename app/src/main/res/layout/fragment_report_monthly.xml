@@ -19,7 +19,7 @@
             android:id="@+id/fragment_report_monthly_month"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="@string/select_month"
+            android:hint="@string/month"
             android:inputType="none" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -38,7 +38,7 @@
             android:id="@+id/fragment_report_monthly_year"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="@string/select_year"
+            android:hint="@string/year"
             android:inputType="none" />
 
     </com.google.android.material.textfield.TextInputLayout>

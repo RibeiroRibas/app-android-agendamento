@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -24,17 +25,19 @@ import com.example.beautystyle.R;
 
 import java.util.Objects;
 
-import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entity.Client;
 
 public class NewClientFragment extends DialogFragment {
 
     private EditText nameClient, phoneClient;
-    private Client client = new Client();
-    private int position;
+    private int adapterPosition;
+    private  Client client = new Client();
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_new_client, container, false);
     }
@@ -42,7 +45,6 @@ public class NewClientFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initWidgets(view);
         setResultClientListener(view);
 
@@ -56,10 +58,11 @@ public class NewClientFragment extends DialogFragment {
     }
 
     private void setLayoutParamsDialog() {
-        WindowManager.LayoutParams params = Objects.requireNonNull(getDialog()).getWindow().getAttributes();
+        Window window = Objects.requireNonNull(getDialog()).getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        getDialog().getWindow().setAttributes(params);
+        window.setAttributes(params);
     }
 
     private void initWidgets(View view) {
@@ -69,14 +72,18 @@ public class NewClientFragment extends DialogFragment {
 
     private void loadClient() {
         Bundle bundle = getArguments();
-        if (bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_CLIENT)) {
+        if (isKeyUpdateClient(bundle)) {
             client = (Client) bundle.getSerializable(KEY_UPDATE_CLIENT);
-            position = bundle.getInt(KEY_POSITION, INVALID_POSITION);
-            fillAllForm();
+            adapterPosition = bundle.getInt(KEY_POSITION, INVALID_POSITION);
+            fillAllForm(client);
         }
     }
 
-    private void fillAllForm() {
+    private boolean isKeyUpdateClient(Bundle bundle) {
+        return bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_CLIENT);
+    }
+
+    private void fillAllForm(Client client) {
         nameClient.setText(client.getName());
         phoneClient.setText(client.getPhone());
     }
@@ -101,30 +108,29 @@ public class NewClientFragment extends DialogFragment {
     }
 
     private void setResult() {
-        getClient();
+        setClient();
         if (getTag() != null) {
             if (getTag().equals(TAG_UPDATE_CLIENT)) {
-                setResult(KEY_UPDATE_CLIENT, position);
+                setResult(KEY_UPDATE_CLIENT, adapterPosition, client);
             } else {
-                setResult(KEY_INSERT_CLIENT, INVALID_POSITION);
+                setResult(KEY_INSERT_CLIENT, INVALID_POSITION, client);
             }
         }
         Objects.requireNonNull(getDialog()).dismiss();
         getParentFragmentManager().beginTransaction().remove(this).commit();
     }
 
-    private void setResult(String key, int position) {
+    private void setResult(String key, int position, Client client) {
         Bundle result = new Bundle();
         result.putSerializable(key, client);
         result.putInt(KEY_POSITION, position);
         getParentFragmentManager().setFragmentResult(KEY_CLIENT, result);
     }
 
-    private void getClient() {
+    private void setClient() {
         String name = nameClient.getText().toString();
-        String phone = phoneClient.getText().toString();
-
         client.setName(name);
+        String phone = phoneClient.getText().toString();
         client.setPhone(phone);
     }
 

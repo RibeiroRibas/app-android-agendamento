@@ -1,12 +1,14 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
-import android.app.Application;
+import static br.com.beautystyle.util.ConstantsUtil.DD_MM_YYYY;
+import static br.com.beautystyle.util.ConstantsUtil.DESIRED_FORMAT;
+
+import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -18,20 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.beautystyle.model.Report;
-import br.com.beautystyle.model.entities.Client;
-import br.com.beautystyle.model.entities.Event;
-import br.com.beautystyle.model.entities.Expense;
-import br.com.beautystyle.repository.ClientRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
 
 public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.ReportViewHolder> {
 
     private final List<Report> reportList;
-    private final Application context;
+    private final Context context;
 
-    public ReportListAdapter(Application context) {
+    public ReportListAdapter(Context context) {
         this.reportList = new ArrayList<>();
         this.context = context;
     }
@@ -40,7 +37,7 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
     @Override
     public ReportViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View inflatedView = LayoutInflater.from(context).inflate(R.layout.item_report, parent, false);
-        return new ReportViewHolder(inflatedView, context);
+        return new ReportViewHolder(inflatedView);
     }
 
     @Override
@@ -59,12 +56,12 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
         return reportList.size() + 2;
     }
 
-    public void publishResultsFilteredList(List<Report> filteredList) {
-        if (filteredList.isEmpty()) {
+    public void publishResultsChangedList(List<Report> reportlist) {
+        if (reportlist.isEmpty()) {
             removeItemRange();
         } else {
             removeItemRange();
-            insertItemRange(filteredList);
+            insertItemRange(reportlist);
         }
     }
 
@@ -85,64 +82,42 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
 
         private final CardView cardView;
         private final TextView date, name, value;
-        private final ClientRepository repository;
-        private final Application context;
 
-        public ReportViewHolder(@NonNull View itemView, Application context) {
+        public ReportViewHolder(@NonNull View itemView) {
             super(itemView);
             this.cardView = itemView.findViewById(R.id.item_report_cv);
             this.date = itemView.findViewById(R.id.item_report_date_tv);
             this.name = itemView.findViewById(R.id.item_report_name_tv);
             this.value = itemView.findViewById(R.id.item_report_value_tv);
-            this.repository = new ClientRepository(context);
-            this.context=context;
         }
 
         public void onBindReport(Report report) {
-            if (report.getEvent() != null) {
-                Event event = report.getEvent();
-                onBindClient(event);
-                onBindEvent(event);
+            if (report.getClientName() != null) {
+                onBindClient(report);
+                onBindEvent(report);
                 setTextColor("#228C22");
             } else {
-                Expense expense = report.getExpense();
-                onBindExpense(expense);
+                onBindExpense(report);
                 setTextColor("#FF0000");
             }
         }
 
-        private void onBindClient(Event event) {
-            repository.getById(event.getClient(), new ResultsCallBack<Client>() {
-                @Override
-                public void onSuccess(Client client) {
-                    name.setText(client.getName());
-                }
-
-                @Override
-                public void onError(String erro) {
-                    showError(erro);
-                }
-            });
+        private void onBindClient(Report event) {
+            name.setText(event.getClientName());
         }
 
-        private void showError(String message) {
-            Toast.makeText(context,
-                    message,
-                    Toast.LENGTH_LONG).show();
-        }
-
-        private void onBindEvent(Event event) {
-            String formatedDate = CalendarUtil.formatDate(event.getEventDate());
+        private void onBindEvent(Report event) {
+            String formatedDate = CalendarUtil.formatLocalDate(event.getDate(),DD_MM_YYYY);
             date.setText(formatedDate);
-            String formatedValue = CoinUtil.formatBr(event.getValueEvent());
+            String formatedValue = CoinUtil.format(event.getEventValue(),DESIRED_FORMAT);
             value.setText(formatedValue);
         }
 
-        private void onBindExpense(Expense expense) {
-            String formatedDate = CalendarUtil.formatDate(expense.getDate());
+        private void onBindExpense(Report expense) {
+            String formatedDate = CalendarUtil.formatLocalDate(expense.getDate(),DD_MM_YYYY);
             date.setText(formatedDate);
-            name.setText(expense.getCategory().getDescription());
-            String formatedValue = CoinUtil.formatBr(expense.getPrice());
+            name.setText(expense.getExpenceCategory());
+            String formatedValue = CoinUtil.format(expense.getExpenseValue(),DESIRED_FORMAT);
             value.setText(formatedValue);
         }
 

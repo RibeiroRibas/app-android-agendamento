@@ -40,14 +40,14 @@
         app:layout_constraintEnd_toEndOf="@id/fragment_job_list_btn_add"
         app:layout_constraintTop_toBottomOf="@+id/fragment_job_list_btn_add" />
 
-    <ListView
-        android:id="@+id/fragment_job_list_view"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/fragment_job_list_rv"
         android:layout_width="0dp"
         android:layout_height="200dp"
-        android:layout_marginTop="8dp"
-        android:divider="@color/black"
-        app:layout_constraintEnd_toEndOf="@id/fragment_job_list_btn_add"
-        app:layout_constraintStart_toStartOf="@id/fragment_job_list_search_view"
+        android:layout_margin="8dp"
+        app:layoutManager="LinearLayoutManager"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fragment_list_service_add_selected_tv" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

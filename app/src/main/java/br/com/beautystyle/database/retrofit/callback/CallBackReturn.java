@@ -1,7 +1,13 @@
 package br.com.beautystyle.database.retrofit.callback;
 
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.BAD_CREDENTIALS;
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.NO_INTERNET_CONNECTION;
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.MESSAGE_ERROR;
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.MESSAGE_SERVER_ERROR;
+
 import androidx.annotation.NonNull;
 
+import br.com.beautystyle.database.retrofit.NoConnectivityException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -23,14 +29,20 @@ public class CallBackReturn<T> implements Callback<T> {
             if (result != null) {
                 callBack.onSuccess(result);
             }
+        } else if (response.code() == 400) {
+            callBack.onError(BAD_CREDENTIALS);
         } else {
-            callBack.onError("Ocorreu um erro");
+            callBack.onError(MESSAGE_ERROR);
         }
     }
 
     @Override
     public void onFailure(@NonNull Call<T> call, Throwable t) {
-        callBack.onError("Falha na Comunicação"+t.getMessage());
+        if (t instanceof NoConnectivityException) {
+            callBack.onError(NO_INTERNET_CONNECTION);
+        } else {
+            callBack.onError(MESSAGE_SERVER_ERROR + " " + t.getMessage());
+        }
     }
 
     public interface CallBackResponse<T> {

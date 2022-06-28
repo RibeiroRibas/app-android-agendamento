@@ -19,20 +19,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.com.beautystyle.model.entities.Client;
+import br.com.beautystyle.model.entity.Client;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
+import br.com.beautystyle.util.SortByClientName;
 
 public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder> {
 
     private final List<Client> clientList;
-    private final List<Client> filterClientList;
+    private final List<Client> clientListToFilter;
     private final Context context;
     private AdapterListener.OnClientClickListener onItemClickListener;
 
     public ClientListAdapter(Context context) {
         this.context = context;
         this.clientList = new ArrayList<>();
-        this.filterClientList = new ArrayList<>();
+        this.clientListToFilter = new ArrayList<>();
     }
 
     @NonNull
@@ -46,7 +47,7 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
     public void onBindViewHolder(@NonNull ListClientHolder holder, int position) {
         if (!clientList.isEmpty()) {
             Client client = clientList.get(position);
-            holder.SetClientName(client);
+            holder.setClientName(client);
         }
     }
 
@@ -68,12 +69,15 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
     }
 
     private void itemRangeRemoved(String newText) {
-        List<Client> filteredClientList = clientList.stream().filter(client ->
-            !client.getName().toLowerCase().contains(newText.toLowerCase())
-        ).collect(Collectors.toList());
+        List<Client> filteredClientList = clientList.stream()
+                .filter(client ->
+                        !client.getName().toLowerCase()
+                                .contains(newText.toLowerCase())
+                )
+                .collect(Collectors.toList());
         for (Client client : filteredClientList) {
             int index = clientList.indexOf(client);
-            itemRemoved(client,index);
+            itemRemoved(client, index);
         }
     }
 
@@ -83,42 +87,47 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
     }
 
     private void itemRangeInserted() {
-        notifyItemRangeRemoved(0,this.clientList.size());
+        notifyItemRangeRemoved(0, this.clientList.size());
         this.clientList.clear();
-        this.clientList.addAll(filterClientList);
+        this.clientList.addAll(clientListToFilter);
         notifyItemRangeInserted(0, this.clientList.size());
     }
 
     public void publishResultsInsert(Client client) {
         clientList.add(client);
-        filterClientList.add(client);
+        clientListToFilter.add(client);
+        clientList.sort(new SortByClientName());
         notifyItemInserted(clientList.indexOf(client));
     }
 
-    public void publishClientList(List<Client> clientList) {
-        notifyItemRangeRemoved(0,this.clientList.size());
-        this.clientList.clear();
-        this.clientList.addAll(clientList);
-        filterClientList.clear();
-        filterClientList.addAll(clientList);
-        notifyItemRangeInserted(0, this.clientList.size());
+    public void publishClientList(List<Client> clients) {
+        notifyItemRangeRemoved(0, clientList.size());
+        clientList.clear();
+        clientListToFilter.clear();
+        clientList.addAll(clients);
+        clientList.sort(new SortByClientName());
+        clientListToFilter.addAll(clientList);
+        notifyItemRangeInserted(0, clientList.size());
     }
 
-    public void publishContactList(List<Client> contactList){
+    public void publishContactList(List<Client> contactList) {
+        clientListToFilter.addAll(contactList);
+        clientListToFilter.sort(new SortByClientName());
         int size = clientList.size();
-        clientList.addAll(contactList);
-        filterClientList.addAll(contactList);
-        notifyItemRangeInserted(size, clientList.size());
+        clientList.clear();
+        notifyItemRangeRemoved(0, size);
+        clientList.addAll(clientListToFilter);
+        notifyItemRangeInserted(0, clientList.size());
     }
 
     public void publishResultsRemoved(Client client, int position) {
-        itemRemoved(client,position);
-        filterClientList.remove(client);
+        itemRemoved(client, position);
+        clientListToFilter.remove(client);
     }
 
     public void publishResultsUpdate(Client client, int position) {
         clientList.set(position, client);
-        filterClientList.set(position, client);
+        clientListToFilter.set(position, client);
         notifyItemChanged(position, client);
     }
 
@@ -140,10 +149,10 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
         }
 
         private void onClickListener() {
-            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(client,getAdapterPosition()));
+            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(client));
         }
 
-        public void SetClientName(Client client) {
+        public void setClientName(Client client) {
             this.client = client;
             nameClient.setText(client.getName());
         }

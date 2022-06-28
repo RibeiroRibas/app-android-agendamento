@@ -18,12 +18,13 @@
     <include
         android:id="@+id/fragment_list_client_import"
         layout="@layout/custom_loading_buttom"
-        android:layout_width="100dp"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:text="@string/importing"
         android:textSize="11sp"
         app:layout_constraintBottom_toBottomOf="@id/fragment_list_client_sv"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/fragment_list_client_sv" />
 
@@ -46,6 +47,7 @@
         android:layout_margin="8dp"
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/fragment_list_client_sv" />
 

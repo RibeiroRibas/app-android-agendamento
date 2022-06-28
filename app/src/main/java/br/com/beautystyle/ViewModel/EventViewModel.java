@@ -6,51 +6,40 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import br.com.beautystyle.model.entities.Client;
-import br.com.beautystyle.model.entities.Job;
+import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.model.entity.Job;
 
 public class EventViewModel extends AndroidViewModel {
 
-    private MutableLiveData<Client> clientLive;
-    private MutableLiveData<List<Job>> serviceListLiveData;
-    private MutableLiveData<LocalDate> eventDate;
+    private MutableLiveData<Client> clientLiveData;
+    private MutableLiveData<List<Job>> jobsLiveData;
 
     public EventViewModel(@NonNull Application application) {
         super(application);
     }
 
-    public MutableLiveData<LocalDate> getEventDate(){
-        if(eventDate ==null){
-            eventDate = new MutableLiveData<>();
+    public MutableLiveData<List<Job>> getJobsLiveData() {
+        if (jobsLiveData == null) {
+            jobsLiveData = new MutableLiveData<>();
         }
-        return eventDate;
+        return jobsLiveData;
     }
 
-    public void add(LocalDate date){
-        this.eventDate.setValue(date);
+    public void add(List<Job> serviceList) {
+        this.jobsLiveData.setValue(serviceList);
     }
 
-    public MutableLiveData<List<Job>> getServiceListLiveData(){
-        if(serviceListLiveData ==null){
-            serviceListLiveData = new MutableLiveData<>();
+    public MutableLiveData<Client> getClientLiveData() {
+        if (clientLiveData == null) {
+            clientLiveData = new MutableLiveData<>();
         }
-        return serviceListLiveData;
+        return clientLiveData;
     }
 
-    public void add(List<Job> serviceList){
-        this.serviceListLiveData.setValue(serviceList);
+    public void add(Client client) {
+        clientLiveData.setValue(client);
     }
-
-    public MutableLiveData<Client> getClientLive(){
-        if(clientLive==null){
-            clientLive = new MutableLiveData<>();
-        }
-        return clientLive;
-    }
-
-    public void add(Client client){clientLive.setValue(client);}
 
 }

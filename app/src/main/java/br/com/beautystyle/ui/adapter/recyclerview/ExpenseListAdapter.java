@@ -1,6 +1,8 @@
 package br.com.beautystyle.ui.adapter.recyclerview;
 
 import static br.com.beautystyle.ui.adapter.ConstantsAdapter.ITEM_MENU_REMOVE;
+import static br.com.beautystyle.util.ConstantsUtil.DD_MM_YYYY;
+import static br.com.beautystyle.util.ConstantsUtil.DESIRED_FORMAT;
 
 import android.content.Context;
 import android.view.ContextMenu;
@@ -15,10 +17,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.entities.Expense;
+import br.com.beautystyle.model.entity.Expense;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 import br.com.beautystyle.util.CalendarUtil;
 import br.com.beautystyle.util.CoinUtil;
@@ -28,6 +31,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
     private final List<Expense> expenseList;
     private final Context context;
     private AdapterListener.OnExpenseClickListener onItemClickListener;
+    private LocalDate selectedDate;
 
     public ExpenseListAdapter(Context context) {
         this.expenseList = new ArrayList<>();
@@ -57,21 +61,16 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         return expenseList.size() + 2;
     }
 
-    public void publishResultsNew(Expense expense) {
-        expenseList.add(expense);
-        if (expense.getDate().getMonthValue() == CalendarUtil.monthValue && expense.getDate().getYear() == CalendarUtil.year)
-            notifyItemInserted(expenseList.indexOf(expense));
-    }
-
-    public void publishResultsChangedList(List<Expense> expenseList) {
+    public void publishResultsChangedList(List<Expense> expenseList, LocalDate selectedDate) {
+        this.selectedDate = selectedDate;
         removeItemRange();
         if (!expenseList.isEmpty())
             insertItemRange(expenseList);
     }
 
-    private void insertItemRange(List<Expense> filteredList) {
-        expenseList.addAll(filteredList);
-        notifyItemRangeInserted(0, filteredList.size());
+    private void insertItemRange(List<Expense> expenses) {
+        expenseList.addAll(expenses);
+        notifyItemRangeInserted(0, expenses.size());
     }
 
     private void removeItemRange() {
@@ -86,11 +85,6 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         this.onItemClickListener = onItemClickListener;
     }
 
-    public void publishResultsChanged(Expense expense, int position) {
-        expenseList.set(position, expense);
-        notifyItemChanged(position);
-    }
-
     public Expense getItem(int position) {
         return expenseList.get(position);
     }
@@ -100,32 +94,59 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         notifyItemRemoved(position);
     }
 
+    public void publishResultsInserted(Expense expense) {
+        if (isDateNewExpenseEquals(expense.getExpenseDate())) {
+            expenseList.add(expense);
+            notifyItemInserted(expenseList.indexOf(expense));
+        }
+    }
+
+    private boolean isDateNewExpenseEquals(LocalDate expenseDate) {
+        return selectedDate.getMonthValue() == expenseDate.getMonthValue()
+                && selectedDate.getYear() == expenseDate.getYear();
+    }
+
+    public void publishResultsChanged(Expense expense, int position) {
+        if (isDateNewExpenseEquals(expense.getExpenseDate())) {
+            expenseList.set(position, expense);
+            notifyItemChanged(position);
+        } else {
+            publishResultsRemoved(expense, position);
+        }
+    }
+
     class ExpenseViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
 
-        private final TextView date, value, category, description;
-        private final CardView cardView;
+        private TextView date, value, category, description;
+        private CardView cardView;
         private final View itemView;
         private Expense expense;
 
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
+            this.itemView = itemView;
+            initWidgets();
+            itemView.setOnCreateContextMenuListener(this);
+            itemView.setOnClickListener(v ->
+                    onItemClickListener.onItemClick(expense, getAdapterPosition())
+            );
+        }
+
+        private void initWidgets() {
             date = itemView.findViewById(R.id.item_expense_date_tv);
             value = itemView.findViewById(R.id.item_expense_value_tv);
             category = itemView.findViewById(R.id.item_expense_category_tv);
             description = itemView.findViewById(R.id.item_expense_description_tv);
             cardView = itemView.findViewById(R.id.item_expense_cardView);
-            this.itemView = itemView;
-            itemView.setOnCreateContextMenuListener(this);
-            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(expense, getAdapterPosition()));
         }
 
         public void onBindExpense(Expense expense) {
             this.expense = expense;
-            String formatedDate = CalendarUtil.formatDate(expense.getDate());
+            String formatedDate = CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY);
             date.setText(formatedDate);
-            String formatedValue = CoinUtil.formatBr(expense.getPrice());
+            String formatedValue = CoinUtil.format(expense.getPrice(), DESIRED_FORMAT);
             value.setText(formatedValue);
-            category.setText(expense.getCategory().getDescription());
+            category.setText(expense.getCategory());
             description.setText(expense.getDescription());
         }
 

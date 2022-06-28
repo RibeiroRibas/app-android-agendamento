@@ -1,8 +1,10 @@
 package br.com.beautystyle.database.retrofit.callback;
 
-import static br.com.beautystyle.database.retrofit.callback.CallBackMessages.MESSAGE_CONNECTION_FAIL;
-import static br.com.beautystyle.database.retrofit.callback.CallBackMessages.MESSAGE_WITHOUT_RESPONSE;
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.NO_INTERNET_CONNECTION;
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.MESSAGE_ERROR;
+import static br.com.beautystyle.database.retrofit.callback.CallbackMessages.MESSAGE_SERVER_ERROR;
 
+import br.com.beautystyle.database.retrofit.NoConnectivityException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -22,14 +24,18 @@ public class CallBackWithoutReturn implements Callback<Void> {
         if(response.isSuccessful()){
             callBack.onSuccess();
         }else{
-            callBack.onError(MESSAGE_WITHOUT_RESPONSE);
+            callBack.onError(MESSAGE_ERROR);
         }
     }
 
     @Override
     @EverythingIsNonNull
     public void onFailure(Call<Void> call, Throwable t) {
-        callBack.onError(MESSAGE_CONNECTION_FAIL + t.getMessage());
+        if(t instanceof NoConnectivityException) {
+            callBack.onError(NO_INTERNET_CONNECTION);
+        }else{
+            callBack.onError(MESSAGE_SERVER_ERROR + " " + t.getMessage());
+        }
     }
 
     public interface CallBackResponse {

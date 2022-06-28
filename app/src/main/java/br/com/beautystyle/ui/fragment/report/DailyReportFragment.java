@@ -2,6 +2,7 @@ package br.com.beautystyle.ui.fragment.report;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_DAILY_REPORT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_REPORT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_CALENDAR_VIEW;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,57 +11,51 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;
 
-import br.com.beautystyle.ViewModel.CalendarViewModel;
+import br.com.beautystyle.ui.fragment.CalendarViewFragment;
 import br.com.beautystyle.util.CalendarUtil;
 
 
 public class DailyReportFragment extends Fragment {
 
     private EditText dayOfReport;
-    private CalendarViewModel calendarViewModel;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    private final CalendarViewFragment calendarViewFragment = new CalendarViewFragment();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_report_daily, container, false);
 
-        setDailyReportDefault(inflatedView);
-        setDailyReportListener();
-        calendarObserve();
+        setDailyReportListener(inflatedView);
+        onCalendarClickListener();
 
         return inflatedView;
     }
 
-    private void setDailyReportDefault(View inflatedView) {
+    private void setDailyReportListener(View inflatedView) {
         dayOfReport = inflatedView.findViewById(R.id.et_fragment_report_daily_date);
-        String today = CalendarUtil.formatDateLong(LocalDate.now());
-        dayOfReport.setText(today);
+        dayOfReport.setOnClickListener(v -> {
+            calendarViewFragment.show(getParentFragmentManager(), TAG_CALENDAR_VIEW);
+        });
     }
 
-    private void setDailyReportListener() {
-        dayOfReport.setOnClickListener(v -> calendarViewModel.inflateCalendar(requireActivity()));
-    }
-
-    private void calendarObserve() {
-        calendarViewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
-        calendarViewModel.getDate().observe(requireActivity(), this::setDateAndResult);
+    private void onCalendarClickListener() {
+        calendarViewFragment.setOnCalendarClickListener((view, year, month, dayOfMonth) -> {
+            LocalDate selectedDate = LocalDate.of(year, month + 1, dayOfMonth);
+            CalendarUtil.selectedDate = selectedDate;
+            setDateAndResult(selectedDate);
+            calendarViewFragment.dismiss();
+        });
     }
 
     private void setDateAndResult(LocalDate date) {
-        String dateFormated = CalendarUtil.formatDateLong(date);
-        dayOfReport.setText(dateFormated);
-        setFragmenResult(date);
+            String dateFormated = CalendarUtil.formatDateLong(date);
+            dayOfReport.setText(dateFormated);
+            setFragmenResult(date);
     }
 
     private void setFragmenResult(LocalDate date) {

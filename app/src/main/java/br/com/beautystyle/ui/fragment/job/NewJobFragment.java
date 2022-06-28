@@ -3,8 +3,10 @@ package br.com.beautystyle.ui.fragment.job;
 import static br.com.beautystyle.ui.activity.ContantsActivity.TAG_EVENT_DURATION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_JOB;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_JOB;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_JOB;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_JOB;
+import static br.com.beautystyle.util.ConstantsUtil.REMOVE_SYMBOL;
 
 import android.app.TimePickerDialog;
 import android.os.Bundle;
@@ -26,7 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Objects;
 
-import br.com.beautystyle.model.entities.Job;
+import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.ui.fragment.TimePickerFragment;
 import br.com.beautystyle.util.CoinUtil;
 import br.com.beautystyle.util.MoneyTextWatcher;
@@ -35,9 +37,9 @@ import br.com.beautystyle.util.TimeUtil;
 public class NewJobFragment extends DialogFragment {
 
     private EditText durationOfJob, nameJob, valueOfJob;
-    private Job job = new Job();
     private final TimePickerDialog.OnTimeSetListener timeListener = timePickerDialogListener();
-
+    private Job job = new Job();
+    private int adapterPosition = -1;
 
     @Nullable
     @Override
@@ -97,6 +99,7 @@ public class NewJobFragment extends DialogFragment {
         Bundle bundle = getArguments();
         if (bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_JOB)) {
             job = (Job) bundle.getSerializable(KEY_UPDATE_JOB);
+            adapterPosition = bundle.getInt(KEY_POSITION);
             fillAllForm();
         }
     }
@@ -105,7 +108,7 @@ public class NewJobFragment extends DialogFragment {
         nameJob.setText(job.getName());
         String duration = TimeUtil.formatLocalTime(job.getDurationTime());
         durationOfJob.setText(duration);
-        String value = CoinUtil.formatBrWithoutSymbol(job.getValueOfJob());
+        String value = CoinUtil.format(job.getValueOfJob(), REMOVE_SYMBOL);
         valueOfJob.setText(value);
     }
 
@@ -113,7 +116,9 @@ public class NewJobFragment extends DialogFragment {
         durationOfJob.setOnClickListener(v2 ->
                 getParentFragmentManager()
                         .beginTransaction()
-                        .add(TimePickerFragment.newInstance(timeListener), TAG_EVENT_DURATION)
+                        .add(TimePickerFragment.newInstance(
+                                timeListener, true), TAG_EVENT_DURATION
+                        )
                         .commit()
         );
     }
@@ -122,7 +127,6 @@ public class NewJobFragment extends DialogFragment {
         ImageView insertJob = inflateNewServiceView.findViewById(R.id.fragment_new_job_save);
         insertJob.setOnClickListener(v -> {
             if (checkInputJob()) {
-                setJob();
                 setResult();
             }
         });
@@ -141,10 +145,11 @@ public class NewJobFragment extends DialogFragment {
         return true;
     }
 
-    private void setJob() {
+    private void onBindJob(Job job) {
         String name = nameJob.getText().toString();
         LocalTime duration = TimeUtil.formatDurationService(durationOfJob.getText().toString());
         BigDecimal value = new BigDecimal(CoinUtil.formatPriceSave((valueOfJob.getText()).toString()));
+
         job.setName(name);
         job.setDurationTime(duration);
         job.setValueOfJob(value);
@@ -160,7 +165,9 @@ public class NewJobFragment extends DialogFragment {
 
     private void setResult(String key) {
         Bundle result = new Bundle();
+        onBindJob(job);
         result.putSerializable(key, job);
+        result.putInt(KEY_POSITION, adapterPosition);
         getParentFragmentManager().setFragmentResult(KEY_JOB, result);
     }
 
@@ -169,7 +176,6 @@ public class NewJobFragment extends DialogFragment {
             LocalTime timeWatch = LocalTime.of(hour, minute);
             String time = TimeUtil.formatLocalTime(timeWatch);
             durationOfJob.setText(time);
-            job.setDurationTime(timeWatch);
         };
     }
 

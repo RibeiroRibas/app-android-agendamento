@@ -9,7 +9,7 @@
         android:id="@+id/fragment_new_client_action_bar"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:background="@color/lilas"
+        android:background="@color/purple_700"
         android:contentDescription="@string/todo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

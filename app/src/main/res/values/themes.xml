@@ -1,16 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.BeautyStyle" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/pink</item>
+        <item name="colorSecondary">@color/purple_700</item>
+        <item name="android:timePickerStyle">@style/SpinnerTimePicker</item>
     </style>
 
-    <style name="Theme.BeautyStyle.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+    <style name="CalenderViewCustom" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="colorControlActivated">@color/pink</item>
+        <item name="android:textColorPrimaryInverse">@color/white</item>
+    </style>
 
+    <style name="CalenderViewWeekCustomText" parent="android:TextAppearance.DeviceDefault.Small">
+        <item name="android:textColor">@color/black</item>
     </style>
 
     <style name="Theme.BeautyStyle.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.BeautyStyle.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 </resources>

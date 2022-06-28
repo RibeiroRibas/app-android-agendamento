@@ -4,27 +4,32 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable-anydpi/ic_action_add_task.xml" value="0.159375" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/drawable-v24/ic_check_.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.159375" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable-xhdpi/custom_secundary_invalid_input.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_default_input.xml" value="0.1171875" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_empty_input.xml" value="0.13020833333333334" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_input.xml" value="0.10677083333333333" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_input_login.xml" value="0.2890625" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_invalid_input.xml" value="0.1171875" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_secundary_default_input.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_secundary_default_nput.xml" value="0.19833333333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_shape_list.xml" value="0.16197916666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_shape_list_clicked.xml" value="0.16197916666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/custom_shape_list_default.xml" value="0.28" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/drawable/gradient_background.xml" value="0.2890625" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_add.xml" value="0.28" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_add_person.xml" value="0.159375" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_add_service.xml" value="0.1171875" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_add_task.xml" value="0.14270833333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_assignment.xml" value="0.19833333333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.14270833333333333" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_baseline_check_24.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_baseline_delete_24.xml" value="0.1171875" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_baseline_nav_menu.xml" value="0.159375" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_calendar.xml" value="0.2890625" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_check.xml" value="0.1171875" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_check_.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_delete.xml" value="0.159375" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_home.xml" value="0.14270833333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/drawable/ic_launcher_background.xml" value="0.159375" />
@@ -46,17 +51,20 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_form_event.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_list_cliente.xml" value="0.13385416666666666" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_list_schedule.xml" value="0.22010869565217392" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_login.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_main.xml" value="0.27291666666666664" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_main_schedule.xml" value="0.2248995983935743" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_navigation.xml" value="0.21875" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_new_event.xml" value="0.32083333333333336" />
-        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_new_expense.xml" value="0.1" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_new_expense.xml" value="0.25" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_new_expense_.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_new_spending.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_relatorios.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/activity_splash.xml" value="0.27205882352941174" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/content_relatorios.xml" value="0.14635416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/custom_loading_buttom.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/custom_loading_dialog.xml" value="0.25" />
-        <entry key="..\:/BeautyStyle/app/src/main/res/layout/dialog_calendar.xml" value="0.11041666666666666" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/dialog_calendar.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/dialog_new_client.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/dialog_new_service.xml" value="0.26313405797101447" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/dialogo_watch.xml" value="1.0" />
@@ -65,13 +73,17 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_client.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_event.xml" value="0.2173202614379085" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_home_schedule.xml" value="0.1" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_job_list.xml" value="0.18055555555555555" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_category.xml" value="0.22" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_client.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_client_import.xml" value="0.18" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_event.xml" value="0.22" />
-        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_expense.xml" value="0.22" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_expense.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_list_service.xml" value="0.15196078431372548" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation.xml" value="0.25" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_navigation_fragmente.xml" value="0.1265625" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_new_category.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_new_category_btn.xml" value="0.26552287581699346" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_new_client.xml" value="0.14635416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_new_job.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_new_service.xml" value="0.25857843137254904" />
@@ -87,16 +99,20 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_service.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_spending.xml" value="0.14322916666666666" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/fragment_view_pager_event_list.xml" value="0.14479166666666668" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_category.xml" value="0.26552287581699346" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_client_list.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_days_week.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_days_week_bottom.xml" value="0.5" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_days_week_button.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_event.xml" value="0.16927083333333334" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_expense.xml" value="0.35789473684210527" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_job_and_client.xml" value="0.2622549019607843" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_list_client.xml" value="0.14270833333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_list_hour_schedule_.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_list_service.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_list_service_client.xml" value="0.14270833333333333" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_list_services.xml" value="0.33" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_new_expense.xml" value="0.2622549019607843" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_phone_contact_list.xml" value="0.33" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_report.xml" value="0.38825757575757575" />
         <entry key="..\:/BeautyStyle/app/src/main/res/layout/item_schedule.xml" value="0.33" />
@@ -113,6 +129,7 @@
         <entry key="..\:/BeautyStyle/app/src/main/res/menu/fragment_list_event_menu.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/menu/fragment_list_evet_menu.xml" value="0.1" />
         <entry key="..\:/BeautyStyle/app/src/main/res/menu/fragment_list_service_and_client_menu.xml" value="0.1" />
+        <entry key="..\:/BeautyStyle/app/src/main/res/menu/update_delete_menu.xml" value="0.14010416666666667" />
         <entry key="..\:/BeautyStyle/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.16145833333333334" />
         <entry key="..\:/BeautyStyle/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1609375" />
       </map>
