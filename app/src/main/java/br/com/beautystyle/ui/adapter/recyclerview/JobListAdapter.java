@@ -25,35 +25,40 @@ import br.com.beautystyle.util.SortByJobName;
 
 public class JobListAdapter extends RecyclerView.Adapter<JobListAdapter.JobListHolder> {
 
-    private final List<Job> jobList;
-    private final List<Job> jobListToFilter;
+    private final List<Job> jobs;
+    private final List<Job> jobsToFilter;
     private final Context context;
     private AdapterListener.OnJobClickListener onItemClickListener;
 
     public JobListAdapter(Context context) {
-        this.jobList = new ArrayList<>();
-        this.jobListToFilter = new ArrayList<>();
+        this.jobs = new ArrayList<>();
+        this.jobsToFilter = new ArrayList<>();
         this.context = context;
     }
 
     @NonNull
     @Override
     public JobListHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View createdView = LayoutInflater.from(context).inflate(R.layout.item_job_and_client, parent, false);
+        View createdView = inflateLayout(parent);
         return new JobListAdapter.JobListHolder(createdView);
+    }
+
+    private View inflateLayout(@NonNull ViewGroup parent) {
+        return LayoutInflater.from(context)
+                .inflate(R.layout.item_job_and_client, parent, false);
     }
 
     @Override
     public void onBindViewHolder(@NonNull JobListHolder holder, int position) {
-        if (!jobList.isEmpty()) {
-            Job job = jobList.get(position);
+        if (!jobs.isEmpty()) {
+            Job job = jobs.get(position);
             holder.setJobName(job);
         }
     }
 
     @Override
     public int getItemCount() {
-        return jobList.size();
+        return jobs.size();
     }
 
     public void setOnItemClickListener(AdapterListener.OnJobClickListener onItemClickListener) {
@@ -69,60 +74,43 @@ public class JobListAdapter extends RecyclerView.Adapter<JobListAdapter.JobListH
     }
 
     private void itemRangeRemoved(String newText) {
-        List<Job> filteredJobList = jobList.stream()
+        List<Job> filteredJobs = filterByInputText(newText);
+        for (Job job : filteredJobs) {
+            int index = jobs.indexOf(job);
+            jobs.remove(job);
+            notifyItemRemoved(index);
+        }
+    }
+
+    @NonNull
+    private List<Job> filterByInputText(String newText) {
+        return jobs.stream()
                 .filter(job ->
                         !job.getName().toLowerCase()
                                 .contains(newText.toLowerCase())
                 )
                 .collect(Collectors.toList());
-        for (Job job : filteredJobList) {
-            int index = jobList.indexOf(job);
-            itemRemoved(job, index);
-        }
-    }
-
-    private void itemRemoved(Job job, int index) {
-        jobList.remove(job);
-        notifyItemRemoved(index);
     }
 
     private void itemRangeInserted() {
-        notifyItemRangeRemoved(0, this.jobList.size());
-        this.jobList.clear();
-        this.jobList.addAll(jobListToFilter);
-        notifyItemRangeInserted(0, this.jobList.size());
-    }
-
-    public void publishResultsInsert(Job job) {
-        jobList.add(job);
-        jobListToFilter.add(job);
-        jobList.sort(new SortByJobName());
-        notifyItemInserted(jobList.indexOf(job));
-    }
-
-    public void publishJobList(List<Job> jobs) {
-        notifyItemRangeRemoved(0, jobList.size());
-        jobList.clear();
-        jobListToFilter.clear();
-        jobList.addAll(jobs);
-        jobList.sort(new SortByJobName());
-        jobListToFilter.addAll(jobList);
-        notifyItemRangeInserted(0, jobList.size());
-    }
-
-    public void publishResultsRemoved(Job job, int position) {
-        itemRemoved(job, position);
-        jobListToFilter.remove(job);
-    }
-
-    public void publishResultsUpdate(Job job, int position) {
-        jobList.set(position, job);
-        jobListToFilter.set(position, job);
-        notifyItemChanged(position, job);
+        notifyItemRangeRemoved(0, this.jobs.size());
+        this.jobs.clear();
+        this.jobs.addAll(jobsToFilter);
+        notifyItemRangeInserted(0, this.jobs.size());
     }
 
     public Job getJobAtPosition(int position) {
-        return jobList.get(position);
+        return jobs.get(position);
+    }
+
+    public void update(List<Job> jobsToUpdate) {
+        notifyItemRangeRemoved(0, jobs.size());
+        jobs.clear();
+        jobsToFilter.clear();
+        jobs.addAll(jobsToUpdate);
+        jobs.sort(new SortByJobName());
+        jobsToFilter.addAll(jobs);
+        notifyItemRangeInserted(0, jobs.size());
     }
 
     class JobListHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {

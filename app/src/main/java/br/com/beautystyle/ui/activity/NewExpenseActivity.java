@@ -1,10 +1,8 @@
 package br.com.beautystyle.ui.activity;
 
-import static br.com.beautystyle.ui.activity.ContantsActivity.INVALID_POSITION;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_INSERT_EXPENSE;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EXPENSE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NAME_CATEGORY;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_CATEGORY;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_EXPENSE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EXPENSE;
@@ -18,6 +16,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.beautystyle.R;
@@ -37,8 +36,7 @@ import br.com.beautystyle.util.MoneyTextWatcher;
 public class NewExpenseActivity extends AppCompatActivity {
 
     private Expense expense = new Expense();
-    private int itemPosition;
-    private EditText purchaseDate, purchaseValue, categoryEditTxt, expenseDescription;
+    private EditText purchaseDate, expenseValue, categoryEditTxt, expenseDescription;
     private CheckBox nRepeat, repeat;
     private final CalendarViewFragment calendarViewFragment = new CalendarViewFragment();
     private final static String TAG_EXPENSE_LIST = "expenseList";
@@ -52,7 +50,7 @@ public class NewExpenseActivity extends AppCompatActivity {
         loadExpense();
 
         // LISTENER
-        purchaseDateListener();
+        expenseDateListener();
         categoryListener();
         checkBoxListener();
         btnSaveExpenseListener();
@@ -63,8 +61,8 @@ public class NewExpenseActivity extends AppCompatActivity {
 
 
     private void initWidget() {
-        purchaseValue = findViewById(R.id.activity_new_expense_value);
-        purchaseValue.addTextChangedListener(new MoneyTextWatcher(purchaseValue));
+        expenseValue = findViewById(R.id.activity_new_expense_value);
+        expenseValue.addTextChangedListener(new MoneyTextWatcher(expenseValue));
         purchaseDate = findViewById(R.id.activity_new_expense_date);
         expenseDescription = findViewById(R.id.activity_new_expense_list_view);
         categoryEditTxt = findViewById(R.id.activity_new_expense_category);
@@ -74,15 +72,18 @@ public class NewExpenseActivity extends AppCompatActivity {
 
     private void loadExpense() {
         Intent data = getIntent();
-        if (data.hasExtra(KEY_UPDATE_EXPENSE)) {
+        if (isUpdateExpense(data)) {
             Expense expense = (Expense) data.getSerializableExtra(KEY_UPDATE_EXPENSE);
-            itemPosition = data.getIntExtra(KEY_POSITION, INVALID_POSITION);
             FillAllForm(expense);
-        } else {
-            setPurchaseDate(LocalDate.now());
+        } else { // is new event mode
+            setExpenseDate();
             nRepeat.setChecked(true);
             expense.setRepeatOrNot(RepeatOrNot.NREPEAT);
         }
+    }
+
+    private boolean isUpdateExpense(Intent data) {
+        return data.hasExtra(KEY_UPDATE_EXPENSE);
     }
 
     private void FillAllForm(Expense expense) {
@@ -90,7 +91,7 @@ public class NewExpenseActivity extends AppCompatActivity {
         purchaseDate.setText(CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY));
         categoryEditTxt.setText(expense.getCategory());
         expenseDescription.setText(expense.getDescription());
-        purchaseValue.setText(CoinUtil.format(expense.getPrice(), REMOVE_SYMBOL));
+        expenseValue.setText(CoinUtil.format(expense.getPrice(), REMOVE_SYMBOL));
         setCheckBoxRepeatOrNot();
     }
 
@@ -102,16 +103,15 @@ public class NewExpenseActivity extends AppCompatActivity {
         }
     }
 
-    private void setPurchaseDate(LocalDate date) {
-            expense.setExpenseDate(date);
-            String formatedDate = CalendarUtil.formatLocalDate(date, DD_MM_YYYY);
-            purchaseDate.setText(formatedDate);
+    private void setExpenseDate() {
+        expense.setExpenseDate(CalendarUtil.selectedDate);
+        String formattedDate = CalendarUtil.formatLocalDate(CalendarUtil.selectedDate, DD_MM_YYYY);
+        purchaseDate.setText(formattedDate);
     }
 
-    private void purchaseDateListener() {
-        purchaseDate.setOnClickListener(v -> {
-            calendarViewFragment.show(getSupportFragmentManager(), TAG_CALENDAR_VIEW);
-        });
+    private void expenseDateListener() {
+        purchaseDate.setOnClickListener(v ->
+                calendarViewFragment.show(getSupportFragmentManager(), TAG_CALENDAR_VIEW));
     }
 
     private void categoryListener() {
@@ -147,35 +147,56 @@ public class NewExpenseActivity extends AppCompatActivity {
     private void btnSaveExpenseListener() {
         Button saveExpense = findViewById(R.id.activity_new_expense_save);
         saveExpense.setOnClickListener(v -> {
-            setExpense();
-            if (getIntent().hasExtra(KEY_UPDATE_EXPENSE)) {
-                setResultAndFinishActivity(REQUEST_CODE_UPDATE_EXPENSE);
+            if (checkRequiredField()) {
+                categoryEditTxt.setBackgroundResource(R.drawable.custom_invalid_input);
+                requiredFieldsAlertDialog();
             } else {
-                setResultAndFinishActivity(REQUEST_CODE_INSERT_EXPENSE);
+                categoryEditTxt.setBackgroundResource(R.drawable.custom_default_input);
+                setExpense();
+                checkIntent();
             }
         });
     }
 
-    private void setExpense() {
-        expense.setDescription(expenseDescription.getText().toString());
-        String formatedPurchaseValue = formatPurchaseValue();
-        expense.setPrice(new BigDecimal(formatedPurchaseValue));
+    private void checkIntent() {
+        if (isUpdateExpense(getIntent())) {
+            setResultAndFinishActivity(REQUEST_CODE_UPDATE_EXPENSE);
+        } else {
+            setResultAndFinishActivity(REQUEST_CODE_INSERT_EXPENSE);
+        }
     }
 
-    private String formatPurchaseValue() {
-        return CoinUtil.formatPriceSave(Objects.requireNonNull(purchaseValue.getText()).toString());
+    public void requiredFieldsAlertDialog() {
+        new AlertDialog
+                .Builder(this)
+                .setTitle("O Campo Categoria é obrigatórios")
+                .setPositiveButton("Ok", null)
+                .show();
+    }
+
+    private boolean checkRequiredField() {
+        return categoryEditTxt.getText().toString().isEmpty();
+    }
+
+    private void setExpense() {
+        expense.setDescription(expenseDescription.getText().toString());
+        String formattedPurchaseValue = formatExpenseValue();
+        expense.setPrice(new BigDecimal(formattedPurchaseValue));
+    }
+
+    private String formatExpenseValue() {
+        return CoinUtil.formatPriceSave(Objects.requireNonNull(expenseValue.getText()).toString());
     }
 
     private void setResultAndFinishActivity(int resultCode) {
-        Intent intent = createIntent();
+        Intent intent = newIntent();
         setResult(resultCode, intent);
         finish();
     }
 
-    private Intent createIntent() {
+    private Intent newIntent() {
         Intent intent = new Intent();
         intent.putExtra(KEY_RESULT_EXPENSE, expense);
-        intent.putExtra(KEY_POSITION, itemPosition);
         return intent;
     }
 
@@ -193,9 +214,8 @@ public class NewExpenseActivity extends AppCompatActivity {
 
     private void onCalendarClickListener() {
         calendarViewFragment.setOnCalendarClickListener((view, year, month, dayOfMonth) -> {
-            LocalDate selectedDate = LocalDate.of(year, month + 1, dayOfMonth);
-            CalendarUtil.selectedDate = selectedDate;
-            setPurchaseDate(selectedDate);
+            CalendarUtil.selectedDate = LocalDate.of(year, month + 1, dayOfMonth);
+            setExpenseDate();
             calendarViewFragment.dismiss();
         });
     }

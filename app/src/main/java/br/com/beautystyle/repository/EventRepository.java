@@ -1,175 +1,143 @@
 package br.com.beautystyle.repository;
 
+import static android.content.ContentValues.TAG;
+import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
-import static br.com.beautystyle.repository.ConstantsRepository.TOKEN_SHARED_PREFERENCES;
 
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.retrofit.callback.CallBackReturn;
-import br.com.beautystyle.database.retrofit.callback.CallBackWithoutReturn;
-import br.com.beautystyle.database.retrofit.service.EventService;
-import br.com.beautystyle.database.room.BeautyStyleDatabase;
-import br.com.beautystyle.database.room.dao.RoomEventDao;
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
+import br.com.beautystyle.database.rxjavaassinc.EventAsynchDao;
 import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.entity.Costumer;
 import br.com.beautystyle.model.entity.Event;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import retrofit2.Call;
+import br.com.beautystyle.model.entity.EventJobCrossRef;
+import br.com.beautystyle.model.entity.Job;
+import br.com.beautystyle.retrofit.webclient.EventWebClient;
+import br.com.beautystyle.util.CalendarUtil;
 
 public class EventRepository {
 
-    private final RoomEventDao daoEvent;
     @Inject
-    EventService service;
-    private final String token;
+    EventWebClient webClient;
+    @Inject
+    EventAsynchDao dao;
+    @Inject
+    EventWithJobRepository eventWithJobRepository;
+    @Inject
+    ClientRepository costumerRepository;
+    @Inject
+    JobRepository jobRepository;
+    private final String profile;
     private final Long tenant;
 
     @Inject
-    public EventRepository(BeautyStyleDatabase database, SharedPreferences preferences) {
-        daoEvent = database.getRoomEventDao();
-        token = preferences.getString(TOKEN_SHARED_PREFERENCES, "");
+    public EventRepository(SharedPreferences preferences) {
+        profile = preferences.getString(PROFILE_SHARED_PREFERENCES, "");
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public void insertOnApi(EventWithClientAndJobs event,
-                            ResultsCallBack<EventWithClientAndJobs> callBack) {
-        event.getEvent().setCompanyId(tenant);
-        Call<EventWithClientAndJobs> callInsert = service.insert(event, token);
-        callInsert.enqueue(new CallBackReturn<>(
-                        new CallBackReturn.CallBackResponse<EventWithClientAndJobs>() {
-                            @Override
-                            public void onSuccess(EventWithClientAndJobs response) {
-                                callBack.onSuccess(response);
-                            }
-
-                            @Override
-                            public void onError(String error) {
-                                callBack.onError(error);
-                            }
-                        }
-                )
-        );
+    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateFromRoom() {
+        MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents = new MutableLiveData<>();
+        dao.getAllByDate(CalendarUtil.selectedDate).doOnSuccess(eventsFromRoom -> {
+                    Resource<List<EventWithClientAndJobs>> resource =
+                            new Resource<>(eventsFromRoom, null);
+                    mutableEvents.setValue(resource);
+                }).doOnError(error ->
+                        mutableEvents.setValue(new Resource<>(null, error.getMessage())))
+                .subscribe();
+        return mutableEvents;
     }
 
-    public Single<Long> insertOnRoom(Event event) {
-        return daoEvent.insert(event)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-
-    public void updateOnApi(EventWithClientAndJobs event,
-                            ResultsCallBack<Void> callBack) {
-        Call<Void> callUpdate = service.update(event, token);
-        callUpdate.enqueue(new CallBackWithoutReturn(
-                        new CallBackWithoutReturn.CallBackResponse() {
-                            @Override
-                            public void onSuccess() {
-                                callBack.onSuccess(null);
-                            }
-
-                            @Override
-                            public void onError(String erro) {
-                                callBack.onError(erro);
-                            }
-                        }
-                )
-        );
-    }
-
-    public Completable updateOnRoom(Event event) {
-        return daoEvent.update(event)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io());
-    }
-
-    public void deleteOnApi(Long eventId, ResultsCallBack<Void> callBack) {
-        Call<Void> callDelete = service.delete(eventId, token);
-        callDelete.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
+    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateFromApi(LocalDate date) {
+        MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents = new MutableLiveData<>();
+        webClient.getAllByDate(date, new ResultsCallBack<List<EventWithClientAndJobs>>() {
             @Override
-            public void onSuccess() {
-                callBack.onSuccess(null);
+            public void onSuccess(List<EventWithClientAndJobs> eventsFromApi) {
+                updateLocalDatabase(eventsFromApi, mutableEvents);
             }
 
             @Override
-            public void onError(String erro) {
-                callBack.onError(erro);
+            public void onError(String error) {
+                mutableEvents.setValue(new Resource<>(null, error));
             }
-        }));
+        });
+        return mutableEvents;
     }
 
-    public Completable deleteOnRoom(Event event) {
-        return daoEvent.delete(event)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
+    private void updateLocalDatabase(List<EventWithClientAndJobs> eventsFromApi,
+                                     MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents) {
+        //update costumers -> update jobs -> update events
+        updateCostumersJobsAndEvents(eventsFromApi, new ResultsCallBack<List<EventWithClientAndJobs>>() {
+            @Override
+            public void onSuccess(List<EventWithClientAndJobs> events) {
+                Resource<List<EventWithClientAndJobs>> resource = new Resource<>(events, null);
+                mutableEvents.setValue(resource);
+            }
 
-    public Single<List<EventWithClientAndJobs>> getByDateFromRooom(LocalDate date) {
-        return daoEvent.getEventListByDate(date)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public void getByDateFromApi(LocalDate date,
-                                 ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-        Call<List<EventWithClientAndJobs>> callByDate =
-                service.getByDate(date, tenant, token);
-        callByDate.enqueue(new CallBackReturn<>(
-                        new CallBackReturn.CallBackResponse<List<EventWithClientAndJobs>>() {
-                            @Override
-                            public void onSuccess(List<EventWithClientAndJobs> eventListDto) {
-                                callBack.onSuccess(eventListDto);
-                            }
-
-                            @Override
-                            public void onError(String error) {
-                                callBack.onError(error);
-                            }
-                        }
-                )
-        );
+            @Override
+            public void onError(String error) {
+                mutableEvents.setValue(new Resource<>(null, error));
+            }
+        });
     }
 
     public void updateAll(List<EventWithClientAndJobs> eventsFromApi,
                           ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-        getByDateFromRooom(eventsFromApi.get(0).getEvent().getEventDate())
+        dao.getAllByDate(CalendarUtil.selectedDate)
                 .doOnSuccess(eventsFromRoom -> {
+                            deleteFromRoomIfNotExistOnApi(eventsFromApi, eventsFromRoom);
                             setEventIdToUpdate(eventsFromRoom, eventsFromApi);
-                            List<Event> eventsToUpdate = getEventsToUpdate(eventsFromApi);
-                            updateOnRoom(eventsToUpdate)
-                                    .doOnComplete(() -> insertOnRoom(eventsFromApi, callBack))
-                                    .subscribe();
+                            updateAllOnRoom(eventsFromApi, callBack);
                         }
                 ).subscribe();
-
     }
 
-    private void insertOnRoom(List<EventWithClientAndJobs> events,
-                              ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-        List<Event> newEvents = getEventsToInsert(events);
-        if (newEvents.isEmpty()) {
-            callBack.onSuccess(events);
-        } else {
-            newEvents.forEach(event -> event.setEventId(null));
-            insertAllInRoom(newEvents)
-                    .doOnSuccess(ids -> {
-                                setEventIds(newEvents, ids);
-                                mergeEventId(events, newEvents);
-                                callBack.onSuccess(events);
-                            }
-                    ).subscribe();
-        }
+    private void updateAllOnRoom(List<EventWithClientAndJobs> eventsFromApi,
+                                 ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
+        List<Event> eventsToUpdate = getEventsToUpdate(eventsFromApi);
+        dao.updateAll(eventsToUpdate)
+                .doOnComplete(() -> insertAllOnRoom(eventsFromApi, callBack))
+                .subscribe();
+    }
+
+    private void insertAllOnRoom(List<EventWithClientAndJobs> eventsFromApi,
+                                 ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
+        List<Event> newEvents = getEventsToInsert(eventsFromApi);
+        newEvents.forEach(event -> event.setEventId(null));
+        dao.insertAll(newEvents)
+                .doOnSuccess(ids -> {
+                            setEventIds(newEvents, ids);
+                            mergeEventId(eventsFromApi, newEvents);
+                            callBack.onSuccess(eventsFromApi);
+                        }
+                ).subscribe();
+    }
+
+    private void deleteFromRoomIfNotExistOnApi(List<EventWithClientAndJobs> eventsFromApi,
+                                               List<EventWithClientAndJobs> eventsFromRoom) {
+        eventsFromRoom.forEach(fromRoom -> {
+            List<Event> events = eventsFromApi.stream()
+                    .map(EventWithClientAndJobs::getEvent)
+                    .collect(Collectors.toList());
+            if (fromRoom.getEvent().isNotExistOnApi(events))
+                dao.delete(fromRoom.getEvent()).subscribe();
+        });
     }
 
     private void mergeEventId(List<EventWithClientAndJobs> eventsFromApi,
@@ -206,19 +174,6 @@ public class EventRepository {
                 .collect(Collectors.toList());
     }
 
-    private Single<List<Long>> insertAllInRoom(List<Event> newEvents) {
-        return daoEvent.insertAll(newEvents)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public Completable updateOnRoom(List<Event> updateEvents) {
-        return daoEvent.updatelist(updateEvents)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-
     private void setEventIdToUpdate(List<EventWithClientAndJobs> eventsFromRoom,
                                     List<EventWithClientAndJobs> eventsFromApi) {
         eventsFromRoom.forEach(eventFromRoom ->
@@ -238,56 +193,227 @@ public class EventRepository {
         return eventFromRoom.getApiId().equals(eventFromApi.getApiId());
     }
 
-    public Single<List<Event>> getEventsByClientId(Long clientId) {
-        return daoEvent.findByClientId(clientId)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+    public LiveData<Resource<EventWithClientAndJobs>> insertOnApi(EventWithClientAndJobs event) {
+        MutableLiveData<Resource<EventWithClientAndJobs>> liveData = new MutableLiveData<>();
+        webClient.insert(event, new ResultsCallBack<EventWithClientAndJobs>() {
+            @Override
+            public void onSuccess(EventWithClientAndJobs result) {
+                liveData.setValue(new Resource<>(result, null));
+            }
+
+            @Override
+            public void onError(String error) {
+                liveData.setValue(new Resource<>(null, error));
+            }
+        });
+        return liveData;
     }
 
-    public void getYearsListFromApi(ResultsCallBack<List<String>> callBack) {
-        Call<List<String>> callYearsList = service.getYearsList(tenant, token);
-        callYearsList.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<String>>() {
+    private List<EventJobCrossRef> getEventJobsCrossRefs(EventWithClientAndJobs event) {
+        return event.getJobs().stream()
+                .map(job -> new EventJobCrossRef(event.getEvent().getEventId(), job.getJobId()))
+                .collect(Collectors.toList());
+    }
+
+    public LiveData<Resource<Void>> updateOnApi(EventWithClientAndJobs event) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        webClient.update(event, new ResultsCallBack<Void>() {
             @Override
-            public void onSuccess(List<String> response) {
-                callBack.onSuccess(response);
+            public void onSuccess(Void result) {
+                liveData.setValue(new Resource<>(result, null));
+            }
+
+            @Override
+            public void onError(String error) {
+                liveData.setValue(new Resource<>(null, error));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Resource<Void>> deleteOnApi(Event event) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        webClient.delete(event.getApiId(), new ResultsCallBack<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                liveData.setValue(new Resource<>(result, null));
+            }
+
+            @Override
+            public void onError(String error) {
+                liveData.setValue(new Resource<>(null, error));
+            }
+        });
+        return liveData;
+    }
+
+
+    public void updateCostumersJobsAndEvents(List<EventWithClientAndJobs> events,
+                                             ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
+        List<Costumer> costumers = getClients(events);
+        costumerRepository.updateAndInsertAll(costumers,
+                new ResultsCallBack<List<Costumer>>() {
+                    @Override
+                    public void onSuccess(List<Costumer> costumers) {
+                        setCostumerIdOnEvents(costumers, events);
+                        updateJobs(events, callBack);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        callBack.onError(error);
+                    }
+
+                });
+    }
+
+    @NonNull
+    private List<Costumer> getClients(List<EventWithClientAndJobs> events) {
+        return events.stream()
+                .map(EventWithClientAndJobs::getClient)
+                .distinct()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private void setCostumerIdOnEvents(List<Costumer> costumers, List<EventWithClientAndJobs> events) {
+        events.forEach(event ->
+                costumers.forEach(client -> {
+                    try {
+                        if (event.getClient().getApiId().equals(client.getApiId())) {
+                            event.getClient().setClientId(client.getClientId());
+                            event.getEvent().setClientCreatorId(client.getClientId());
+                        }
+                    } catch (Exception error) {
+                        Log.i(TAG, "eventApiId Null: " + error);
+                    }
+
+                })
+        );
+    }
+
+    private void updateJobs(List<EventWithClientAndJobs> events,
+                            ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
+        List<Job> jobsFromApi = getJobsFromApi(events);
+        jobRepository.updateJobs(jobsFromApi,
+                new ResultsCallBack<List<Job>>() {
+                    @Override
+                    public void onSuccess(List<Job> jobs) {
+                        setJobIdsOnEvents(jobs, events);
+                        updateEvents(events, callBack);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        callBack.onError(error);
+                    }
+                });
+    }
+
+    private List<Job> getJobsFromApi(List<EventWithClientAndJobs> eventListFromApi) {
+        return eventListFromApi.stream()
+                .map(EventWithClientAndJobs::getJobs)
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private void setJobIdsOnEvents(List<Job> jobs, List<EventWithClientAndJobs> events) {
+        events.forEach(event ->
+                event.getJobs().forEach(jobFromApi ->
+                        jobs.forEach(job -> {
+                            if (jobFromApi.getApiId().equals(job.getApiId())) {
+                                jobFromApi.setJobId(job.getJobId());
+                            }
+                        })
+                )
+        );
+    }
+
+    private void updateEvents(List<EventWithClientAndJobs> events,
+                              ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
+        updateAll(events, new ResultsCallBack<List<EventWithClientAndJobs>>() {
+            @Override
+            public void onSuccess(List<EventWithClientAndJobs> events) {
+                eventWithJobRepository.updateAll(events,callBack);
             }
 
             @Override
             public void onError(String error) {
                 callBack.onError(error);
             }
-        }));
+        });
+
     }
 
-    public void getReportByPeriodFromApi(LocalDate startDate, LocalDate endDate,
-                                         ResultsCallBack<List<Report>> callBack) {
-        Call<List<Report>> callReport = service.getReportByPeriod(startDate, endDate, tenant, token);
-        callReport.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Report>>() {
+    public LiveData<Resource<List<Report>>> getReportByPeriod() {
+        MutableLiveData<Resource<List<Report>>> liveData = new MutableLiveData<>();
+        LocalDate startDate = CalendarUtil.selectedDate.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
+        webClient.getReportByPeriod(startDate, endDate, new ResultsCallBack<List<Report>>() {
             @Override
-            public void onSuccess(List<Report> response) {
-                callBack.onSuccess(response);
+            public void onSuccess(List<Report> result) {
+                liveData.setValue(new Resource<>(result, null));
             }
 
             @Override
             public void onError(String error) {
-                callBack.onError(error);
+                liveData.setValue(new Resource<>(null, error));
             }
-        }));
+        });
+        return liveData;
     }
 
-    public void getEventReportByDateFromApi(LocalDate selectedDate,
-                                            ResultsCallBack<List<Report>> callBack) {
-        Call<List<Report>> callReport = service.getReportByDate(selectedDate, tenant, token);
-        callReport.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Report>>() {
-            @Override
-            public void onSuccess(List<Report> response) {
-                callBack.onSuccess(response);
-            }
+    public LiveData<Resource<Void>> insertOnRoom(EventWithClientAndJobs eventWithClientAndJobs) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        Event event = eventWithClientAndJobs.getEvent();
+        event.setEventId(null);
+        event.setCompanyId(tenant);
+        dao.insert(event)
+                .doOnSuccess(id -> {
+                    eventWithClientAndJobs.getEvent().setEventId(id);
+                    insertEventWithJobsCrossRef(eventWithClientAndJobs, liveData);
+                })
+                .subscribe();
+        return liveData;
+    }
 
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
+    public boolean isFreeUser() {
+        return profile.equals("ROLE_FREE_ACCOUNT");
+    }
+
+    public boolean isUserPremium() {
+        return profile.equals("ROLE_PROFISSIONAL");
+    }
+
+    private void insertEventWithJobsCrossRef(EventWithClientAndJobs eventWithClientAndJobs,
+                                             MutableLiveData<Resource<Void>> liveData) {
+        List<EventJobCrossRef> eventJobCrossRefs =
+                new ArrayList<>(getEventJobsCrossRefs(eventWithClientAndJobs));
+        eventWithJobRepository.insert(eventJobCrossRefs).doOnComplete(() ->
+                liveData.setValue(new Resource<>(null, null))
+        ).subscribe();
+    }
+
+    public LiveData<Resource<Void>> deleteOnRoom(Event event) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        dao.delete(event).doOnError(error ->
+                        liveData.setValue(new Resource<>(null, error.getMessage()))
+                ).doOnComplete(() ->
+                        liveData.setValue(new Resource<>(null, null)))
+                .subscribe();
+        return liveData;
+    }
+
+    public LiveData<Resource<Void>> updateOnRoom(EventWithClientAndJobs eventWithClientAndJobs) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        dao.update(eventWithClientAndJobs.getEvent())
+                .doOnComplete(() ->
+                        eventWithJobRepository.update(
+                                eventWithClientAndJobs, liveData)
+                ).doOnError(error ->
+                        liveData.setValue(new Resource<>(null, error.getMessage()))
+                ).subscribe();
+        return liveData;
     }
 }

@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -95,16 +96,12 @@ public class Job implements Serializable {
         return Objects.hash(jobId, name, valueOfJob, durationTime, companyId, apiId);
     }
 
-    @Override
-    public String toString() {
-        return "Job{" +
-                "jobId=" + jobId +
-                ", name='" + name + '\'' +
-                ", valueOfJob=" + valueOfJob +
-                ", durationTime=" + durationTime +
-                ", companyId=" + companyId +
-                ", apiId=" + apiId +
-                '}';
+    public boolean isNotExistOnApi(List<Job> jobsFromApi) {
+        for (Job jobFromApi : jobsFromApi) {
+            if (this.apiId.equals(jobFromApi.getApiId())) {
+                return false;
+            }
+        }
+        return true;
     }
-
 }

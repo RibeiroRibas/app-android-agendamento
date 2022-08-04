@@ -2,8 +2,6 @@ package br.com.beautystyle.ui.fragment.expense;
 
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_INSERT_EXPENSE;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EXPENSE;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.INVALID_POSITION;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_EXPENSE;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EXPENSE;
 import static br.com.beautystyle.util.ConstantsUtil.YYYY;
@@ -28,42 +26,42 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
+import br.com.beautystyle.ViewModel.ExpenseViewModel;
+import br.com.beautystyle.ViewModel.factory.ExpenseFactory;
 import br.com.beautystyle.model.entity.Expense;
 import br.com.beautystyle.repository.ExpenseRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
+import br.com.beautystyle.repository.Resource;
 import br.com.beautystyle.ui.activity.NewExpenseActivity;
 import br.com.beautystyle.ui.adapter.recyclerview.ExpenseListAdapter;
 import br.com.beautystyle.util.CalendarUtil;
-import br.com.beautystyle.util.CreateListsUtil;
 
 public class ExpenseListFragment extends Fragment {
 
     private AutoCompleteTextView monthsOfTheYear, years;
     private ActivityResultLauncher<Intent> activityResultLauncher;
-    private View inflatedView;
     private ExpenseListAdapter adapterExpenses;
     @Inject
-    ExpenseRepository expenseRepositoty;
-
+    ExpenseRepository expenseRepository;
+    private ExpenseViewModel expenseViewModel;
 
     @Override
     public void onAttach(@NonNull Context context) {
-        injectFrament();
+        injectFragment();
         super.onAttach(context);
     }
 
-    private void injectFrament() {
+    private void injectFragment() {
         ((BeautyStyleApplication) requireActivity().getApplicationContext())
                 .applicationComponent.injectExpenseListFrag(this);
     }
@@ -72,75 +70,72 @@ public class ExpenseListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         adapterExpenses = new ExpenseListAdapter(requireActivity());
+        ExpenseFactory factory = new ExpenseFactory(expenseRepository);
+        expenseViewModel = new ViewModelProvider(requireActivity(), factory)
+                .get(ExpenseViewModel.class);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        inflatedView = inflater.inflate(R.layout.fragment_list_expense, container, false);
+        View inflatedView = inflater.inflate(R.layout.fragment_list_expense, container, false);
 
-        CalendarUtil.selectedDate = LocalDate.now();
-        initWidgets();
+        initWidgets(inflatedView);
 
-        setAdapterExpenses(inflatedView);//recycler view
-        updateAdapterExpenses();
+        // ADAPTER
+        setAdapterExpenses(inflatedView); // recycler view
 
-        //LISTENERS
+        // ADAPTERS // LIVEDATA
+        updateAdapterExpensesLiveData();
+        setAdapterMonthsOfTheYearLiveData();
+
+        // LISTENERS
         adapterMonthsOfTheYearListener();
         adapterYearsListener();
         adapterExpenseListListener();
-        newExpenseActivityListener();
+        newExpenseActivityListener(inflatedView);
 
         registerActivityResult();
+
         return inflatedView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        setAdapterYears();
-        setAdapterMonthsOfTheYear();
+        // ADAPTER // LIVEDATA
+        setAdapterYearsLiveData();
     }
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-        checkRemove(item.getGroupId());
+        checkDelete(item.getGroupId());
         return super.onContextItemSelected(item);
     }
 
-    public void checkRemove(int adapterPosition) {
+    public void checkDelete(int adapterPosition) {
         new AlertDialog
                 .Builder(requireActivity())
-                .setTitle("Removendo o gasto selecionado")
+                .setTitle("Removendo o item selecionado")
                 .setMessage("Tem certeza que deseja remover o item selecionado?")
-                .setPositiveButton("Sim", (dialog, which) -> removeExpense(adapterPosition))
+                .setPositiveButton("Sim", (dialog, which) -> delete(adapterPosition))
                 .setNegativeButton("Não", null)
                 .show();
     }
 
-    private void removeExpense(int adapterPosition) {
-        Expense selectedExpense = adapterExpenses.getItem(adapterPosition);
-        expenseRepositoty.deleteOnApi(selectedExpense, new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                removeOnRoom(selectedExpense, adapterPosition);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
+    private void delete(int adapterPosition) {
+        Expense expense = adapterExpenses.getItem(adapterPosition);
+        expenseViewModel.delete(expense).observe(requireActivity(), resource -> {
+            if (resource.isErrorNotNull()) {
+                showErrorMessage(resource.getError());
+            } else {
+                adapterExpenses.publishResultsRemoved(adapterPosition);
             }
         });
     }
 
-    private void removeOnRoom(Expense selectedExpense, int adapterPosition) {
-        expenseRepositoty.deleteOnRoom(selectedExpense)
-                .doOnComplete(() ->
-                        adapterExpenses.publishResultsRemoved(selectedExpense, adapterPosition)
-                ).subscribe();
-    }
 
-    private void initWidgets() {
+    private void initWidgets(View inflatedView) {
         monthsOfTheYear = inflatedView.findViewById(R.id.fragment_list_expense_month);
         years = inflatedView.findViewById(R.id.fragment_list_expense_year);
     }
@@ -154,14 +149,14 @@ public class ExpenseListFragment extends Fragment {
     private void adapterMonthsOfTheYearListener() {
         monthsOfTheYear.setOnItemClickListener(((parent, view, monthValue, id) -> {
             CalendarUtil.selectedDate = CalendarUtil.selectedDate.withMonth(monthValue + 1);
-            updateAdapterExpenses();
+            updateAdapterExpensesLiveData();
         }));
     }
 
     private void adapterYearsListener() {
         years.setOnItemClickListener(((parent, view, position, id) -> {
             CalendarUtil.selectedDate = changeYearValue(parent, position);
-            updateAdapterExpenses();
+            updateAdapterExpensesLiveData();
         }));
     }
 
@@ -175,53 +170,28 @@ public class ExpenseListFragment extends Fragment {
         return parent.getItemAtPosition(position).toString();
     }
 
-    private void updateAdapterExpenses() {
-        LocalDate startDate = CalendarUtil.selectedDate.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
-        getByPeriod(startDate, endDate);
+    private void updateAdapterExpensesLiveData() {
+        getByPeriodFromRoomLiveData();
+        getByPeriodFromApiLiveData();
     }
 
-    private void getByPeriod(LocalDate startDate, LocalDate endDate) {
-        expenseRepositoty.getByPeriodFromRoom(startDate, endDate)
-                .doOnSuccess(expensesFromRoom -> {
-                    adapterExpenses.publishResultsChangedList(expensesFromRoom, startDate);
-                    setTextMonthAndYear(CalendarUtil.selectedDate);
-                    getByPeriodFromApi(startDate, endDate, expensesFromRoom);
-                }).subscribe();
+    private void getByPeriodFromApiLiveData() {
+        expenseViewModel.getByPeriodFromApi().observe(requireActivity(),
+                this::checkResourceValue);
     }
 
-    private void getByPeriodFromApi(LocalDate startDate, LocalDate endDate,
-                                    List<Expense> expensesFromRoom) {
-        expenseRepositoty.getByPeriodFromApi(startDate, endDate,
-                new ResultsCallBack<List<Expense>>() {
-                    @Override
-                    public void onSuccess(List<Expense> expensesFromApi) {
-                        updateLocalDatabase(expensesFromApi, expensesFromRoom, startDate);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-
-                    }
-                });
+    private void checkResourceValue(Resource<List<Expense>> resource) {
+        if (resource.isErrorNotNull()) {
+            showErrorMessage(resource.getError());
+        } else {
+            adapterExpenses.publishResultsChangedList(resource.getData());
+            setTextMonthAndYear(CalendarUtil.selectedDate);
+        }
     }
 
-    private void updateLocalDatabase(List<Expense> expensesFromApi,
-                                     List<Expense> expensesFromRoom,
-                                     LocalDate startDate) {
-        expenseRepositoty.updateLocalDatabase(expensesFromApi, expensesFromRoom,
-                new ResultsCallBack<List<Expense>>() {
-                    @Override
-                    public void onSuccess(List<Expense> expensesFromApi) {
-                        adapterExpenses.publishResultsChangedList(expensesFromApi, startDate);
-                        setTextMonthAndYear(startDate);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
+    private void getByPeriodFromRoomLiveData() {
+        expenseViewModel.getByPeriodFromRoom()
+                .observe(requireActivity(), this::checkResourceValue);
     }
 
     private void setTextMonthAndYear(LocalDate date) {
@@ -231,18 +201,17 @@ public class ExpenseListFragment extends Fragment {
 
     private void adapterExpenseListListener() {
         adapterExpenses.setOnItemClickListener((expense, position) -> {
-            Intent intent = createIntent(expense, position);
+            Intent intent = getIntent(expense);
             activityResultLauncher.launch(intent);
         });
     }
 
-    private Intent createIntent(Expense expense, int position) {
+    private Intent getIntent(Expense expense) {
         return new Intent(requireActivity(), NewExpenseActivity.class)
-                .putExtra(KEY_UPDATE_EXPENSE, expense)
-                .putExtra(KEY_POSITION, position);
+                .putExtra(KEY_UPDATE_EXPENSE, expense);
     }
 
-    private void newExpenseActivityListener() {
+    private void newExpenseActivityListener(View inflatedView) {
         ImageButton newSpending = inflatedView.findViewById(R.id.fragment_list_expense_save);
         newSpending.setOnClickListener(v -> {
             Intent intent = new Intent(requireActivity(), NewExpenseActivity.class);
@@ -257,7 +226,7 @@ public class ExpenseListFragment extends Fragment {
                     if (intent != null) {
                         Expense expense = (Expense) intent.getSerializableExtra(KEY_RESULT_EXPENSE);
                         isNewExpense(result, expense);
-                        isUpdateExpense(result, expense, intent);
+                        isUpdateExpense(result, expense);
                     }
                 }
         );
@@ -265,68 +234,36 @@ public class ExpenseListFragment extends Fragment {
 
     private void isNewExpense(ActivityResult result, Expense expense) {
         if (result.getResultCode() == REQUEST_CODE_INSERT_EXPENSE) {
-            insert(expense);
+            expenseViewModel.insert(expense)
+                    .observe(requireActivity(), this::checkResourceValues);
         }
     }
 
-    private void insert(Expense expense) {
-        expenseRepositoty.insertOnApi(expense, new ResultsCallBack<Expense>() {
-            @Override
-            public void onSuccess(Expense expense) {
-                insertOnRoom(expense);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
-    }
-
-    private void insertOnRoom(Expense expense) {
-        expenseRepositoty.insertOnRoom(expense)
-                .doOnSuccess(id -> {
-                    expense.setId(id);
-                    adapterExpenses.publishResultsInserted(expense);
-                }).subscribe();
-    }
-
-    private void isUpdateExpense(ActivityResult result, Expense expense, Intent intent) {
+    private void isUpdateExpense(ActivityResult result, Expense expense) {
         if (result.getResultCode() == REQUEST_CODE_UPDATE_EXPENSE) {
-            int position = intent.getIntExtra(KEY_POSITION, INVALID_POSITION);
-            update(expense, position);
+            expenseViewModel.update(expense)
+                    .observe(requireActivity(), this::checkResourceValues);
         }
     }
 
-    private void update(Expense expense, int position) {
-        expenseRepositoty.updateOnApi(expense, new ResultsCallBack<Expense>() {
-            @Override
-            public void onSuccess(Expense expenseFromApi) {
-                updateOnRoom(expense, position);
-            }
+    private void checkResourceValues(Resource<Expense> resource) {
+        if (resource.isErrorNotNull()) {
+            showErrorMessage(resource.getError());
+        } else {
+            updateAdapterExpensesLiveData();
+        }
+    }
 
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
+    private void showErrorMessage(String error) {
+        Toast.makeText(requireActivity(), error, Toast.LENGTH_LONG).show();
+    }
+
+
+    private void setAdapterMonthsOfTheYearLiveData() {
+        expenseViewModel.getMonthsOfTheYearList().observe(requireActivity(),monthsOfTheYearList->{
+            ArrayAdapter<String> adapterItems = getSimpleAdapterList(monthsOfTheYearList);
+            monthsOfTheYear.setAdapter(adapterItems);
         });
-    }
-
-    private void updateOnRoom(Expense expense, int position) {
-        expenseRepositoty.updateOnRoom(expense)
-                .doOnComplete(() -> adapterExpenses.publishResultsChanged(expense, position))
-                .subscribe();
-    }
-
-    private void showErrorMessage(String erro) {
-        Toast.makeText(requireActivity(), erro, Toast.LENGTH_LONG).show();
-    }
-
-
-    private void setAdapterMonthsOfTheYear() {
-        List<String> monthsOfTheYearList = CreateListsUtil.createMonthsList();
-        ArrayAdapter<String> adapterItens = getSimpleAdapterList(monthsOfTheYearList);
-        monthsOfTheYear.setAdapter(adapterItens);
     }
 
     private ArrayAdapter<String> getSimpleAdapterList(List<String> monthsOfTheYearList) {
@@ -335,22 +272,18 @@ public class ExpenseListFragment extends Fragment {
         );
     }
 
-    private void setAdapterYears() {
-        expenseRepositoty.getYearsListFromApi(new ResultsCallBack<List<String>>() {
-            @Override
-            public void onSuccess(List<String> result) {
-                updateAdapterYears(result);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
+    private void setAdapterYearsLiveData() {
+        expenseViewModel.getYearsListFromApi().observe(requireActivity(), resource -> {
+            if (resource.isErrorNotNull()) {
+                showErrorMessage(resource.getError());
+            } else {
+                updateAdapterYears(resource.getData());
             }
         });
     }
 
     private void updateAdapterYears(List<String> expensesDate) {
-        ArrayAdapter<String> adapterItens = getSimpleAdapterList(expensesDate);
-        years.setAdapter(adapterItens);
+        ArrayAdapter<String> adapterItems = getSimpleAdapterList(expensesDate);
+        years.setAdapter(adapterItems);
     }
 }

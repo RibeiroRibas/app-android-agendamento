@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +30,6 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
     private final List<Expense> expenseList;
     private final Context context;
     private AdapterListener.OnExpenseClickListener onItemClickListener;
-    private LocalDate selectedDate;
 
     public ExpenseListAdapter(Context context) {
         this.expenseList = new ArrayList<>();
@@ -61,8 +59,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         return expenseList.size() + 2;
     }
 
-    public void publishResultsChangedList(List<Expense> expenseList, LocalDate selectedDate) {
-        this.selectedDate = selectedDate;
+    public void publishResultsChangedList(List<Expense> expenseList) {
         removeItemRange();
         if (!expenseList.isEmpty())
             insertItemRange(expenseList);
@@ -89,30 +86,9 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         return expenseList.get(position);
     }
 
-    public void publishResultsRemoved(Expense selectedExpense, int position) {
-        expenseList.remove(selectedExpense);
+    public void publishResultsRemoved( int position) {
+        expenseList.remove(position);
         notifyItemRemoved(position);
-    }
-
-    public void publishResultsInserted(Expense expense) {
-        if (isDateNewExpenseEquals(expense.getExpenseDate())) {
-            expenseList.add(expense);
-            notifyItemInserted(expenseList.indexOf(expense));
-        }
-    }
-
-    private boolean isDateNewExpenseEquals(LocalDate expenseDate) {
-        return selectedDate.getMonthValue() == expenseDate.getMonthValue()
-                && selectedDate.getYear() == expenseDate.getYear();
-    }
-
-    public void publishResultsChanged(Expense expense, int position) {
-        if (isDateNewExpenseEquals(expense.getExpenseDate())) {
-            expenseList.set(position, expense);
-            notifyItemChanged(position);
-        } else {
-            publishResultsRemoved(expense, position);
-        }
     }
 
     class ExpenseViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
@@ -142,10 +118,10 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
 
         public void onBindExpense(Expense expense) {
             this.expense = expense;
-            String formatedDate = CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY);
-            date.setText(formatedDate);
-            String formatedValue = CoinUtil.format(expense.getPrice(), DESIRED_FORMAT);
-            value.setText(formatedValue);
+            String formattedDate = CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY);
+            date.setText(formattedDate);
+            String formattedValue = CoinUtil.format(expense.getPrice(), DESIRED_FORMAT);
+            value.setText(formattedValue);
             category.setText(expense.getCategory());
             description.setText(expense.getDescription());
         }

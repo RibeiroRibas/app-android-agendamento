@@ -2,7 +2,6 @@ package br.com.beautystyle.ui.fragment.client;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_CLIENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_INSERT_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_CLIENT;
@@ -16,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -35,36 +35,32 @@ import java.util.List;
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
+import br.com.beautystyle.ViewModel.CostumerViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
-import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.ViewModel.factory.CostumerFactory;
+import br.com.beautystyle.model.entity.Costumer;
 import br.com.beautystyle.repository.ClientRepository;
-import br.com.beautystyle.repository.EventRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
-import br.com.beautystyle.ui.ProgressButtom;
+import br.com.beautystyle.ui.ProgressBottom;
 import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
-import io.reactivex.rxjava3.disposables.Disposable;
-import retrofit2.Call;
 
 public class ClientListFragment extends Fragment {
 
     private EventViewModel eventViewModel;
+    private CostumerViewModel costumerViewModel;
     private View inflateDView;
     private final ActivityResultLauncher<String> requestPermissionLauncher = getPermission();
     private static final String NO_PERMISSION = "Permissão Negada";
     @Inject
-    EventRepository eventRepository;
-    @Inject
-    ClientRepository clientRepository;
+    ClientRepository repository;
     private ClientListAdapter adapter;
-    private Disposable disposable;
-    private ProgressButtom progressButtom;
-    private Call<List<Client>> callBack;
+    private ProgressBottom progressBottom;
 
     @NonNull
     private ActivityResultLauncher<String> getPermission() {
         return this.registerForActivityResult(new ActivityResultContracts.RequestPermission(),
                 result -> {
                     if (result) {
+                        progressBottom.buttonActivated();
                         getContactListFromSmartphone();
                     } else {
                         Toast.makeText(requireActivity(), NO_PERMISSION, Toast.LENGTH_SHORT).show();
@@ -84,7 +80,9 @@ public class ClientListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         eventViewModel = new ViewModelProvider(requireActivity()).get(EventViewModel.class);
-        adapter = new ClientListAdapter(getActivity());
+        CostumerFactory factory = new CostumerFactory(repository);
+        costumerViewModel = new ViewModelProvider(this, factory).get(CostumerViewModel.class);
+        adapter = new ClientListAdapter(requireActivity());
     }
 
     @Override
@@ -92,29 +90,41 @@ public class ClientListFragment extends Fragment {
                              Bundle savedInstanceState) {
         inflateDView = inflater.inflate(R.layout.fragment_list_client, container, false);
 
-        setAdapterClient();
-        getAllClients();
-        setSearchViewClient();
+        setAdapterRecyclerView();
 
         //LISTENER
-        adapterClientListener();
-        setNewClientListener();
+        setSearchViewListener();
+        adapterRecyclerViewListener();
+        setAddCostumerListener();
         importContactListener();
         setFragmentResultListener();
 
+        costumersObserver();
+        repository.getAllFromApi();
+
         return inflateDView;
+    }
+
+    private void costumersObserver() {
+        costumerViewModel.getAllFromRoomLiveData().observe(requireActivity(), resource -> {
+            if (resource.isDataNotNull()) {
+                adapter.update(resource.getData());
+            } else {
+                showError(resource.getError());
+            }
+        });
     }
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int adapterPosition = item.getGroupId();
         if (isDeleteClientMenu(item.getItemId())) {
-            Client client = adapter.getClientAtPosition(adapterPosition);
-            checkRemoveAlertDialog(client, adapterPosition);
+            Costumer costumer = adapter.getClientAtPosition(adapterPosition);
+            checkDeleteAlertDialog(costumer);
         } else if (isUpdateClientMenu(item.getItemId())) { // update client menu
-            Client client = adapter.getClientAtPosition(adapterPosition);
-            Bundle bundle = createBundle(client, adapterPosition);
-            showNewClientFragmentUpdateMode(bundle);
+            Costumer costumer = adapter.getClientAtPosition(adapterPosition);
+            Bundle bundle = createBundle(costumer);
+            showAddCostumerFragmentUpdateMode(bundle);
         }
         return super.onContextItemSelected(item);
     }
@@ -127,97 +137,33 @@ public class ClientListFragment extends Fragment {
         return itemId == 2;
     }
 
-    private Bundle createBundle(Client selectedClient, int adapterPosition) {
+    private Bundle createBundle(Costumer selectedCostumer) {
         Bundle bundle = new Bundle();
-        bundle.putSerializable(KEY_UPDATE_CLIENT, selectedClient);
-        bundle.putInt(KEY_POSITION, adapterPosition);
+        bundle.putSerializable(KEY_UPDATE_CLIENT, selectedCostumer);
         return bundle;
     }
 
-    private void showNewClientFragmentUpdateMode(Bundle bundle) {
+    private void showAddCostumerFragmentUpdateMode(Bundle bundle) {
         NewClientFragment newClientFragment = new NewClientFragment();
         newClientFragment.setArguments(bundle);
         newClientFragment.show(getChildFragmentManager(), TAG_UPDATE_CLIENT);
     }
 
-    private void checkRemoveAlertDialog(Client clientAtPosition, int position) {
+    private void checkDeleteAlertDialog(Costumer costumerAtPosition) {
         new AlertDialog.Builder(requireActivity())
                 .setTitle("Removendo Cliente")
-                .setMessage("Tem Certeza que deseja remover esse item?")
+                .setMessage("Tem Certeza que deseja remover o item selecionado?")
                 .setPositiveButton("Sim",
-                        (dialog, which) -> deleteClient(clientAtPosition, position)
+                        (dialog, which) -> repository.delete(costumerAtPosition)
                 )
                 .setNegativeButton("Não", null)
                 .show();
     }
 
-    private void deleteClient(Client client, int position) {
-        clientRepository.deleteClientOnApi(client, new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                deleteClientOnRoom(client, position);
-            }
-
-            @Override
-            public void onError(String error) {
-                showError(error);
-            }
-        });
-    }
-
-    private void deleteClientOnRoom(Client client, int position) {
-        clientRepository.deleteClient(client)
-                .doOnComplete(() ->
-                        eventRepository.getEventsByClientId(client.getClientId())
-                                .doOnSuccess(events -> {
-                                    events.forEach(event -> event.setClientCreatorId(0L));
-                                    eventRepository.updateOnRoom(events)
-                                            .doOnComplete(() ->
-                                                    adapter.publishResultsRemoved(client, position)
-                                            )
-                                            .subscribe();
-                                }).subscribe()
-                ).subscribe();
-    }
-
-    private void setAdapterClient() {
+    private void setAdapterRecyclerView() {
         RecyclerView listClient = inflateDView.findViewById(R.id.fragment_list_cliente_rv);
         listClient.setAdapter(adapter);
         registerForContextMenu(listClient);
-    }
-
-    private void getAllClients() {
-        clientRepository.getAllClientsOnRoom()
-                .doOnSuccess(clients -> {
-                    adapter.publishClientList(clients);
-                    getClientListFromApi();
-                }).subscribe();
-    }
-
-    private void getClientListFromApi() {
-        callBack = clientRepository.getClientListFromApi(new ResultsCallBack<List<Client>>() {
-            @Override
-            public void onSuccess(List<Client> clients) {
-                clientRepository.updateClients(clients,
-                        new ResultsCallBack<List<Client>>() {
-                            @Override
-                            public void onSuccess(List<Client> clients) {
-                                adapter.publishClientList(clients);
-                            }
-
-                            @Override
-                            public void onError(String erro) {
-                                showError(erro);
-                            }
-                        }
-                );
-            }
-
-            @Override
-            public void onError(String erro) {
-                showError(erro);
-            }
-        });
     }
 
     private void showError(String message) {
@@ -227,12 +173,12 @@ public class ClientListFragment extends Fragment {
                     Toast.LENGTH_LONG).show();
     }
 
-    private void setSearchViewClient() {
+    private void setSearchViewListener() {
         SearchView svClient = inflateDView.findViewById(R.id.fragment_list_client_sv);
-        svClient.setOnQueryTextListener(getClientListener());
+        svClient.setOnQueryTextListener(getCostumerOnTextListener());
     }
 
-    private SearchView.OnQueryTextListener getClientListener() {
+    private SearchView.OnQueryTextListener getCostumerOnTextListener() {
         return new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -241,13 +187,13 @@ public class ClientListFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                adapter.filteredClient(newText);
+                adapter.filterSearchView(newText);
                 return false;
             }
         };
     }
 
-    private void adapterClientListener() {
+    private void adapterRecyclerViewListener() {
         adapter.setOnItemClickListener((
                 (client) -> {
                     eventViewModel.add(client);
@@ -264,29 +210,21 @@ public class ClientListFragment extends Fragment {
                 .commit();
     }
 
-    private void setNewClientListener() {
+    private void setAddCostumerListener() {
         ImageView addClient = inflateDView.findViewById(R.id.fragment_list_cliente_btn_add);
-        addClient.setOnClickListener(v -> showNewClientFragment());
+        addClient.setOnClickListener(v -> showAddClientFragment());
     }
 
-    private void showNewClientFragment() {
+    private void showAddClientFragment() {
         NewClientFragment newClientFragment = new NewClientFragment();
         newClientFragment.show(getChildFragmentManager(), TAG_INSERT_CLIENT);
     }
 
     private void importContactListener() {
         View importContactList = inflateDView.findViewById(R.id.fragment_list_client_import);
-        importContactList.setOnClickListener(this::importClients);
-    }
-
-    private void importClients(View v) {
-        progressButtom = new ProgressButtom(v);
-        progressButtom.buttonActivated();
-        if (checkPermission()) {
-            getContactListFromSmartphone();
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
-        }
+        ProgressBar progressBar = inflateDView.findViewById(R.id.fragment_list_client_progress_bar);
+        progressBottom = new ProgressBottom(progressBar);
+        importContactList.setOnClickListener(this::showAlertDialogImportContacts);
     }
 
     private boolean checkPermission() {
@@ -296,144 +234,83 @@ public class ClientListFragment extends Fragment {
     }
 
     private void getContactListFromSmartphone() {
-        disposable = clientRepository.getContactListFromSmartphone(requireActivity())
-                .doOnSuccess(contactList -> {
-                    progressButtom.buttonFinished();
-                    showDialogContactlist(contactList);
-                }).subscribe();
+        costumerViewModel.getContactListFromSmartphone(requireActivity())
+                .observe(this, contactList -> {
+                    progressBottom.buttonFinished();
+                    showDialogContactList(contactList);
+                });
     }
 
-    private void showDialogContactlist(List<Client> contactList) {
+    private void showDialogContactList(List<Costumer> contactList) {
         if (contactList.isEmpty()) {
-            showAlertDiologEmptyResults();
+            showAlertDialogEmptyResults();
         } else {
             showAlertDialogFindResults(contactList);
         }
 
     }
 
-    private void showAlertDialogFindResults(List<Client> contactList) {
+    private void showAlertDialogFindResults(List<Costumer> contactList) {
         new AlertDialog
                 .Builder(requireActivity())
-                .setMessage("Foram encontrados " +
-                        contactList.size() +
+                .setMessage("Foram encontrados " + contactList.size() +
                         " contatos no seu smartphone! Deseja importar todos para sua Agenda?")
                 .setPositiveButton("Sim",
-                        (dialog, which) -> saveAllImportedClients(contactList)
+                        (dialog, which) -> repository.insertAll(contactList)
                 )
                 .setNegativeButton("Não", null)
                 .show();
     }
 
-    private void showAlertDiologEmptyResults() {
+    private void showAlertDialogEmptyResults() {
         new AlertDialog
                 .Builder(requireActivity())
-                .setTitle("Nenhum contato novo encontrato")
+                .setTitle("Nenhum contato novo encontrados")
                 .setMessage("Você já adicionou todos os contatos do seu smartphone para sua agenda.")
                 .setPositiveButton("Ok", null)
                 .show();
     }
 
-    private void saveAllImportedClients(List<Client> contactList) {
-        clientRepository.insertAllOnApi(contactList, new ResultsCallBack<List<Client>>() {
-            @Override
-            public void onSuccess(List<Client> clients) {
-                insertAllClientsOnRoom(clients);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showError(erro);
-            }
-        });
-
+    private void showAlertDialogImportContacts(View v) {
+        new AlertDialog
+                .Builder(requireActivity())
+                .setTitle("Deseja importar novos contatos?")
+                .setMessage("Vamos buscar os contatos salvos na agenda do seu smartphone e importá-los para sua lista de clientes")
+                .setPositiveButton("Sim", (dialog, which) -> importContacts())
+                .setNegativeButton("Não", null)
+                .show();
     }
 
-    private void insertAllClientsOnRoom(List<Client> clients) {
-        clients.forEach(client -> client.setClientId(null));
-        clientRepository.insertAllOnRoom(clients)
-                .doOnSuccess(ids -> {
-                            clients.forEach(client -> ids.forEach(client::setClientId));
-                            adapter.publishContactList(clients);
-                        }
-                ).subscribe();
+    private void importContacts() {
+        if (checkPermission()) {
+            progressBottom.buttonActivated();
+            getContactListFromSmartphone();
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
+        }
     }
 
     private void setFragmentResultListener() {
         getChildFragmentManager().setFragmentResultListener(
                 KEY_CLIENT, this, (requestKey, result) -> {
-                    isNewClient(result);
-                    isUpdateClient(result);
+                    isInsert(result);
+                    isUpdate(result);
                 }
         );
     }
 
-    private void isNewClient(Bundle result) {
+    private void isInsert(Bundle result) {
         if (result.containsKey(KEY_INSERT_CLIENT)) {
-            Client client = (Client) result.getSerializable(KEY_INSERT_CLIENT);
-            insertClient(client);
+            Costumer costumer = (Costumer) result.getSerializable(KEY_INSERT_CLIENT);
+            repository.insertOnRoom(costumer);
+            repository.insertOnApi(costumer);
         }
     }
 
-    private void isUpdateClient(Bundle result) {
+    private void isUpdate(Bundle result) {
         if (result.containsKey(KEY_UPDATE_CLIENT)) {
-            Client client = (Client) result.getSerializable(KEY_UPDATE_CLIENT);
-            int position = result.getInt(KEY_POSITION);
-            updateClient(client, position);
+            Costumer costumer = (Costumer) result.getSerializable(KEY_UPDATE_CLIENT);
+            repository.update(costumer);
         }
     }
-
-    private void insertClient(Client newClient) {
-        clientRepository.insertClientOnApi(newClient, new ResultsCallBack<Client>() {
-            @Override
-            public void onSuccess(Client client) {
-                insertClientOnRoom(client);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showError(erro);
-            }
-        });
-    }
-
-    private void insertClientOnRoom(Client client) {
-        clientRepository.insertClientOnRoom(client)
-                .doOnSuccess(clientId -> {
-                    client.setClientId(clientId);
-                    adapter.publishResultsInsert(client);
-                    eventViewModel.add(client);
-                    removeThisFragment();
-                }).subscribe();
-    }
-
-    private void updateClient(Client client, int position) {
-        clientRepository.updateClientOnApi(client, new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                updateClientOnRoom(client, position);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showError(erro);
-            }
-        });
-    }
-
-    private void updateClientOnRoom(Client client, int position) {
-        clientRepository.updateClientOnRoom(client)
-                .doOnComplete(() -> adapter.publishResultsUpdate(client, position))
-                .subscribe();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (disposable != null)
-            disposable.dispose();
-        if (callBack != null)
-            callBack.cancel();
-    }
-
 }

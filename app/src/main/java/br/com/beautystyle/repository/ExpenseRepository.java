@@ -1,155 +1,88 @@
 package br.com.beautystyle.repository;
 
-import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
-import static br.com.beautystyle.repository.ConstantsRepository.TOKEN_SHARED_PREFERENCES;
-
-import android.content.SharedPreferences;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.retrofit.callback.CallBackReturn;
-import br.com.beautystyle.database.retrofit.callback.CallBackWithoutReturn;
-import br.com.beautystyle.database.retrofit.service.ExpenseService;
-import br.com.beautystyle.database.room.BeautyStyleDatabase;
-import br.com.beautystyle.database.room.dao.RoomExpenseDao;
+import br.com.beautystyle.database.rxjavaassinc.ExpenseAsynchDao;
 import br.com.beautystyle.model.Report;
 import br.com.beautystyle.model.entity.Expense;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import retrofit2.Call;
+import br.com.beautystyle.retrofit.service.ExpenseService;
+import br.com.beautystyle.retrofit.webclient.ExpenseWebClient;
+import br.com.beautystyle.util.CalendarUtil;
 
 public class ExpenseRepository {
 
-    private final RoomExpenseDao dao;
     @Inject
     ExpenseService service;
-    private final String token;
-    private final Long tenant;
+    @Inject
+    ExpenseWebClient webClient;
+    @Inject
+    ExpenseAsynchDao dao;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @Inject
-    public ExpenseRepository(BeautyStyleDatabase database, SharedPreferences preferences) {
-        dao = database.getRoomExpenseDao();
-        token = preferences.getString(TOKEN_SHARED_PREFERENCES, "");
-        tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
+    public ExpenseRepository() {
     }
 
-
-    public void insertOnApi(Expense expense, ResultsCallBack<Expense> callBack) {
-        expense.setCompanyId(tenant);
-        Call<Expense> callNewExpense = service.insert(expense, token);
-        callNewExpense.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<Expense>() {
-            @Override
-            public void onSuccess(Expense response) {
-                callBack.onSuccess(response);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
+    public LiveData<Resource<List<Expense>>> getByPeriodFromRoom() {
+        setDates();
+        MutableLiveData<Resource<List<Expense>>> liveData = new MutableLiveData<>();
+        dao.getByPeriod(startDate, endDate).doOnSuccess(expenses ->
+                        liveData.setValue(new Resource<>(expenses, null)))
+                .doOnError(error ->
+                        liveData.setValue(new Resource<>(null, error.getMessage()))
+                ).subscribe();
+        return liveData;
     }
 
-    public Single<Long> insertOnRoom(Expense expense) {
-        return dao.insert(expense)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+    private void setDates() {
+        startDate = CalendarUtil.selectedDate.with(TemporalAdjusters.firstDayOfMonth());
+        endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
     }
 
-    public void updateOnApi(Expense expense, ResultsCallBack<Expense> callBack) {
-        Call<Expense> callUpdate = service.update(expense, token);
-        callUpdate.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<Expense>() {
-            @Override
-            public void onSuccess(Expense response) {
-                callBack.onSuccess(response);
-            }
+    public LiveData<Resource<List<Expense>>> getByPeriodFromApi() {
+        setDates();
+        MutableLiveData<Resource<List<Expense>>> liveData = new MutableLiveData<>();
+        webClient.getByPeriod(startDate, endDate,
+                new ResultsCallBack<List<Expense>>() {
+                    @Override
+                    public void onSuccess(List<Expense> expensesFromApi) {
+                        dao.getByPeriod(startDate, endDate).doOnSuccess(expensesFromRoom ->
+                                        updateLocal(expensesFromApi, liveData, expensesFromRoom))
+                                .subscribe();
+                    }
 
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
-
+                    @Override
+                    public void onError(String error) {
+                        liveData.setValue(new Resource<>(null, error));
+                    }
+                });
+        return liveData;
     }
 
-    public Completable updateOnRoom(Expense expense) {
-        return dao.update(expense)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-
+    private void updateLocal(List<Expense> expensesFromApi,
+                             MutableLiveData<Resource<List<Expense>>> liveData,
+                             List<Expense> expensesFromRoom) {
+        deleteFromRoomIfNotExistOnApi(expensesFromApi, expensesFromRoom);
+        setExpenseRoomId(expensesFromRoom, expensesFromApi);
+        dao.insertAll(expensesFromApi).doOnSuccess(ids -> {
+            setNewIdsOnList(expensesFromApi, ids);
+            liveData.setValue(new Resource<>(expensesFromApi, null));
+        }).subscribe();
     }
 
-    public void deleteOnApi(Expense expense, ResultsCallBack<Void> callack) {
-        Call<Void> callDelete = service.delete(expense.getApiId(), token);
-        callDelete.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
-            @Override
-            public void onSuccess() {
-                callack.onSuccess(null);
-            }
-
-            @Override
-            public void onError(String erro) {
-                callack.onError(erro);
-            }
-        }));
-    }
-
-    public Completable deleteOnRoom(Expense expense) {
-        return dao.delete(expense)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    private Single<List<Long>> insertAllOnRoom(List<Expense> response) {
-        return dao.insertAll(response)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-
-    }
-
-    public Single<List<Expense>> getByPeriodFromRoom(LocalDate startDate, LocalDate endDate) {
-        return dao.getByPeriod(startDate, endDate)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public void getByPeriodFromApi(LocalDate startDate, LocalDate endDate,
-                                   ResultsCallBack<List<Expense>> callBack) {
-        Call<List<Expense>> callByPeriod = service.getByPeriod(startDate, endDate, tenant, token);
-        callByPeriod.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Expense>>() {
-            @Override
-            public void onSuccess(List<Expense> expensesFromApi) {
-                callBack.onSuccess(expensesFromApi);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
-
-    }
-
-    public void getReportByPeriodFromApi(LocalDate startDate, LocalDate endDate,
-                                         ResultsCallBack<List<Report>> callBack) {
-        Call<List<Report>> callByPeriod = service.getReportByPeriod(startDate, endDate, tenant, token);
-        callByPeriod.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Report>>() {
-            @Override
-            public void onSuccess(List<Report> expensesFromApi) {
-                callBack.onSuccess(expensesFromApi);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
-
+    private void deleteFromRoomIfNotExistOnApi(List<Expense> expensesFromApi, List<Expense> expensesFromRoom) {
+        expensesFromRoom.forEach(fromRoom -> {
+            if (fromRoom.isNotExistOnApi(expensesFromApi))
+                dao.delete(fromRoom).subscribe();
+        });
     }
 
     private void setNewIdsOnList(List<Expense> expensesFromApi, List<Long> ids) {
@@ -166,47 +99,85 @@ public class ExpenseRepository {
                 }));
     }
 
-    public void updateLocalDatabase(List<Expense> expensesFromApi, List<Expense> expensesFromRoom,
-                                    ResultsCallBack<List<Expense>> callBack) {
-        setExpenseRoomId(expensesFromRoom, expensesFromApi);
-        insertAllOnRoom(expensesFromApi)
-                .doOnSuccess(ids -> {
-                    setNewIdsOnList(expensesFromApi, ids);
-                    callBack.onSuccess(expensesFromApi);
-                }).subscribe();
-    }
-
-    public void getYearsListFromApi(ResultsCallBack<List<String>> callBack) {
-        Call<List<String>> callYears = service.getYearsList(tenant, token);
-        callYears.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<String>>() {
+    public LiveData<Resource<List<String>>> getYearsListFromApi() {
+        MutableLiveData<Resource<List<String>>> liveData = new MutableLiveData<>();
+        webClient.getYearsList(new ResultsCallBack<List<String>>() {
             @Override
-            public void onSuccess(List<String> response) {
-                callBack.onSuccess(response);
+            public void onSuccess(List<String> result) {
+                liveData.setValue(new Resource<>(result, null));
             }
 
             @Override
             public void onError(String error) {
-                callBack.onError(error);
+                liveData.setValue(new Resource<>(null, error));
             }
-        }));
-
+        });
+        return liveData;
     }
 
-    public void getExpenseReportByDateFromApi(LocalDate selectedDate,
-                                              ResultsCallBack<List<Report>> callBack) {
-        Call<List<Report>> callReport = service.getReportByDate(selectedDate, tenant, token);
-        callReport.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<List<Report>>() {
+    public LiveData<Resource<Expense>> insert(Expense expense) {
+        MutableLiveData<Resource<Expense>> liveData = new MutableLiveData<>();
+        webClient.insert(expense, new ResultsCallBack<Expense>() {
+            @Override
+            public void onSuccess(Expense result) {
+                liveData.setValue(new Resource<>(result, null));
+            }
+
+            @Override
+            public void onError(String error) {
+                liveData.setValue(new Resource<>(null, error));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Resource<Expense>> update(Expense expense) {
+        MutableLiveData<Resource<Expense>> liveData = new MutableLiveData<>();
+        webClient.update(expense, new ResultsCallBack<Expense>() {
+            @Override
+            public void onSuccess(Expense result) {
+                liveData.setValue(new Resource<>(result, null));
+            }
+
+            @Override
+            public void onError(String error) {
+                liveData.setValue(new Resource<>(null, error));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Resource<Void>> delete(Expense expense) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        webClient.delete(expense, new ResultsCallBack<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                liveData.setValue(new Resource<>(result, null));
+            }
+
+            @Override
+            public void onError(String error) {
+                liveData.setValue(new Resource<>(null, error));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Resource<List<Report>>> getReportByPeriod() {
+        setDates();
+        MutableLiveData<Resource<List<Report>>> liveData = new MutableLiveData<>();
+        webClient.getReportByPeriod(startDate, endDate,
+                new ResultsCallBack<List<Report>>() {
                     @Override
-                    public void onSuccess(List<Report> response) {
-                        callBack.onSuccess(response);
+                    public void onSuccess(List<Report> result) {
+                        liveData.setValue(new Resource<>(result,null));
                     }
 
                     @Override
                     public void onError(String error) {
-                        callBack.onError(error);
+                        liveData.setValue(new Resource<>(null, error));
                     }
-                }));
-
+                });
+        return liveData;
     }
 }

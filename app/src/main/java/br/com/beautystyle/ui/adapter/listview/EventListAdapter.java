@@ -24,8 +24,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
+import br.com.beautystyle.model.entity.Costumer;
 import br.com.beautystyle.model.entity.Event;
 import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.model.enuns.StatusPagamento;
@@ -93,9 +93,9 @@ public class EventListAdapter extends BaseAdapter {
         }
     }
 
-    private void onBindClient(Client client, View inflatedView) {
-        if (client != null) {
-            setNameClient(client.getName(), inflatedView);
+    private void onBindClient(Costumer costumer, View inflatedView) {
+        if (costumer != null) {
+            setNameClient(costumer.getName(), inflatedView);
         }
     }
 
@@ -113,9 +113,9 @@ public class EventListAdapter extends BaseAdapter {
         }
     }
 
-    private boolean isEventScheduleByClient(Client client) {
+    private boolean isEventScheduleByClient(Costumer costumer) {
         try {
-            return client.isClientAnUser();
+            return costumer.isClientAnUser();
         } catch (Exception e) {
             Log.i(TAG, "client user id is null" + e.getMessage());
             return false;
@@ -130,8 +130,8 @@ public class EventListAdapter extends BaseAdapter {
 
     private void setStartTime(Event event, View viewCriada) {
         TextView hourEvent = viewCriada.findViewById(R.id.item_event_start_time);
-        String timeFormated = TimeUtil.formatLocalTime(event.getStarTime());
-        hourEvent.setText(timeFormated);
+        String timeFormatted = TimeUtil.formatLocalTime(event.getStarTime());
+        hourEvent.setText(timeFormatted);
     }
 
     private void setEventDuration(Event event, @NonNull View viewCriada) {
@@ -175,8 +175,8 @@ public class EventListAdapter extends BaseAdapter {
     private void setEventValue(Event event, View viewCriada) {
         TextView value = viewCriada.findViewById(R.id.item_event_status_cash);
         BigDecimal valueEvent = event.getValueEvent();
-        String formatedValue = (CoinUtil.format(valueEvent, DESIRED_FORMAT));
-        value.setText(formatedValue);
+        String formattedValue = (CoinUtil.format(valueEvent, DESIRED_FORMAT));
+        value.setText(formattedValue);
         checkPaymentStatus(event, value);
     }
 
@@ -199,7 +199,7 @@ public class EventListAdapter extends BaseAdapter {
         cardView.setLayoutParams(cardViewParams);
     }
 
-    public void updateAdapterListView(List<EventWithClientAndJobs> eventWithClientAndJobs) {
+    public void update(List<EventWithClientAndJobs> eventWithClientAndJobs) {
         CreateListsUtil.createEventList(eventWithClientAndJobs);
         this.events.clear();
         this.events.addAll(CreateListsUtil.events);

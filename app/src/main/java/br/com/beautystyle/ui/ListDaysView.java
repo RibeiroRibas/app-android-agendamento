@@ -5,8 +5,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.time.LocalDate;
 
 import br.com.beautystyle.ui.adapter.recyclerview.ListDaysAdapter;
+import br.com.beautystyle.util.CalendarUtil;
 
-public class ListDaysView{
+public class ListDaysView {
 
     private ListDaysAdapter adapter;
     private RecyclerView dayOfMonth;
@@ -15,22 +16,24 @@ public class ListDaysView{
     public void setAdapter(RecyclerView dayOfMonth, ListDaysAdapter.OnDayListener context) {
         this.adapter = new ListDaysAdapter(context);
         dayOfMonth.setAdapter(adapter);
-        adapter.publishAllDays();
         this.dayOfMonth = dayOfMonth;
-        this.dayOfMonth.scrollToPosition(toPosition);
+        adapter.update();
+        changeScrollPosition();
     }
 
-    public void changeScrollPosition(LocalDate eventDate) {
-        int fromPosition = getPosition(eventDate);
+    public void changeScrollPosition() {
+        int fromPosition = getPosition(CalendarUtil.selectedDate);
         toPosition = toPosition < fromPosition ? fromPosition + 2 : fromPosition - 2;
         dayOfMonth.scrollToPosition(toPosition);
         toPosition = fromPosition;
     }
 
+    // simula um click na lista de dias
     public void toScrollPosition(LocalDate date) {
         adapter.onClickViewHolder(date);
     }
-    public int getPosition(LocalDate date){
+
+    public int getPosition(LocalDate date) {
         return adapter.getPosition(date);
     }
 

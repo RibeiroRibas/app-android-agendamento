@@ -9,13 +9,13 @@ import java.util.Locale;
 
 public class CoinUtil {
 
-    private static final String PORTUGUES = "pt";
+    private static final String PORTUGUESE = "pt";
     private static final String BRASIL = "br";
     private static final String DEFAULT_FORMAT = "R$";
 
     public static String format(BigDecimal value, String desiredFormat){
         NumberFormat formatoBr = DecimalFormat.getCurrencyInstance(
-                new Locale(PORTUGUES, BRASIL));
+                new Locale(PORTUGUESE, BRASIL));
         return formatoBr.format(value)
                 .replace(DEFAULT_FORMAT, desiredFormat);
     }

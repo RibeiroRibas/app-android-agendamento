@@ -55,7 +55,7 @@ public class NewJobFragment extends DialogFragment {
 
         restoreTimePickerListener(savedInstanceState);
 
-        initiWidgets(view);
+        initWidgets(view);
         loadJob();
 
         //LISTENERS
@@ -88,7 +88,7 @@ public class NewJobFragment extends DialogFragment {
         getDialog().getWindow().setAttributes(params);
     }
 
-    private void initiWidgets(View view) {
+    private void initWidgets(View view) {
         nameJob = view.findViewById(R.id.fragment_new_job_description);
         valueOfJob = view.findViewById(R.id.fragment_new_job_value);
         valueOfJob.addTextChangedListener(new MoneyTextWatcher(valueOfJob));

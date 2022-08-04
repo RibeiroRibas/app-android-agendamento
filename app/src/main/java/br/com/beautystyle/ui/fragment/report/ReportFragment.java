@@ -1,9 +1,5 @@
 package br.com.beautystyle.ui.fragment.report;
 
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_DAILY_REPORT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_END_DATE;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_REPORT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_START_DATE;
 import static br.com.beautystyle.util.ConstantsUtil.DESIRED_FORMAT;
 
 import android.content.Context;
@@ -17,27 +13,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
+import br.com.beautystyle.ViewModel.ReportViewModel;
+import br.com.beautystyle.ViewModel.factory.ReportFactory;
 import br.com.beautystyle.model.Report;
-import br.com.beautystyle.model.entity.Event;
-import br.com.beautystyle.model.entity.Expense;
-import br.com.beautystyle.model.enuns.TypeOfReport;
-import br.com.beautystyle.repository.EventRepository;
-import br.com.beautystyle.repository.ExpenseRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
+import br.com.beautystyle.repository.ReportRepository;
 import br.com.beautystyle.ui.adapter.recyclerview.ReportListAdapter;
 import br.com.beautystyle.util.CoinUtil;
 
@@ -46,22 +39,26 @@ public class ReportFragment extends Fragment {
     private AutoCompleteTextView typeOfReport;
     private ReportListAdapter adapter;
     private View inflatedView;
-    private List<Event> eventList;
-    private List<Expense> expenseList;
     @Inject
-    ExpenseRepository expenseRepository;
-    @Inject
-    EventRepository eventRepository;
+    ReportRepository repository;
+    private ReportViewModel viewModel;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        injectFrament();
+        injectFragment();
     }
 
-    private void injectFrament() {
+    private void injectFragment() {
         ((BeautyStyleApplication) requireActivity().getApplicationContext())
                 .applicationComponent.injectReportFrag(this);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ReportFactory factory = new ReportFactory(repository);
+        viewModel = new ViewModelProvider(this, factory).get(ReportViewModel.class);
     }
 
     @Override
@@ -69,37 +66,47 @@ public class ReportFragment extends Fragment {
                              Bundle savedInstanceState) {
         inflatedView = inflater.inflate(R.layout.fragment_report, container, false);
 
+        // ADAPTERS // LIVEDATA
         setAdapterReport();
+        setAdapterTypeOfReportLiveData();
+        reportLiveData();
 
         //LISTENERS
-        TypeOfReportListener();
+        typeOfReportListener();
 
         return inflatedView;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        setAdapterTypeOfReport();
-        fragmentResultListener();
+    private void reportLiveData() {
+        viewModel.getReport().observe(requireActivity(),
+                resource -> {
+                    if (resource.isDataNotNull()) {
+                        onBindViews(resource.getData());
+                        adapter.update(resource.getData());
+                    } else {
+                        showErrorMessage(resource.getError());
+                    }
+                });
     }
 
-    private void setAdapterTypeOfReport() {
-        List<String> typeOfReportList = TypeOfReport.getTypeOfReportList();
-        ArrayAdapter<String> adapteritens = new ArrayAdapter<>(
-                requireActivity(), android.R.layout.simple_list_item_1, typeOfReportList
-        );
-        typeOfReport.setAdapter(adapteritens);
-    }
-
-    private void TypeOfReportListener() {
+    private void setAdapterTypeOfReportLiveData() {
         typeOfReport = inflatedView.findViewById(R.id.fragment_report_type_of_);
-        typeOfReport.setOnItemClickListener((parent, view, position, id) -> checkItemClick(position));
+        viewModel.getTypeOfReport().observe(requireActivity(), typeOfReportList -> {
+            ArrayAdapter<String> adapterItems = new ArrayAdapter<>(
+                    requireActivity(), android.R.layout.simple_list_item_1, typeOfReportList
+            );
+            typeOfReport.setAdapter(adapterItems);
+        });
+    }
+
+    private void typeOfReportListener() {
+        typeOfReport.setOnItemClickListener((parent, view, position, id) -> {
+            viewModel.clearReport();
+            checkItemClick(position);
+        });
     }
 
     private void checkItemClick(int position) {
-        onBindOverView("R$ 0,00", "R$ 0,00", "R$ 0,00");
-        adapter.removeItemRange();
         switch (position) {
             case 0://monthly
                 replaceFragment(new MonthlyReportFragment());
@@ -109,7 +116,6 @@ public class ReportFragment extends Fragment {
                 break;
             case 2://by period
                 replaceFragment(new PeriodReportFragment());
-                adapter.removeItemRange();
                 break;
         }
     }
@@ -125,89 +131,6 @@ public class ReportFragment extends Fragment {
         RecyclerView reportList = inflatedView.findViewById(R.id.fragment_report_rv);
         adapter = new ReportListAdapter(requireActivity());
         reportList.setAdapter(adapter);
-    }
-
-    private void fragmentResultListener() {
-        getChildFragmentManager().setFragmentResultListener(KEY_REPORT, this, (requestKey, result) -> {
-            if (result.containsKey(KEY_DAILY_REPORT)) {
-                resultDailyReport(result);
-            } else {
-                resultMonthlyAndByPeriodReport(result);
-            }
-        });
-    }
-
-    private void resultDailyReport(Bundle result) {
-        LocalDate selectedDate = (LocalDate) result.getSerializable(KEY_DAILY_REPORT);
-        eventRepository.getEventReportByDateFromApi(selectedDate,
-                new ResultsCallBack<List<Report>>() {
-                    @Override
-                    public void onSuccess(List<Report> reportList) {
-                        getExpenseReportByDateFromApi(selectedDate, reportList);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
-    }
-
-    private void getExpenseReportByDateFromApi(LocalDate selectedDate, List<Report> reportList) {
-        expenseRepository.getExpenseReportByDateFromApi(selectedDate,
-                new ResultsCallBack<List<Report>>() {
-                    @Override
-                    public void onSuccess(List<Report> expenseReportList) {
-                        reportList.addAll(expenseReportList);
-                        onBindViews(reportList);
-                        adapter.publishResultsChangedList(reportList);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
-    }
-
-    private void resultMonthlyAndByPeriodReport(Bundle result) {
-        LocalDate startDate = (LocalDate) result.getSerializable(KEY_START_DATE);
-        LocalDate endDate = (LocalDate) result.getSerializable(KEY_END_DATE);
-        getEventReportByPeridoFromApi(startDate, endDate);
-    }
-
-    private void getEventReportByPeridoFromApi(LocalDate startDate, LocalDate endDate) {
-        eventRepository.getReportByPeriodFromApi(startDate, endDate,
-                new ResultsCallBack<List<Report>>() {
-                    @Override
-                    public void onSuccess(List<Report> reportList) {
-                        getExpenseReportByPeridoFromApi(startDate, endDate, reportList);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
-    }
-
-    private void getExpenseReportByPeridoFromApi(LocalDate startDate, LocalDate endDate,
-                                                 List<Report> reportList) {
-        expenseRepository.getReportByPeriodFromApi(startDate, endDate,
-                new ResultsCallBack<List<Report>>() {
-                    @Override
-                    public void onSuccess(List<Report> expenseReport) {
-                        reportList.addAll(expenseReport);
-                        reportList.sort(Comparator.comparing(Report::getDate));
-                        onBindViews(reportList);
-                        adapter.publishResultsChangedList(reportList);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
     }
 
     private void onBindViews(List<Report> reports) {

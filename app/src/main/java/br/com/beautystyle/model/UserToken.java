@@ -44,4 +44,11 @@ public class UserToken {
     public void setProfiles(List<String> profiles) {
         this.profiles = profiles;
     }
+
+    public String getProfile() {
+        if(!profiles.isEmpty()){
+            return profiles.get(0);
+        }
+        return "";
+    }
 }

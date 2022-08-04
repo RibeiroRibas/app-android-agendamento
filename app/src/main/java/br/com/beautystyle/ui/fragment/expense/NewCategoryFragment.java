@@ -1,7 +1,6 @@
 package br.com.beautystyle.ui.fragment.expense;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NAME_CATEGORY;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_CATEGORY;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CATEGORY;
 
@@ -24,18 +23,14 @@ public class NewCategoryFragment extends Fragment {
 
     private EditText categoryName;
     private Category category;
-    private int position;
 
-    public NewCategoryFragment(Category category, int position) {
+    public NewCategoryFragment(Category category) {
         Bundle arguments = new Bundle();
         arguments.putSerializable(KEY_UPDATE_CATEGORY, category);
-        arguments.putInt(KEY_POSITION, position);
         setArguments(arguments);
     }
 
-    public NewCategoryFragment() {
-
-    }
+    public NewCategoryFragment() {}
 
     @Nullable
     @Override
@@ -44,17 +39,14 @@ public class NewCategoryFragment extends Fragment {
 
         addCategoryListener(inflatedView);
         closeFragmentListener(inflatedView);
-        categoryName = inflatedView.findViewById(R.id.fragment_new_category_name);
-        loadCategory();
+        loadCategory(inflatedView);
 
         return inflatedView;
     }
 
     private void addCategoryListener(View inflatedView) {
         ImageView addCategory = inflatedView.findViewById(R.id.fragment_new_category_add);
-        addCategory.setOnClickListener(v -> {
-            setResult();
-        });
+        addCategory.setOnClickListener(v -> setResult());
     }
 
     private void setResult() {
@@ -71,7 +63,6 @@ public class NewCategoryFragment extends Fragment {
     private void setResultUpdate(Bundle result) {
         category.setName(categoryName.getText().toString());
         result.putSerializable(KEY_UPDATE_CATEGORY, category);
-        result.putInt(KEY_POSITION, position);
         removeThisFragment();
     }
 
@@ -87,10 +78,10 @@ public class NewCategoryFragment extends Fragment {
                 .commit();
     }
 
-    private void loadCategory() {
+    private void loadCategory(View inflatedView) {
+        categoryName = inflatedView.findViewById(R.id.fragment_new_category_name);
         if (isUpdateCategory()) {
             category = getSerializable();
-            position = requireArguments().getInt(KEY_POSITION);
             categoryName.setText(category.getName());
         }
     }

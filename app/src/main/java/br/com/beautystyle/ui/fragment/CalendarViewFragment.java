@@ -25,13 +25,11 @@ public class CalendarViewFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-
         @SuppressLint("InflateParams")
         View inflatedCalendar = LayoutInflater.from(requireActivity())
                 .inflate(R.layout.dialog_calendar, null);
         AlertDialog dialogBuilderCalendar = createDialogBuilderCalendar(inflatedCalendar);
-        setOnDateChangeListener(inflatedCalendar, dialogBuilderCalendar);
-
+        setOnDateChangeListener(inflatedCalendar);
         return dialogBuilderCalendar;
     }
 
@@ -44,7 +42,7 @@ public class CalendarViewFragment extends DialogFragment {
         return dialog;
     }
 
-    private void setOnDateChangeListener(View inflatedCalendar, AlertDialog dialogBuilderCalendar) {
+    private void setOnDateChangeListener(View inflatedCalendar) {
         CalendarView calendar = inflatedCalendar.findViewById(R.id.dialog_calendar_view);
         calendar.setOnDateChangeListener(listener);
     }

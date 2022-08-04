@@ -57,8 +57,8 @@
             android:id="@+id/activity_login_password"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:maxLength="8"
-            android:inputType="numberPassword"
+            android:maxLength="10"
+            android:inputType="textPassword"
             android:paddingStart="16dp"
             android:textColorHint="@color/gray"
             tools:ignore="Autofill,LabelFor" />

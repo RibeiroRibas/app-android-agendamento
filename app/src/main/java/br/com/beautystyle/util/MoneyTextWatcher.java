@@ -6,8 +6,10 @@ import android.widget.EditText;
 
 import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MoneyTextWatcher implements TextWatcher {
 
@@ -50,7 +52,7 @@ public class MoneyTextWatcher implements TextWatcher {
         String cleanString = value.replaceAll(replaceable, "");
         try {
             return new BigDecimal(cleanString).setScale(
-                    2, BigDecimal.ROUND_FLOOR).divide(new BigDecimal(100), BigDecimal.ROUND_FLOOR);
+                    2, RoundingMode.FLOOR).divide(new BigDecimal(100), RoundingMode.FLOOR);
         } catch (NumberFormatException e) {
             //ao apagar todos valores de uma só vez dava erro
             //Com a exception o valor retornado é 0.00
@@ -59,6 +61,7 @@ public class MoneyTextWatcher implements TextWatcher {
     }
 
     public static String getCurrencySymbol() {
-        return NumberFormat.getCurrencyInstance(Locale.getDefault()).getCurrency().getSymbol();
+        return Objects.requireNonNull(NumberFormat.getCurrencyInstance(Locale.getDefault())
+                .getCurrency()).getSymbol();
     }
 }

@@ -18,12 +18,11 @@ public interface ConstantFragment {
     String KEY_REPORT = "report";
     String KEY_DAILY_REPORT = "daily";
     String KEY_POSITION = "position";
-    int INVALID_POSITION = -1;
     String KEY_START_DATE = "startDate";
     String KEY_END_DATE = "endDate";
     String KEY_RESULT_CATEGORY = "category";
     String KEY_NAME_CATEGORY = "newCategory";
     String KEY_UPDATE_CATEGORY = "updateCategory";
-    String TAG_CALENDAR_VIEW = "calendarViewt";
+    String TAG_CALENDAR_VIEW = "calendarView";
 
 }

@@ -56,7 +56,7 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
         return reportList.size() + 2;
     }
 
-    public void publishResultsChangedList(List<Report> reportlist) {
+    public void update(List<Report> reportlist) {
         if (reportlist.isEmpty()) {
             removeItemRange();
         } else {
@@ -116,7 +116,7 @@ public class ReportListAdapter extends RecyclerView.Adapter<ReportListAdapter.Re
         private void onBindExpense(Report expense) {
             String formatedDate = CalendarUtil.formatLocalDate(expense.getDate(),DD_MM_YYYY);
             date.setText(formatedDate);
-            name.setText(expense.getExpenceCategory());
+            name.setText(expense.getExpenseCategory());
             String formatedValue = CoinUtil.format(expense.getExpenseValue(),DESIRED_FORMAT);
             value.setText(formatedValue);
         }

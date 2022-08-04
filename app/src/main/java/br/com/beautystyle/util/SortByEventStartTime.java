@@ -2,7 +2,7 @@ package br.com.beautystyle.util;
 
 import java.util.Comparator;
 
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
 
 
 public class SortByEventStartTime implements Comparator<EventWithClientAndJobs> {

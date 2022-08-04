@@ -15,16 +15,14 @@
         app:layout_constraintTop_toTopOf="parent"
         app:queryHint="Nome" />
 
-    <include
+    <ImageButton
         android:id="@+id/fragment_list_client_import"
-        layout="@layout/custom_loading_buttom"
-        android:layout_width="150dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:text="@string/importing"
-        android:textSize="11sp"
+        app:srcCompat="@drawable/ic_import"
+        android:backgroundTint="@color/white"
         app:layout_constraintBottom_toBottomOf="@id/fragment_list_client_sv"
-
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/fragment_list_client_sv" />
 
@@ -49,6 +47,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/fragment_list_client_sv" />
+        app:layout_constraintTop_toBottomOf="@+id/fragment_list_client_progress_bar" />
+    <ProgressBar
+        android:id="@+id/fragment_list_client_progress_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/black"
+        android:indeterminateTintMode="src_atop"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_list_client_sv"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

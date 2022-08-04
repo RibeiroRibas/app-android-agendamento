@@ -2,7 +2,6 @@ package br.com.beautystyle.ui.fragment.job;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_JOB;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_JOB;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_JOB;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_INSERT_JOB;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_JOB;
@@ -33,15 +32,17 @@ import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.EventViewModel;
+import br.com.beautystyle.ViewModel.JobViewModel;
+import br.com.beautystyle.ViewModel.factory.JobFactory;
 import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.repository.JobRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.ui.adapter.recyclerview.JobListAdapter;
 
 public class JobListFragment extends Fragment {
 
-    private final List<Job> jobList = new ArrayList<>();
+    private final List<Job> selectedJobs = new ArrayList<>();
     private EventViewModel eventViewModel;
+    private JobViewModel jobViewModel;
     @Inject
     JobRepository repository;
     private JobListAdapter adapter;
@@ -57,6 +58,8 @@ public class JobListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         eventViewModel = new ViewModelProvider(requireActivity()).get(EventViewModel.class);
+        JobFactory factory = new JobFactory(repository);
+        jobViewModel = new ViewModelProvider(this, factory).get(JobViewModel.class);
         adapter = new JobListAdapter(requireActivity());
     }
 
@@ -65,18 +68,29 @@ public class JobListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View viewInflate = inflater.inflate(R.layout.fragment_job_list, container, false);
 
-        setJobListAdapter(viewInflate);
-        setSearchViewJob(viewInflate);//adapter filter jobList
+        setRecyclerViewAdapter(viewInflate);
 
         //LISTENERS
-        jobListOnClickListener();
+        setSearchViewListener(viewInflate);//adapter filter jobList
+        adapterRecyclerViewListener();
         selectedJobListener(viewInflate);
-        newJobListener(viewInflate);
+        addJobListener(viewInflate);
         setFragmentResultListener();
 
-        getAllJobs();
+        jobsLiveData();
+        repository.getAllFromApi();
 
         return viewInflate;
+    }
+
+    private void jobsLiveData() {
+        jobViewModel.getAllFromRoomLiveData().observe(requireActivity(), resource -> {
+            if (resource.isDataNotNull()) {
+                adapter.update(resource.getData());
+            } else {
+                showErrorMessage(resource.getError());
+            }
+        });
     }
 
     @Override
@@ -84,85 +98,70 @@ public class JobListFragment extends Fragment {
         int adapterPosition = item.getGroupId();
         if (isDeleteJobMenu(item.getItemId())) {
             Job job = adapter.getJobAtPosition(adapterPosition);
-            checkRemove(job, adapterPosition);
+            checkDelete(job);
         } else if (isUpdateJobMenu(item.getItemId())) { // is update job menu
             Job job = adapter.getJobAtPosition(adapterPosition);
-            Bundle bundle = createBundle(job, adapterPosition);
-            showNewJobFragmentUpdateMode(bundle);
+            showNewJobFragmentUpdateMode(job);
         }
         return super.onContextItemSelected(item);
     }
 
-    private boolean isUpdateJobMenu(int itemId) { return itemId == 3; }
+    private boolean isUpdateJobMenu(int itemId) {
+        return itemId == 3;
+    }
 
     private boolean isDeleteJobMenu(int itemId) {
         return itemId == 4;
     }
 
-    private Bundle createBundle(Job job, int adapterPosition) {
+    private Bundle createBundle(Job job) {
         Bundle bundle = new Bundle();
-        bundle.putInt(KEY_POSITION, adapterPosition);
         bundle.putSerializable(KEY_UPDATE_JOB, job);
         return bundle;
     }
 
-    private void showNewJobFragmentUpdateMode(Bundle bundle) {
+    private void showNewJobFragmentUpdateMode(Job job) {
+        Bundle bundle = createBundle(job);
         NewJobFragment newJobFragment = new NewJobFragment();
         newJobFragment.setArguments(bundle);
         newJobFragment.show(getChildFragmentManager(), TAG_UPDATE_JOB);
     }
 
-    public void checkRemove(Job job, int adapterPosition) {
+    public void checkDelete(Job job) {
         new AlertDialog
                 .Builder(requireActivity())
                 .setTitle("Removendo Serviço")
                 .setMessage("Tem Certeza que deseja remover esse item?")
                 .setPositiveButton("Sim",
-                        (dialog, which) -> delete(job, adapterPosition)
+                        (dialog, which) -> delete(job)
                 )
                 .setNegativeButton("Não", null)
                 .show();
     }
 
-    private void delete(Job job, int adapterPosition) {
-        repository.deleteOnApi(job, new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void resultado) {
-                deleteOnRoom(job, adapterPosition);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
+    private void delete(Job job) {
+        repository.delete(job);
     }
 
-    private void deleteOnRoom(Job job, int position) {
-        repository.deleteOnRoom(job)
-                .doOnComplete(() -> adapter.publishResultsRemoved(job, position))
-                .subscribe();
-    }
-
-    private void setJobListAdapter(View viewInflate) {
+    private void setRecyclerViewAdapter(View viewInflate) {
         RecyclerView jobListRv = viewInflate.findViewById(R.id.fragment_job_list_rv);
         jobListRv.setAdapter(adapter);
         registerForContextMenu(jobListRv);
     }
 
-    private void jobListOnClickListener() {
+    private void adapterRecyclerViewListener() {
         adapter.setOnItemClickListener((
                 (job, isSelected) -> {
                     if (isSelected) {
-                        jobList.add(job);
+                        selectedJobs.add(job);
                     } else {
-                        jobList.remove(job);
+                        selectedJobs.remove(job);
                     }
                 }
         ));
     }
 
-    private void setSearchViewJob(View viewInflate) {
+    private void setSearchViewListener(View viewInflate) {
         SearchView svJob = viewInflate.findViewById(R.id.fragment_job_list_search_view);
         svJob.setOnQueryTextListener(getServiceListener());
     }
@@ -186,7 +185,7 @@ public class JobListFragment extends Fragment {
     private void selectedJobListener(View viewInflate) {
         TextView addSelectedJobs = viewInflate.findViewById(R.id.fragment_list_service_add_selected_tv);
         addSelectedJobs.setOnClickListener(v -> {
-            eventViewModel.add(jobList);
+            eventViewModel.add(selectedJobs);
             requireActivity()
                     .getSupportFragmentManager()
                     .beginTransaction()
@@ -195,7 +194,7 @@ public class JobListFragment extends Fragment {
         });
     }
 
-    private void newJobListener(View viewInflate) {
+    private void addJobListener(View viewInflate) {
         ImageView addJob = viewInflate.findViewById(R.id.fragment_job_list_btn_add);
         addJob.setOnClickListener(v -> {
             NewJobFragment newJobFragment = new NewJobFragment();
@@ -206,99 +205,29 @@ public class JobListFragment extends Fragment {
     private void setFragmentResultListener() {
         getChildFragmentManager().setFragmentResultListener(
                 KEY_JOB, this, (requestKey, result) -> {
-                    if (result.containsKey(KEY_UPDATE_JOB)) {
-                        update(result);
-                    } else {
-                        insert(result);
-                    }
+                    isInsert(result);
+                    isUpdate(result);
                 });
     }
 
-    private void insert(Bundle result) {
-        Job job = (Job) result.getSerializable(KEY_INSERT_JOB);
-        repository.insertOnApi(job, new ResultsCallBack<Job>() {
-            @Override
-            public void onSuccess(Job jobFromApi) {
-                insertOnRoom(jobFromApi);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
+    private void isUpdate(Bundle result) {
+        if (result.containsKey(KEY_UPDATE_JOB)) {
+            Job job = (Job) result.getSerializable(KEY_UPDATE_JOB);
+            repository.update(job);
+        }
     }
 
-    private void insertOnRoom(Job jobFromApi) {
-        jobFromApi.setJobId(null);
-        repository.insertOnRoom(jobFromApi)
-                .doOnSuccess(id -> {
-                    jobFromApi.setJobId(id);
-                    adapter.publishResultsInsert(jobFromApi);
-                }).subscribe();
-    }
-
-    private void update(Bundle result) {
-        Job job = (Job) result.getSerializable(KEY_UPDATE_JOB);
-        int position = result.getInt(KEY_POSITION);
-        repository.updateOnApi(job, new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void resultado) {
-                updateonRoom(job, position);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
-
-    }
-
-    private void updateonRoom(Job job, int position) {
-        repository.updateOnRoom(job)
-                .doOnComplete(() -> adapter.publishResultsUpdate(job, position))
-                .subscribe();
+    private void isInsert(Bundle result) {
+        if (result.containsKey(KEY_INSERT_JOB)) {
+            Job job = (Job) result.getSerializable(KEY_INSERT_JOB);
+            repository.insertOnRoom(job);
+            repository.insertOnApi(job);
+        }
     }
 
     private void showErrorMessage(String erro) {
         if (this.getActivity() != null)
             Toast.makeText(requireActivity(), erro, Toast.LENGTH_LONG).show();
     }
-
-    private void getAllJobs() {
-        repository.getAllFromRoom()
-                .doOnSuccess(jobListFromRoom -> {
-                    adapter.publishJobList(jobListFromRoom);
-                    getAllFromApi();
-                }).subscribe();
-    }
-
-    private void getAllFromApi() {
-        repository.getAllFromApi(new ResultsCallBack<List<Job>>() {
-            @Override
-            public void onSuccess(List<Job> jobListFromApi) {
-                repository.updatejobs(jobListFromApi,
-                        new ResultsCallBack<List<Job>>() {
-                            @Override
-                            public void onSuccess(List<Job> result) {
-                                adapter.publishJobList(result);
-                            }
-
-                            @Override
-                            public void onError(String erro) {
-                                showErrorMessage(erro);
-                            }
-                        });
-
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
-    }
-
 
 }

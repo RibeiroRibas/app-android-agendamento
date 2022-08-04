@@ -55,27 +55,12 @@ public class CategoryListAdapter extends RecyclerView.Adapter<CategoryListAdapte
         this.onItemLongClickListener = onItemLongClickListener;
     }
 
-    public void publishResultsRangeInserted(List<Category> categories) {
+    public void update(List<Category> categories) {
         int size = this.categoryList.size();
         this.categoryList.clear();
         notifyItemRangeRemoved(0, size);
         this.categoryList.addAll(categories);
         notifyItemRangeInserted(0, categories.size());
-    }
-
-    public void publishResultsRemoved(Category category, int position) {
-        categoryList.remove(category);
-        notifyItemRemoved(position);
-    }
-
-    public void publishResultsChanged(Category category, int position) {
-        categoryList.set(position, category);
-        notifyItemChanged(position);
-    }
-
-    public void publishResultsInserted(Category category) {
-        categoryList.add(category);
-        notifyItemInserted(categoryList.indexOf(category));
     }
 
     class ListCategoryHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
@@ -89,7 +74,7 @@ public class CategoryListAdapter extends RecyclerView.Adapter<CategoryListAdapte
 
             itemView.setOnClickListener(v -> onItemClickListener.onItemClick(category.getName()));
             itemView.setOnCreateContextMenuListener(this);
-            itemView.setOnLongClickListener(v -> onItemLongClickListener.onItemClick(category, getAdapterPosition()));
+            itemView.setOnLongClickListener(v -> onItemLongClickListener.onItemClick(category));
 
         }
 

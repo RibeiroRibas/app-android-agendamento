@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/activity_navigation_container"
+        android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -33,7 +35,7 @@
     </com.google.android.material.bottomappbar.BottomAppBar>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/activity_navigation_fab_new_event"
+        android:id="@+id/activity_navigation_fab_plus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/pink"
@@ -44,5 +46,56 @@
         app:layout_anchor="@id/activity_navigation_appbar"
         app:srcCompat="@drawable/ic_add_task"
         app:tint="@color/white" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/activity_navigation_fab_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        app:layout_anchorGravity="end"
+        app:layout_anchor="@+id/activity_navigation_fab_plus"
+        android:backgroundTint="@color/pink"
+        android:clickable="true"
+        android:contentDescription="@string/todo"
+        android:focusable="true"
+        android:visibility="invisible"
+        app:fabSize="normal"
+        app:srcCompat="@drawable/ic_profile"
+        app:tint="@color/white"
+        tools:ignore="RtlHardcoded" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/activity_navigation_fab_costumer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        app:layout_anchor="@+id/activity_navigation_fab_plus"
+        android:backgroundTint="@color/pink"
+        android:clickable="true"
+        android:contentDescription="@string/todo"
+        android:focusable="true"
+        android:visibility="invisible"
+        app:fabSize="normal"
+        app:srcCompat="@drawable/ic_costumer"
+        app:tint="@color/white"
+        tools:ignore="RtlHardcoded" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/activity_navigation_fab_new_event"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        app:layout_anchor="@+id/activity_navigation_fab_profile"
+        android:backgroundTint="@color/pink"
+        android:clickable="true"
+        android:contentDescription="@string/todo"
+        android:focusable="true"
+        app:fabSize="normal"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/ic_add_event"
+        app:tint="@color/white"
+        tools:ignore="RtlHardcoded" />
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

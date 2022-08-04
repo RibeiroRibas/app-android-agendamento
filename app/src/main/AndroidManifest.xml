@@ -19,6 +19,8 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name="br.com.beautystyle.ui.activity.SplashActivity"
+            android:theme="@style/AppCompat.FullScreen"
+            android:noHistory="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,7 +32,9 @@
             android:exported="false" />
         <activity
             android:name="br.com.beautystyle.ui.activity.NavigationActivity"
-            android:exported="false" />
+            android:exported="false" >
+
+        </activity>
         <activity
             android:name="br.com.beautystyle.ui.activity.NewEventActivity"
             android:exported="false" />

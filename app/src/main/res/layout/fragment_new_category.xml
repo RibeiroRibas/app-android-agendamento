@@ -11,7 +11,7 @@
         android:layout_height="48dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/custom_default_input"
-        android:hint="@string/name"
+        android:hint="@string/new_category"
         android:textAllCaps="false"
         android:inputType="text"
         android:padding="12dp"

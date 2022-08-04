@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
 import br.com.beautystyle.model.enuns.StatusPagamento;
 
 @Entity
@@ -112,15 +112,15 @@ public class Event implements Serializable {
     }
 
     public LocalTime checkEndTime(List<EventWithClientAndJobs> eventList) {
-        LocalTime reduzedEndTime = null;
+        LocalTime reducedEndTime = null;
         for (EventWithClientAndJobs ev : eventList) {
             if (ev.getEvent().getStarTime().isAfter(getStarTime())
                     && getEndTime().isAfter(ev.getEvent().getStarTime())
                     && !getEventId().equals(ev.getEvent().getEventId())) {
-                reduzedEndTime = ev.getEvent().getStarTime();
+                reducedEndTime = ev.getEvent().getStarTime();
             }
         }
-        return reduzedEndTime;
+        return reducedEndTime;
     }
 
     public boolean checkStartTime(List<EventWithClientAndJobs> eventList) {
@@ -132,5 +132,14 @@ public class Event implements Serializable {
 
     public boolean checkId() {
         return eventId>0;
+    }
+
+    public boolean isNotExistOnApi(List<Event> events) {
+        for (Event fromApi : events) {
+            if (this.apiId.equals(fromApi.getApiId())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

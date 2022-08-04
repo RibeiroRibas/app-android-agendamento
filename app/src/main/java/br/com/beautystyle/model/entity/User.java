@@ -1,5 +1,7 @@
 package br.com.beautystyle.model.entity;
 
+import static br.com.beautystyle.repository.ConstantsRepository.USER_PREMIUM;
+
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -51,5 +53,9 @@ public class User {
 
     public void setProfile(String profile) {
         this.profile = profile;
+    }
+
+    public boolean isPremiumAccount() {
+        return profile.equals(USER_PREMIUM);
     }
 }

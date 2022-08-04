@@ -1,9 +1,7 @@
 package br.com.beautystyle.ui.fragment.client;
 
-import static br.com.beautystyle.ui.fragment.ConstantFragment.INVALID_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_CLIENT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CLIENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_CLIENT;
 
@@ -25,13 +23,12 @@ import com.example.beautystyle.R;
 
 import java.util.Objects;
 
-import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.model.entity.Costumer;
 
 public class NewClientFragment extends DialogFragment {
 
     private EditText nameClient, phoneClient;
-    private int adapterPosition;
-    private  Client client = new Client();
+    private Costumer costumer = new Costumer();
 
     @Nullable
     @Override
@@ -47,13 +44,12 @@ public class NewClientFragment extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
         initWidgets(view);
         setResultClientListener(view);
-
+        loadClient();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        loadClient();
         setLayoutParamsDialog();
     }
 
@@ -61,7 +57,6 @@ public class NewClientFragment extends DialogFragment {
         Window window = Objects.requireNonNull(getDialog()).getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         window.setAttributes(params);
     }
 
@@ -73,9 +68,8 @@ public class NewClientFragment extends DialogFragment {
     private void loadClient() {
         Bundle bundle = getArguments();
         if (isKeyUpdateClient(bundle)) {
-            client = (Client) bundle.getSerializable(KEY_UPDATE_CLIENT);
-            adapterPosition = bundle.getInt(KEY_POSITION, INVALID_POSITION);
-            fillAllForm(client);
+            costumer = (Costumer) bundle.getSerializable(KEY_UPDATE_CLIENT);
+            fillAllForm(costumer);
         }
     }
 
@@ -83,9 +77,9 @@ public class NewClientFragment extends DialogFragment {
         return bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_CLIENT);
     }
 
-    private void fillAllForm(Client client) {
-        nameClient.setText(client.getName());
-        phoneClient.setText(client.getPhone());
+    private void fillAllForm(Costumer costumer) {
+        nameClient.setText(costumer.getName());
+        phoneClient.setText(costumer.getPhone());
     }
 
     private void setResultClientListener(View inflateNewEventView) {
@@ -111,27 +105,26 @@ public class NewClientFragment extends DialogFragment {
         setClient();
         if (getTag() != null) {
             if (getTag().equals(TAG_UPDATE_CLIENT)) {
-                setResult(KEY_UPDATE_CLIENT, adapterPosition, client);
+                setResult(KEY_UPDATE_CLIENT, costumer);
             } else {
-                setResult(KEY_INSERT_CLIENT, INVALID_POSITION, client);
+                setResult(KEY_INSERT_CLIENT, costumer);
             }
         }
         Objects.requireNonNull(getDialog()).dismiss();
         getParentFragmentManager().beginTransaction().remove(this).commit();
     }
 
-    private void setResult(String key, int position, Client client) {
+    private void setResult(String key, Costumer costumer) {
         Bundle result = new Bundle();
-        result.putSerializable(key, client);
-        result.putInt(KEY_POSITION, position);
+        result.putSerializable(key, costumer);
         getParentFragmentManager().setFragmentResult(KEY_CLIENT, result);
     }
 
     private void setClient() {
         String name = nameClient.getText().toString();
-        client.setName(name);
+        costumer.setName(name);
         String phone = phoneClient.getText().toString();
-        client.setPhone(phone);
+        costumer.setPhone(phone);
     }
 
 }

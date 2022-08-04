@@ -5,6 +5,7 @@ import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 public class Category implements Serializable {
@@ -55,4 +56,21 @@ public class Category implements Serializable {
         this.companyId = companyId;
     }
 
+    public boolean isApiIdEquals(Category categoryFromApi) {
+        if(this.apiId != null){
+            return this.apiId.equals(categoryFromApi.getApiId());
+        }
+        return false;
+    }
+
+    public boolean isNotExistOnApi(List<Category> categoriesFromApi) {
+        if(this.apiId != null){
+            for (Category categoryFromApi : categoriesFromApi) {
+                if (this.apiId.equals(categoryFromApi.getApiId())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

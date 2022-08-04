@@ -4,8 +4,8 @@ import android.content.Context;
 
 import javax.inject.Singleton;
 
-import br.com.beautystyle.database.retrofit.NetworkModule;
-import br.com.beautystyle.database.room.DatabaseModule;
+import br.com.beautystyle.retrofit.NetworkModule;
+import br.com.beautystyle.database.DatabaseModule;
 import br.com.beautystyle.ui.activity.LoginActivity;
 import br.com.beautystyle.ui.activity.NavigationActivity;
 import br.com.beautystyle.ui.activity.NewEventActivity;

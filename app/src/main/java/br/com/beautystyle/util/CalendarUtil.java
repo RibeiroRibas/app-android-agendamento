@@ -21,9 +21,9 @@ public class CalendarUtil {
         return df.format(date);
     }
 
-    public static String formatDateLong(LocalDate date) {
+    public static String formatDateLong() {
         DateTimeFormatter df = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
-        return df.format(date);
+        return df.format(selectedDate);
     }
 
     public static LocalDate fromStringToLocalDate(String date){

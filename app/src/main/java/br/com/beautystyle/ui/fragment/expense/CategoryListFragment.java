@@ -1,7 +1,6 @@
 package br.com.beautystyle.ui.fragment.expense;
 
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_NAME_CATEGORY;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_POSITION;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_RESULT_CATEGORY;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_CATEGORY;
 
@@ -20,19 +19,20 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
 
-import java.util.List;
 import java.util.Objects;
 
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
+import br.com.beautystyle.ViewModel.CategoryViewModel;
+import br.com.beautystyle.ViewModel.factory.CategoryFactory;
 import br.com.beautystyle.model.entity.Category;
 import br.com.beautystyle.repository.CategoryRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.ui.adapter.recyclerview.CategoryListAdapter;
 
 public class CategoryListFragment extends DialogFragment {
@@ -40,6 +40,7 @@ public class CategoryListFragment extends DialogFragment {
     private CategoryListAdapter adapterCategories;
     @Inject
     CategoryRepository repository;
+    private CategoryViewModel viewModel;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -63,21 +64,25 @@ public class CategoryListFragment extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        setAdapterCategoriesListView(view);
+        CategoryFactory factory = new CategoryFactory(repository);
+        viewModel = new ViewModelProvider(this, factory).get(CategoryViewModel.class);
 
-        newCategoryListener(view, savedInstanceState);
+        setAdapterCategories(view); // recyclerView
+
+        // LISTENERS
+        newCategoryListener(view);
         closeDialogFragmentListener(view);
-        categoriesRecycleViewListener();
+        adapterCategoriesListener();
 
-        setFragmentResultlistener();
+        setFragmentResultListener();
 
+        updateAdapterLiveData();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         setLayoutParamsDialog();
-        updateAdapter();
     }
 
     private void setLayoutParamsDialog() {
@@ -88,49 +93,28 @@ public class CategoryListFragment extends DialogFragment {
         window.setAttributes(params);
     }
 
-    private void updateAdapter() {
-        repository.getAllFromRoom()
-                .doOnSuccess(categoriesFromRoom -> {
-                    adapterCategories.publishResultsRangeInserted(categoriesFromRoom);
-                    getAllFromApi(categoriesFromRoom);
-                }).subscribe();
+    private void updateAdapterLiveData() {
+        getAllFromRoomLiveData();
+        repository.getAllFromApi();
     }
 
-    private void getAllFromApi(List<Category> categoriesFromRoom) {
-        repository.getCategoryListFromApi(new ResultsCallBack<List<Category>>() {
-            @Override
-            public void onSuccess(List<Category> categoriesFromApi) {
-                updateLocalDatabase(categoriesFromRoom, categoriesFromApi);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
+    private void getAllFromRoomLiveData() {
+        viewModel.getAllFromRoomLiveData().observe(requireActivity(), resource -> {
+            if(resource.isDataNotNull()){
+                adapterCategories.update(resource.getData());
+            }else{
+                showErrorMessage(resource.getError());
             }
         });
     }
 
-    private void updateLocalDatabase(List<Category> categoriesFromRoom, List<Category> categoriesFromApi) {
-        repository.insertAllOnRoom(categoriesFromRoom, categoriesFromApi)
-                .doOnSuccess(ids -> {
-                    setIds(categoriesFromApi, ids);
-                    adapterCategories.publishResultsRangeInserted(categoriesFromApi);
-                }).subscribe();
-    }
-
-    private void setIds(List<Category> categoriesFromApi, List<Long> ids) {
-        for (int i = 0; i < ids.size(); i++) {
-            categoriesFromApi.get(i).setId(ids.get(i));
-        }
-    }
-
-    private void setAdapterCategoriesListView(View view) {
+    private void setAdapterCategories(View view) {
         RecyclerView categoriesListView = view.findViewById(R.id.fragment_list_category_recycle_view);
         adapterCategories = new CategoryListAdapter(requireActivity());
         categoriesListView.setAdapter(adapterCategories);
     }
 
-    private void newCategoryListener(View view, Bundle savedInstanceState) {
+    private void newCategoryListener(View view) {
         ImageView newCategory = view.findViewById(R.id.fragment_list_category_new);
         newCategory.setOnClickListener(v -> replaceContainer(new NewCategoryFragment()));
     }
@@ -140,7 +124,7 @@ public class CategoryListFragment extends DialogFragment {
         closeFragment.setOnClickListener(v -> Objects.requireNonNull(getDialog()).dismiss());
     }
 
-    private void categoriesRecycleViewListener() {
+    private void adapterCategoriesListener() {
         itemClickListener();
         itemLongClickListener();
     }
@@ -155,23 +139,23 @@ public class CategoryListFragment extends DialogFragment {
     }
 
     private void itemLongClickListener() {
-        adapterCategories.setOnItemLongClickListener((category, position) -> {
-            showAlertDialogMenu(category, position);
+        adapterCategories.setOnItemLongClickListener((category) -> {
+            showAlertDialogMenu(category);
             return true;
         });
     }
 
-    private void showAlertDialogMenu(Category category, int position) {
+    private void showAlertDialogMenu(Category category) {
         new AlertDialog
                 .Builder(requireActivity())
                 .setTitle("O que você deseja fazer?")
-                .setMessage("selecione uma das opções abaixo:")
+                .setMessage("Selecione uma das opções abaixo:")
                 .setNeutralButton("Nada", null)
                 .setPositiveButton("Excluir",
-                        (dialog, which) -> delete(category, position)
+                        (dialog, which) -> repository.delete(category)
                 )
                 .setNegativeButton("Editar", (dialog, which) -> {
-                    NewCategoryFragment fragment = new NewCategoryFragment(category, position);
+                    NewCategoryFragment fragment = new NewCategoryFragment(category);
                     replaceContainer(fragment);
                 })
                 .show();
@@ -185,28 +169,7 @@ public class CategoryListFragment extends DialogFragment {
                 .commit();
     }
 
-    private void delete(Category category, int position) {
-        repository.deleteOnApi(category.getApiId(), new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                deleteOnRoom(category, position);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
-    }
-
-    private void deleteOnRoom(Category category, int position) {
-        repository.deleteOnRoom(category)
-                .doOnComplete(() ->
-                        adapterCategories.publishResultsRemoved(category, position))
-                .subscribe();
-    }
-
-    private void setFragmentResultlistener() {
+    private void setFragmentResultListener() {
         getChildFragmentManager().setFragmentResultListener(KEY_RESULT_CATEGORY,
                 this, (requestKey, result) -> {
                     if (result.containsKey(KEY_NAME_CATEGORY)) {
@@ -221,48 +184,15 @@ public class CategoryListFragment extends DialogFragment {
     private void insert(Bundle result) {
         String name = result.getString(KEY_NAME_CATEGORY);
         Category category = new Category(name);
-        repository.insertOnApi(category, new ResultsCallBack<Category>() {
-            @Override
-            public void onSuccess(Category category) {
-                insertOnRoom(category);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
-    }
-
-    private void insertOnRoom(Category category) {
-        repository.insertOnRoom(category)
-                .doOnComplete(() -> adapterCategories.publishResultsInserted(category))
-                .subscribe();
+        repository.insert(category);
     }
 
     private void update(Bundle result) {
         Category category = (Category) result.getSerializable(KEY_UPDATE_CATEGORY);
-        int position = result.getInt(KEY_POSITION);
-        repository.updateOnApi(category, new ResultsCallBack<Void>() {
-            @Override
-            public void onSuccess(Void resultado) {
-                updateOnRoom(category, position);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
+        repository.update(category);
     }
 
-    private void updateOnRoom(Category category, int position) {
-        repository.updateOnRoom(category)
-                .doOnComplete(() -> adapterCategories.publishResultsChanged(category, position))
-                .subscribe();
-    }
-
-    private void showErrorMessage(String erro) {
-        Toast.makeText(requireActivity(), erro, Toast.LENGTH_LONG).show();
+    private void showErrorMessage(String error) {
+        Toast.makeText(requireActivity(), error, Toast.LENGTH_LONG).show();
     }
 }

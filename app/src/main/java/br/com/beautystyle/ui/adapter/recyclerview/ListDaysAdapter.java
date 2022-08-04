@@ -46,7 +46,7 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
         return listDaysHolder;
     }
 
-    public View inflateView(ViewGroup parent){
+    public View inflateView(ViewGroup parent) {
         return LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_days_week_button, parent, false);
     }
@@ -61,31 +61,31 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
         return daysList.size();
     }
 
-    public void publishAllDays() {
-        List<LocalDate> createdList = createDaysList(CalendarUtil.selectedDate);
-        int size = this.daysList.size();
-        this.daysList.clear();
-        notifyItemRangeRemoved(0,size);
-        this.daysList.addAll(createdList);
-        notifyItemRangeInserted(0, createdList.size());
+    public void update() {
+            int size = this.daysList.size();
+            this.daysList.clear();
+            notifyItemRangeRemoved(0, size);
+            List<LocalDate> daysList = createDaysList(CalendarUtil.selectedDate);
+            this.daysList.addAll(daysList);
+            notifyItemRangeInserted(0, daysList.size());
     }
 
     private List<LocalDate> createDaysList(LocalDate selectedDate) {
-            List<LocalDate> listDays = new ArrayList<>();
-            listDays.add(selectedDate);
-            for (int i = 1; i <= 364; i++) {
-                listDays.add(selectedDate.minusDays(i));
-                listDays.add(selectedDate.plusDays(i));
-            }
-            Collections.sort(listDays);
-            return listDays;
+        List<LocalDate> listDays = new ArrayList<>();
+        listDays.add(selectedDate);
+        for (int i = 1; i <= 364; i++) {
+            listDays.add(selectedDate.minusDays(i));
+            listDays.add(selectedDate.plusDays(i));
+        }
+        Collections.sort(listDays);
+        return listDays;
     }
 
-    public void onClickViewHolder(LocalDate date){
+    public void onClickViewHolder(LocalDate date) {
         listDaysHolder.onClickCalendar(date, getPosition(date));
     }
 
-    public int getPosition(LocalDate date){
+    public int getPosition(LocalDate date) {
         return daysList.indexOf(date);
     }
 
@@ -94,18 +94,17 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
         private final Button buttonDay;
         private final TextView dayWeek;
         private final OnDayListener onDayListener;
-        private final List<LocalDate> listDays;
+        private final List<LocalDate> daysList;
 
         public ListDaysHolder(@NonNull View itemView, OnDayListener onDayListener, List<LocalDate> listDays) {
             super(itemView);
             this.buttonDay = itemView.findViewById(R.id.button);
             this.dayWeek = itemView.findViewById(R.id.day_of_week_textview);
             this.onDayListener = onDayListener;
-            this.listDays = listDays;
+            this.daysList = listDays;
 
             buttonDay.setOnClickListener(this);
             itemView.setOnClickListener(this);
-
         }
 
         private void setDrawable(Drawable drawable) {
@@ -146,8 +145,8 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
         @Override
         public void onClick(View v) {
             itemChanged(getLayoutPosition());
-            onDayListener.onDayClick(listDays.get(getAdapterPosition()), selectedPosition);
-            onDayListener.onDayBinding(listDays.get(getAdapterPosition()));
+            onDayListener.onDayClick(daysList.get(getAdapterPosition()), selectedPosition);
+            onDayListener.onDayBinding(daysList.get(getAdapterPosition()));
         }
 
         private void itemChanged(int layoutPosition) {
@@ -165,6 +164,7 @@ public class ListDaysAdapter extends RecyclerView.Adapter<ListDaysAdapter.ListDa
 
     public interface OnDayListener {
         void onDayClick(LocalDate date, int position);
+
         void onDayBinding(LocalDate date);
     }
 }

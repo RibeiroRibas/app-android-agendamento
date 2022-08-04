@@ -36,13 +36,13 @@ import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.EventViewModel;
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.ViewModel.factory.EventFactory;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
+import br.com.beautystyle.model.entity.Costumer;
 import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.model.enuns.StatusPagamento;
 import br.com.beautystyle.repository.EventRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
-import br.com.beautystyle.repository.RoomRepository;
+import br.com.beautystyle.repository.Resource;
 import br.com.beautystyle.ui.fragment.CalendarViewFragment;
 import br.com.beautystyle.ui.fragment.TimePickerFragment;
 import br.com.beautystyle.ui.fragment.client.ClientListFragment;
@@ -56,15 +56,14 @@ import br.com.beautystyle.util.TimeUtil;
 public class NewEventActivity extends AppCompatActivity {
 
     private EditText searchClient, searchJob, eventDate, eventStartTime, eventDuration, valueOfTheJobs;
-    private CheckBox statusNaoRecebido, statusRecebido;
+    private CheckBox statusNotReceived, statusReceived;
     private final List<Job> jobs = new ArrayList<>();
     private EventWithClientAndJobs event = new EventWithClientAndJobs();
     private LocalTime jobsDuration = LocalTime.of(0, 0);
     private final TimePickerDialog.OnTimeSetListener timePickerListener = timePickerDialogListener();
     private final CalendarViewFragment calendarViewFragment = new CalendarViewFragment();
     private final static String TAG_EVENT_START_TIME = "startTime";
-    @Inject
-    RoomRepository roomRepository;
+    private EventViewModel eventViewModel;
     @Inject
     EventRepository eventRepository;
 
@@ -87,7 +86,7 @@ public class NewEventActivity extends AppCompatActivity {
         paymentStatusListener();
         onCalendarClickListener();
 
-        viewModelObserver();
+        liveData();
 
         checkRequiredFieldsAndSaveListener();
     }
@@ -106,8 +105,9 @@ public class NewEventActivity extends AppCompatActivity {
                 .applicationComponent.injectNewEventAct(this);
     }
 
-    private void viewModelObserver() {
-        EventViewModel eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+    private void liveData() {
+        EventFactory factory = new EventFactory(eventRepository);
+        eventViewModel = new ViewModelProvider(this, factory).get(EventViewModel.class);
         eventViewModel.getClientLiveData().observe(this, this::setClient);
         eventViewModel.getJobsLiveData().observe(this, this::setJobs);
     }
@@ -141,16 +141,16 @@ public class NewEventActivity extends AppCompatActivity {
         valueOfTheJobs.addTextChangedListener(new MoneyTextWatcher(valueOfTheJobs));
         eventDuration = findViewById(R.id.activity_new_event_duration);
         eventStartTime = findViewById(R.id.activity_new_event_start_time);
-        statusRecebido = findViewById(R.id.activity_new_event_cb_received);
-        statusNaoRecebido = findViewById(R.id.activity_new_event_cb_not_received);
+        statusReceived = findViewById(R.id.activity_new_event_cb_received);
+        statusNotReceived = findViewById(R.id.activity_new_event_cb_not_received);
     }
 
     private void loadEvent() {
         Intent intentEvent = getIntent();
-        if (isKeyUpdateEvent(intentEvent)) {
+        if (isKeyUpdateEvent(intentEvent)) { // click event list
             event = (EventWithClientAndJobs) intentEvent.getSerializableExtra(KEY_UPDATE_EVENT);
             checkIsEmptyEvent();
-        } else { // new event mode (click Fab button)
+        } else { // click Fab button
             setStatusAndDateEvent();
         }
     }
@@ -171,7 +171,7 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void fillForm() {
-        statusNaoRecebido.setChecked(true); // value default
+        statusNotReceived.setChecked(true); // value default
         eventDate.setText(formatEventDate(CalendarUtil.selectedDate));
         eventStartTime.setText(formatEventStartTime());
     }
@@ -182,7 +182,7 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void setStatusAndDateEvent() {
         event.getEvent().setStatusPagamento(StatusPagamento.NAORECEBIDO);
-        statusNaoRecebido.setChecked(true);
+        statusNotReceived.setChecked(true);
         event.getEvent().setEventDate(CalendarUtil.selectedDate);
         eventDate.setText(formatEventDate(CalendarUtil.selectedDate));
     }
@@ -233,9 +233,9 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void fillPaymentStatus() {
         if (isNotReceivedPayment()) {
-            statusNaoRecebido.setChecked(true);
+            statusNotReceived.setChecked(true);
         } else {
-            statusRecebido.setChecked(true);
+            statusReceived.setChecked(true);
         }
     }
 
@@ -244,9 +244,9 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void eventDateListener() {
-        eventDate.setOnClickListener(v -> {
-            calendarViewFragment.show(getSupportFragmentManager(), TAG_CALENDAR_VIEW);
-        });
+        eventDate.setOnClickListener(v ->
+                calendarViewFragment.show(getSupportFragmentManager(), TAG_CALENDAR_VIEW)
+        );
     }
 
     private void eventStartTimeListener() {
@@ -319,33 +319,33 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void notReceivedPaymentListener() {
-        statusNaoRecebido.setOnCheckedChangeListener(((buttonView, isChecked) -> {
+        statusNotReceived.setOnCheckedChangeListener(((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
-                statusRecebido.setChecked(false);
+                statusReceived.setChecked(false);
                 event.getEvent().setStatusPagamento(StatusPagamento.NAORECEBIDO);
             }
         }));
     }
 
     private void receivedPaymentCheckListener() {
-        statusRecebido.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        statusReceived.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
-                statusNaoRecebido.setChecked(false);
+                statusNotReceived.setChecked(false);
                 event.getEvent().setStatusPagamento(StatusPagamento.RECEBIDO);
             }
         });
     }
 
     private void setDate(LocalDate date) {
-            event.getEvent().setEventDate(date);
-            String formatDateOfEvent = formatEventDate(date);
-            eventDate.setText(formatDateOfEvent);
+        event.getEvent().setEventDate(date);
+        String formatDateOfEvent = formatEventDate(date);
+        eventDate.setText(formatDateOfEvent);
     }
 
-    private void setClient(Client client) {
-        event.getEvent().setClientCreatorId(client.getClientId());
-        event.setClient(client);
-        searchClient.setText(client.getName());
+    private void setClient(Costumer costumer) {
+        event.getEvent().setClientCreatorId(costumer.getClientId());
+        event.setClient(costumer);
+        searchClient.setText(costumer.getName());
     }
 
 
@@ -365,11 +365,11 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private void setJobName() {
-        StringBuilder jobsName = concateJobsName();
+        StringBuilder jobsName = concatJobsName();
         searchJob.setText(jobsName.toString());
     }
 
-    private StringBuilder concateJobsName() {
+    private StringBuilder concatJobsName() {
         StringBuilder builder = new StringBuilder();
         if (!jobs.isEmpty()) {
             jobs.forEach(job -> {
@@ -405,9 +405,7 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void checkRequiredFieldsAndSaveListener() {
         Button btnSaveEvent = findViewById(R.id.activity_new_event_btn_save_event);
-        btnSaveEvent.setOnClickListener(v -> {
-            checkRequiredFields();
-        });
+        btnSaveEvent.setOnClickListener(v -> checkRequiredFields());
     }
 
     private void setEvent() {
@@ -430,52 +428,37 @@ public class NewEventActivity extends AppCompatActivity {
     private void checkRequiredFields() {
         if (checkFields()) {
             setEvent();
-            getByDateFromApi();
+            if (eventRepository.isFreeUser()) {
+                getByDateFromRoom();
+            } else {
+                getByDateFromApi();
+            }
         } else {
             requiredFieldsAlertDialog();
         }
     }
 
+    private void getByDateFromRoom() {
+        eventViewModel.getByDateFromRoomLiveData()
+                .observe(this, this::checkResourceResponse);
+        ;
+    }
+
     private void getByDateFromApi() {
-        eventRepository.getByDateFromApi(event.getEvent().getEventDate(),
-                new ResultsCallBack<List<EventWithClientAndJobs>>() {
-                    @Override
-                    public void onSuccess(List<EventWithClientAndJobs> eventsFromApi) {
-                        if (eventsFromApi.isEmpty()) {
-                            setResultEvent();
-                        } else {
-                            getByDateFromRoom(eventsFromApi);
-                        }
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showError(erro);
-                    }
-                }
-        );
+        eventViewModel.getAllByDateFromApiLiveData(CalendarUtil.selectedDate)
+                .observe(this, this::checkResourceResponse);
     }
 
-    private void getByDateFromRoom(List<EventWithClientAndJobs> eventListFromApi) {
-        eventRepository.getByDateFromRooom(event.getEvent().getEventDate())
-                .doOnSuccess(eventWithJobs -> updateLocalDatabase(eventListFromApi))
-                .subscribe();
-    }
-
-    private void updateLocalDatabase(List<EventWithClientAndJobs> eventListFromApi) {
-        roomRepository.updateLocalDatabase(eventListFromApi,
-                new ResultsCallBack<List<EventWithClientAndJobs>>() {
-                    @Override
-                    public void onSuccess(List<EventWithClientAndJobs> eventWithClientAndJobs) {
-                        checkTimeAndSetResult(eventWithClientAndJobs);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showError(erro);
-                    }
-                }
-        );
+    private void checkResourceResponse(Resource<List<EventWithClientAndJobs>> resource) {
+        if (resource.isDataNotNull()) {
+            if (resource.getData().isEmpty()) {
+                setResultEvent();
+            } else {
+                checkTimeAndSetResult(resource.getData());
+            }
+        } else {
+            showError(resource.getError());
+        }
     }
 
     private boolean checkFields() {
@@ -518,43 +501,43 @@ public class NewEventActivity extends AppCompatActivity {
     }
 
     private boolean checkStartAndEndTimeAlertDialog(List<EventWithClientAndJobs> events) {
-        return isStartTimeAvaliable(events) && isEndTimeAvaliable(events);
+        return isStartTimeAvailable(events) && isEndTimeAvailable(events);
     }
 
-    private boolean isEndTimeAvaliable(List<EventWithClientAndJobs> events) {
-        LocalTime reduzedEndTime = event.getEvent().checkEndTime(events);
-        if (reduzedEndTime != null) {
-            eventEndTimeAlertDialog(reduzedEndTime);
+    private boolean isEndTimeAvailable(List<EventWithClientAndJobs> events) {
+        LocalTime reducedEndTime = event.getEvent().checkEndTime(events);
+        if (reducedEndTime != null) {
+            eventEndTimeAlertDialog(reducedEndTime);
             return false;
         }
         return true;
     }
 
-    private boolean isStartTimeAvaliable(List<EventWithClientAndJobs> eventList) {
+    private boolean isStartTimeAvailable(List<EventWithClientAndJobs> eventList) {
         if (event.getEvent().checkStartTime(eventList)) {
-            eventStartTimeAlerDialog();
+            eventStartTimeAlertDialog();
             return false;
         }
         return true;
     }
 
-    public void eventStartTimeAlerDialog() {
+    public void eventStartTimeAlertDialog() {
         new AlertDialog
                 .Builder(this)
                 .setTitle("Horário Inicial Indisponível")
-                .setPositiveButton("Ok", (dialogInterface, i) -> {
-                    eventStartTime.setBackgroundResource(R.drawable.custom_invalid_input);
-                })
+                .setPositiveButton("Ok", (dialogInterface, i) ->
+                        eventStartTime.setBackgroundResource(R.drawable.custom_invalid_input)
+                )
                 .show();
     }
 
-    public void eventEndTimeAlertDialog(LocalTime reduzedEndTime) {
+    public void eventEndTimeAlertDialog(LocalTime reducedEndTime) {
         new AlertDialog
                 .Builder(this)
                 .setTitle("Tempo de duração excede o tempo disponível na agenda!")
                 .setMessage("Deseja reduzir o tempo de duração?")
                 .setPositiveButton("Sim", (dialogInterface, i) -> {
-                    event.getEvent().setEndTime(reduzedEndTime);
+                    event.getEvent().setEndTime(reducedEndTime);
                     setResultEvent();
                 })
                 .setNegativeButton("Não", (dialogInterface, i) ->
@@ -569,13 +552,8 @@ public class NewEventActivity extends AppCompatActivity {
 
     private void setResult() {
         Intent intent = new Intent();
-        CalendarUtil.selectedDate = event.getEvent().getEventDate();
-        if (isKeyUpdateEvent(getIntent())) {
-            isUpdateEvent(intent);
-            isNewEvent(intent);
-        } else {//new event click fab button
-            isNewEvent(intent);
-        }
+        isUpdateEvent(intent);
+        isNewEvent(intent);
     }
 
     private void isNewEvent(Intent intent) {
@@ -595,23 +573,23 @@ public class NewEventActivity extends AppCompatActivity {
     private TimePickerDialog.OnTimeSetListener timePickerDialogListener() {
         return (view, hour, minute) -> {
             LocalTime timeWatch = LocalTime.of(hour, minute);
-            String timeFormated = TimeUtil.formatLocalTime(timeWatch);
+            String timeFormatted = TimeUtil.formatLocalTime(timeWatch);
             TimePickerFragment eventStartTimeFragment = getFragmentByTag(TAG_EVENT_START_TIME);
             if (eventStartTimeFragment != null) {
-                setEventStartTime(timeWatch, timeFormated);
+                setEventStartTime(timeWatch, timeFormatted);
             } else { // durationEventFragment
-                setEventDuration(timeWatch, timeFormated);
+                setEventDuration(timeWatch, timeFormatted);
             }
         };
     }
 
-    private void setEventStartTime(LocalTime timeWatch, String timeFormated) {
-        eventStartTime.setText(timeFormated);
+    private void setEventStartTime(LocalTime timeWatch, String timeFormatted) {
+        eventStartTime.setText(timeFormatted);
         event.getEvent().setStarTime(timeWatch);
     }
 
-    private void setEventDuration(LocalTime timeWatch, String timeFormated) {
-        eventDuration.setText(timeFormated);
+    private void setEventDuration(LocalTime timeWatch, String timeFormatted) {
+        eventDuration.setText(timeFormatted);
         jobsDuration = timeWatch;
     }
 }

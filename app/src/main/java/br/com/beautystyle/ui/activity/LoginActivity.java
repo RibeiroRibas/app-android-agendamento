@@ -2,7 +2,8 @@ package br.com.beautystyle.ui.activity;
 
 
 import static br.com.beautystyle.repository.ConstantsRepository.EMAIL_SHARED_PREFERENCES;
-import static br.com.beautystyle.repository.ConstantsRepository.ISLOGGED_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.IS_LOGGED_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TOKEN_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.USER_SHARED_PREFERENCES;
@@ -16,16 +17,18 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
+import br.com.beautystyle.ViewModel.UserViewModel;
+import br.com.beautystyle.ViewModel.factory.UserFactory;
 import br.com.beautystyle.model.UserLogin;
 import br.com.beautystyle.model.UserToken;
 import br.com.beautystyle.model.entity.User;
-import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.repository.UserRepository;
 
 
@@ -33,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
 
     @Inject
     UserRepository userRepository;
+    private UserViewModel viewModel;
     private SharedPreferences preferences;
     private EditText email, password;
 
@@ -41,12 +45,27 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        injectActivity();
+
+        UserFactory factory = new UserFactory(userRepository);
+        viewModel = new ViewModelProvider(this,factory).get(UserViewModel.class);
         preferences = getSharedPreferences(USER_SHARED_PREFERENCES, MODE_PRIVATE);
 
         initWidgets();
-        injectActivity();
         btnLoginAuthenticationListener();
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Deseja sair do app?")
+                .setPositiveButton("SIM", (dialog, whichButton) -> {
+                    finish();
+                    dialog.dismiss();
+                }).setNegativeButton("NÃO", (dialog, whichButton) -> {
+                    dialog.dismiss();
+                }).show();
     }
 
     private void initWidgets() {
@@ -86,23 +105,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void authUserOnApi(UserLogin userLogin) {
-        userRepository.authUser(userLogin, new ResultsCallBack<UserToken>() {
-            @Override
-            public void onSuccess(UserToken userToken) {
-                setPreferences(userToken, userLogin.getEmail());
-                User user = new User(userLogin, userToken.getProfiles());
+        viewModel.authUser(userLogin).observe(this,resource->{
+            if(resource.isDataNotNull()){
+                setPreferences(resource.getData(), userLogin.getEmail());
+                User user = new User(userLogin, resource.getData().getProfiles());
                 insertUserOnRoom(user);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
+            }else{
+                showErrorMessage(resource.getError());
             }
         });
     }
 
     private void insertUserOnRoom(User user) {
-        userRepository.insert(user)
+        userRepository.insertOnRoom(user)
                 .doOnComplete(this::startNavigationActivity).subscribe();
     }
 
@@ -116,7 +131,8 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString(EMAIL_SHARED_PREFERENCES, email);
         editor.putString(TOKEN_SHARED_PREFERENCES, userToken.getTypeToken());
         editor.putLong(TENANT_SHARED_PREFERENCES, userToken.getCompanyId());
-        editor.putBoolean(ISLOGGED_SHARED_PREFERENCES, true);
+        editor.putString(PROFILE_SHARED_PREFERENCES, userToken.getProfile());
+        editor.putBoolean(IS_LOGGED_SHARED_PREFERENCES, true);
         editor.apply();
     }
 

@@ -8,7 +8,7 @@ public class Report {
     private String clientName;
     private LocalDate date;
     private BigDecimal eventValue;
-    private String expenceCategory;
+    private String expenseCategory;
     private BigDecimal expenseValue;
 
     public String getClientName() {
@@ -35,12 +35,12 @@ public class Report {
         this.eventValue = eventValue;
     }
 
-    public String getExpenceCategory() {
-        return expenceCategory;
+    public String getExpenseCategory() {
+        return expenseCategory;
     }
 
-    public void setExpenceCategory(String expenceCategory) {
-        this.expenceCategory = expenceCategory;
+    public void setExpenseCategory(String expenseCategory) {
+        this.expenseCategory = expenseCategory;
     }
 
     public BigDecimal getExpenseValue() {

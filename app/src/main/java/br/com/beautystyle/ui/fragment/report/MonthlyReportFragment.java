@@ -1,9 +1,5 @@
 package br.com.beautystyle.ui.fragment.report;
 
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_END_DATE;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_REPORT;
-import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_START_DATE;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,41 +10,40 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
+import java.time.Month;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
-import br.com.beautystyle.repository.EventRepository;
-import br.com.beautystyle.repository.ExpenseRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
-import br.com.beautystyle.util.CreateListsUtil;
+import br.com.beautystyle.ViewModel.ReportViewModel;
+import br.com.beautystyle.util.CalendarUtil;
 
 public class MonthlyReportFragment extends Fragment {
 
-    private int monthValue, yearValue = -1;
     private AutoCompleteTextView monthsOfTheYear, years;
-    @Inject
-    ExpenseRepository expenseRepositoty;
-    @Inject
-    EventRepository eventRepository;
+    private ReportViewModel viewModel;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        injectFrament();
+        injectFragment();
     }
 
-    private void injectFrament() {
+    private void injectFragment() {
         ((BeautyStyleApplication) requireActivity().getApplicationContext())
                 .applicationComponent.injectMonthlyReportFrag(this);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        viewModel = new ViewModelProvider(requireParentFragment()).get(ReportViewModel.class);
     }
 
     @Override
@@ -58,49 +53,28 @@ public class MonthlyReportFragment extends Fragment {
 
         initWidgets(inflatedView);
 
+        setAdapterMonthsOfTheYearLiveData();
+        setAdapterYearsLiveData();
+
         adapterMonthOfTheYearListener();
         adapterYearsListener();
 
         return inflatedView;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        setAdapterYears();
-        setAdapterMonthsOfTheYear();
-    }
-
-    private void setAdapterMonthsOfTheYear() {
-        List<String> monthsOfTheYearList = CreateListsUtil.createMonthsList();
-        ArrayAdapter<String> adapterItens = getSimpleAdapterList(monthsOfTheYearList);
-        monthsOfTheYear.setAdapter(adapterItens);
-    }
-
-    private void setAdapterYears() {
-        expenseRepositoty.getYearsListFromApi(new ResultsCallBack<List<String>>() {
-            @Override
-            public void onSuccess(List<String> yearsListOfEvent) {
-                getyearListFromRoom(yearsListOfEvent);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
+    private void setAdapterMonthsOfTheYearLiveData() {
+        viewModel.getMonthsOfTheYearLiveData().observe(requireActivity(), monthsOfTheYearList -> {
+            ArrayAdapter<String> adapterItens = getSimpleAdapterList(monthsOfTheYearList);
+            monthsOfTheYear.setAdapter(adapterItens);
         });
     }
 
-    private void getyearListFromRoom(List<String> yearsListOfEvent) {
-        eventRepository.getYearsListFromApi(new ResultsCallBack<List<String>>() {
-            @Override
-            public void onSuccess(List<String> yearsListOfExpense) {
-                updateAdapterYears(yearsListOfEvent, yearsListOfExpense);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
+    private void setAdapterYearsLiveData() {
+        viewModel.getYearsListLiveData().observe(requireActivity(), resource -> {
+            if (resource.isDataNotNull()) {
+                updateAdapterYears(resource.getData());
+            } else {
+                showErrorMessage(resource.getError());
             }
         });
     }
@@ -109,9 +83,7 @@ public class MonthlyReportFragment extends Fragment {
         Toast.makeText(requireActivity(), erro, Toast.LENGTH_LONG).show();
     }
 
-    private void updateAdapterYears(List<String> yearsListOfEvent, List<String> yearsListOfExpense) {
-        yearsListOfEvent.addAll(yearsListOfExpense);
-        List<String> yearsList = yearsListOfEvent.stream().distinct().collect(Collectors.toList());
+    private void updateAdapterYears(List<String> yearsList) {
         ArrayAdapter<String> adapterItens = getSimpleAdapterList(yearsList);
         years.setAdapter(adapterItens);
     }
@@ -129,26 +101,23 @@ public class MonthlyReportFragment extends Fragment {
 
     private void adapterMonthOfTheYearListener() {
         monthsOfTheYear.setOnItemClickListener((parent, view, position, id) -> {
-            monthValue = position + 1;
-            if (yearValue != -1)
-                setFragmentResult();
+            String yearValue = years.getText().toString();
+            String month = monthsOfTheYear.getText().toString();
+            if (!yearValue.isEmpty()) {
+                CalendarUtil.selectedDate = LocalDate.of(Integer.parseInt(yearValue), Month.valueOf(month), 1);
+                viewModel.addMonthlyReport();
+            }
         });
     }
 
     private void adapterYearsListener() {
         years.setOnItemClickListener(((parent, view, position, id) -> {
-            yearValue = Integer.parseInt(parent.getItemAtPosition(position).toString());
-            if (monthValue != -1)
-                setFragmentResult();
+            String month = monthsOfTheYear.getText().toString();
+            int yearValue = Integer.parseInt(years.getText().toString());
+            if (!month.isEmpty()) {
+                CalendarUtil.selectedDate = LocalDate.of(yearValue, Month.from(Month.valueOf(month)), 1);
+                viewModel.addMonthlyReport();
+            }
         }));
-    }
-
-    private void setFragmentResult() {
-        Bundle result = new Bundle();
-        LocalDate startDate = LocalDate.of(yearValue, monthValue, 1);
-        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
-        result.putSerializable(KEY_START_DATE, startDate);
-        result.putSerializable(KEY_END_DATE, endDate);
-        getParentFragmentManager().setFragmentResult(KEY_REPORT, result);
     }
 }

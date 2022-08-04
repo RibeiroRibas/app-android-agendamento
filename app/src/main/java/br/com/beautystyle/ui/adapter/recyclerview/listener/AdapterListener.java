@@ -1,7 +1,7 @@
 package br.com.beautystyle.ui.adapter.recyclerview.listener;
 
 import br.com.beautystyle.model.entity.Category;
-import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.model.entity.Costumer;
 import br.com.beautystyle.model.entity.Expense;
 import br.com.beautystyle.model.entity.Job;
 
@@ -12,7 +12,7 @@ public class AdapterListener {
     }
 
     public interface OnClientClickListener {
-        void onItemClick(Client client);
+        void onItemClick(Costumer costumer);
     }
 
     public interface OnJobClickListener {
@@ -24,6 +24,6 @@ public class AdapterListener {
     }
 
     public interface OnCategoryLongClickListener {
-        boolean onItemClick(Category category, int position);
+        boolean onItemClick(Category category);
     }
 }

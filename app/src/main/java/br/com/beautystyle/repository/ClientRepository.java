@@ -1,8 +1,7 @@
 package br.com.beautystyle.repository;
 
-import static android.content.ContentValues.TAG;
+import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
-import static br.com.beautystyle.repository.ConstantsRepository.TOKEN_SHARED_PREFERENCES;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -10,9 +9,10 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,159 +20,174 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.retrofit.callback.CallBackReturn;
-import br.com.beautystyle.database.retrofit.callback.CallBackWithoutReturn;
-import br.com.beautystyle.database.retrofit.service.ClientService;
-import br.com.beautystyle.database.room.BeautyStyleDatabase;
-import br.com.beautystyle.database.room.dao.RoomClientDao;
-import br.com.beautystyle.model.entity.Client;
+import br.com.beautystyle.database.rxjavaassinc.CostumerAsynchDao;
+import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.retrofit.webclient.CostumerWebClient;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import retrofit2.Call;
 
 public class ClientRepository {
 
-    private final RoomClientDao dao;
     @Inject
-    ClientService service;
-    private final String token;
+    CostumerAsynchDao dao;
+    @Inject
+    CostumerWebClient webClient;
+    private final MutableLiveData<Resource<List<Costumer>>> mutableCostumers = new MutableLiveData<>();
+    private final String profile;
     private final Long tenant;
 
     @Inject
-    public ClientRepository(BeautyStyleDatabase database, SharedPreferences preferences) {
-        dao = database.getRoomClientDao();
-        token = preferences.getString(TOKEN_SHARED_PREFERENCES, "");
+    public ClientRepository(SharedPreferences preferences) {
+        profile = preferences.getString(PROFILE_SHARED_PREFERENCES, "");
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public Single<List<Client>> getAllClientsOnRoom() {
-        return dao.getAll()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io());
+    public LiveData<Resource<List<Costumer>>> getAllFromRoomLiveData() {
+        dao.getAllObservable().doOnNext(costumersFromRoom -> {
+                    Resource<List<Costumer>> resource = new Resource<>(costumersFromRoom, null);
+                    mutableCostumers.setValue(resource);
+                }).doOnError(error ->
+                        mutableCostumers.setValue(new Resource<>(null, error.getMessage())))
+                .subscribe();
+        return mutableCostumers;
     }
 
-    public Call<List<Client>> getClientListFromApi(ResultsCallBack<List<Client>> callBack) {
-        Call<List<Client>> callClientList = service.getAllByCompanyId(tenant, token);
-        callClientList.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<List<Client>>() {
-                    @Override
-                    public void onSuccess(List<Client> clientList) {
-                        callBack.onSuccess(clientList);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        callBack.onError(error);
-                    }
-                }));
-        return callClientList;
-    }
-
-    public void insertClientOnApi(Client client, ResultsCallBack<Client> callBack) {
-        client.setCompanyId(tenant);
-        Call<Client> callNewClient = service.insert(client, token);
-        callNewClient.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<Client>() {
-                    @Override
-                    public void onSuccess(Client client) {
-                        callBack.onSuccess(client);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        callBack.onError(error);
-                    }
+    public void getAllFromApi() {
+        if(isUserPremium()){
+            webClient.getAll(new ResultsCallBack<List<Costumer>>() {
+                @Override
+                public void onSuccess(List<Costumer> costumersFromApi) {
+                    updateAndInsertAll(costumersFromApi, null);
                 }
-        ));
+
+                @Override
+                public void onError(String error) {
+                    mutableCostumers.setValue(new Resource<>(null, error));
+                }
+            });
+        }
     }
 
-    public Single<Long> insertClientOnRoom(Client client) {
-        client.setClientId(null);
-        return dao.insert(client)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io());
+    public void insertOnApi(Costumer newCostumer) {
+        if(isUserPremium()){
+            webClient.insert(newCostumer, new ResultsCallBack<Costumer>() {
+                @Override
+                public void onSuccess(Costumer costumer) {
+                    costumer.setClientId(null);
+                    dao.insert(costumer).subscribe();
+                }
+
+                @Override
+                public void onError(String error) {
+                    mutableCostumers.setValue(new Resource<>(null, error));
+                }
+            });
+        }
     }
 
-    public void updateClientOnApi(Client client, ResultsCallBack<Void> callBack) {
-        Call<Void> callUpdateClient = service.update(client, token);
-        callUpdateClient.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
+    public void update(Costumer costumer) {
+        webClient.update(costumer, new ResultsCallBack<Void>() {
             @Override
-            public void onSuccess() {
-                callBack.onSuccess(null);
+            public void onSuccess(Void result) {
+                dao.update(costumer).subscribe();
             }
 
             @Override
-            public void onError(String erro) {
-
+            public void onError(String error) {
+                mutableCostumers.setValue(new Resource<>(null, error));
             }
-        }));
+        });
     }
 
-    public Completable updateClientOnRoom(Client client) {
-        return dao.update(client)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io());
+    public void delete(Costumer costumer) {
+        webClient.delete(costumer, new ResultsCallBack<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                dao.delete(costumer).subscribe();
+            }
+
+            @Override
+            public void onError(String error) {
+                mutableCostumers.setValue(new Resource<>(null, error));
+            }
+        });
     }
 
-    public void deleteClientOnApi(Client client, ResultsCallBack<Void> callBack) {
-        Call<Void> callDeletedClient = service.delete(client.getApiId(), token);
-        callDeletedClient.enqueue(new CallBackWithoutReturn(
-                        new CallBackWithoutReturn.CallBackResponse() {
-                            @Override
-                            public void onSuccess() {
-                                callBack.onSuccess(null);
-                            }
+    public void insertAll(List<Costumer> contactList) {
+        webClient.insertAll(contactList, new ResultsCallBack<List<Costumer>>() {
+            @Override
+            public void onSuccess(List<Costumer> costumers) {
+                costumers.forEach(costumer -> costumer.setClientId(null));
+                dao.insertAll(costumers).subscribe();
+            }
 
-                            @Override
-                            public void onError(String erro) {
-                                callBack.onError(erro);
-                            }
-                        }
-                )
-        );
+            @Override
+            public void onError(String error) {
+                mutableCostumers.setValue(new Resource<>(null, error));
+            }
+        });
     }
 
+
+    private void deleteFromRoomIfNotExistOnApi(List<Costumer> costumersFromApi,
+                                               List<Costumer> costumersFromRoom) {
+        costumersFromRoom.forEach(fromRoom -> {
+            if (fromRoom.isNotExistOnApi(costumersFromApi))
+                dao.delete(fromRoom).subscribe();
+        });
+    }
+
+    public LiveData<List<Costumer>> getContactListFromSmartphone(Context context) {
+        MutableLiveData<List<Costumer>> mutableContactList = new MutableLiveData<>();
+        dao.getAll()
+                .doOnSuccess(costumersFromRoom ->
+                        getNewContacts(context, costumersFromRoom)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribeOn(Schedulers.io())
+                                .doOnSuccess(mutableContactList::setValue)
+                                .subscribe()
+                ).subscribe();
+        return mutableContactList;
+    }
 
     @SuppressLint("Range")
-    public Single<List<Client>> getContactListFromSmartphone(Context context) {
-        return dao.getAll()
-                .map(clientList -> {
-                    List<Client> contactList = new ArrayList<>();
-                    Uri uri = ContactsContract.Contacts.CONTENT_URI;
-                    Cursor cursor = context.getContentResolver().query(uri, null, null, null);
-                    if (cursor.getCount() > 0) {
-                        while (cursor.moveToNext()) {
-                            String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-                            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+    private Single<List<Costumer>> getNewContacts(Context context,
+                                                  List<Costumer> costumersFromRoom) {
+        return Single.create(emitter -> {
+            Thread.sleep(5000);
+            List<Costumer> contactList = new ArrayList<>();
+            Uri uri = ContactsContract.Contacts.CONTENT_URI;
+            Cursor cursor = context.getContentResolver().query(uri, null, null, null);
+            if (cursor.getCount() > 0) {
+                while (cursor.moveToNext()) {
+                    String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                    String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
-                            Cursor phoneCursor = getPhoneCursor(context, id);
+                    Cursor phoneCursor = getPhoneCursor(context, id);
 
-                            String number = "";
+                    String number = "";
 
-                            if (phoneCursor.moveToNext()) {
-                                number = phoneCursor.getString(
-                                        phoneCursor.getColumnIndex(
-                                                ContactsContract.CommonDataKinds.Phone.NUMBER
-                                        )
-                                );
-                            }
-
-                            Client contact = new Client(name, number, tenant);
-
-                            if (contact.isNewContact(clientList)) {
-                                contactList.add(contact);
-                            }
-
-                            phoneCursor.close();
-                        }
+                    if (phoneCursor.moveToNext()) {
+                        number = phoneCursor.getString(
+                                phoneCursor.getColumnIndex(
+                                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                                )
+                        );
                     }
-                    cursor.close();
-                    return contactList;
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+
+                    Costumer contact = new Costumer(name, number);
+
+                    if (contact.isNewContact(costumersFromRoom)) {
+                        contactList.add(contact);
+                    }
+
+                    phoneCursor.close();
+                }
+            }
+            cursor.close();
+            emitter.onSuccess(contactList);
+        });
     }
 
     private Cursor getPhoneCursor(Context context, String id) {
@@ -182,110 +197,76 @@ public class ClientRepository {
                 .query(uriPhone, null, selection, new String[]{id}, null);
     }
 
-    public void insertAllOnApi(List<Client> contactList, ResultsCallBack<List<Client>> callBack) {
-        Call<List<Client>> callClientList = service.insertAll(contactList, token);
-        callClientList.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<List<Client>>() {
-                    @Override
-                    public void onSuccess(List<Client> clients) {
-                        callBack.onSuccess(clients);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        callBack.onError(error);
-                    }
-                }
-        ));
-    }
-
-    public Single<List<Long>> insertAllOnRoom(List<Client> response) {
-        return dao.insertAll(response)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io());
-    }
-
-    public Single<Long> insert(Client client) {
-        return dao.insert(client)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public Completable update(Client client) {
-        return dao.update(client)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public Completable updateAllOnRoom(List<Client> updatedClientList) {
-        return dao.updateAll(updatedClientList)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public void updateClients(List<Client> clientsFromApi,
-                              ResultsCallBack<List<Client>> callBack) {
-        getAllClientsOnRoom()
+    public void updateAndInsertAll(List<Costumer> clientsFromApi,
+                                   ResultsCallBack<List<Costumer>> callBack) {
+        dao.getAll()
                 .doOnSuccess(clientsFromRoom -> {
+                    if (callBack == null)
+                        deleteFromRoomIfNotExistOnApi(clientsFromApi, clientsFromRoom);
                     mergeClientId(clientsFromRoom, clientsFromApi);
-                    List<Client> clientsToUpdate = getClientsToUpdate(clientsFromApi);
-                    updateAllOnRoom(clientsToUpdate)
+                    List<Costumer> clientsToUpdate = getClientsToUpdate(clientsFromApi);
+                    dao.updateAll(clientsToUpdate)
                             .doOnComplete(() -> {
-                                List<Client> newClients = getClientsToInsert(clientsFromApi);
-                                if (newClients.isEmpty()) {
-                                    callBack.onSuccess(clientsFromApi);
-                                } else {
-                                    newClients.forEach(client -> client.setClientId(null));
-                                    insertAllOnRoom(newClients)
-                                            .doOnSuccess(ids -> {
-                                                setClientIds(newClients, ids);
-                                                mergeClientId(newClients, clientsFromApi);
+                                List<Costumer> newCostumers = getClientsToInsert(clientsFromApi);
+                                newCostumers.forEach(client -> client.setClientId(null));
+                                dao.insertAll(newCostumers)
+                                        .doOnSuccess(ids -> {
+                                            if (callBack != null) {
+                                                setClientIds(newCostumers, ids);
+                                                mergeClientId(newCostumers, clientsFromApi);
+
                                                 callBack.onSuccess(clientsFromApi);
-                                            }).subscribe();
-                                }
+                                            }
+                                        }).subscribe();
                             }).subscribe();
                 }).subscribe();
     }
 
-    private void setClientIds(List<Client> newClients, List<Long> ids) {
-        for (int i = 0; i < newClients.size(); i++) {
-            newClients.get(i).setClientId(ids.get(i));
+    private void setClientIds(List<Costumer> newCostumers, List<Long> ids) {
+        for (int i = 0; i < newCostumers.size(); i++) {
+            newCostumers.get(i).setClientId(ids.get(i));
         }
     }
 
     @NonNull
-    private List<Client> getClientsToInsert(List<Client> clientsFromApi) {
+    private List<Costumer> getClientsToInsert(List<Costumer> clientsFromApi) {
         return clientsFromApi.stream()
                 .filter(client -> !client.checkId())
-                .filter(Client::checkApiId)
+                .filter(Costumer::checkApiId)
                 .collect(Collectors.toList());
     }
 
     @NonNull
-    private List<Client> getClientsToUpdate(List<Client> clientsFromApi) {
+    private List<Costumer> getClientsToUpdate(List<Costumer> clientsFromApi) {
         return clientsFromApi.stream()
-                .filter(Client::checkId)
+                .filter(Costumer::checkId)
                 .collect(Collectors.toList());
     }
 
-    private void mergeClientId(List<Client> clientsFromRoom, List<Client> clientsFromApi) {
-        clientsFromApi.forEach((clientApi ->
-                clientsFromRoom.forEach(clientRoom -> {
-                    try {
-                        if (clientApi.getApiId().equals(clientRoom.getApiId())) {
-                            clientApi.setClientId(clientRoom.getClientId());
-                        }
-                    } catch (Exception erro) {
-                        Log.i(TAG, "eventApiId Null: " + erro);
-                    }
-                })
+    private void mergeClientId(List<Costumer> clientsFromRoom, List<Costumer> clientsFromApi) {
+        clientsFromApi.forEach((clientApi -> {
+            for (Costumer costumerRoom : clientsFromRoom) {
+                if (clientApi.getApiId().equals(costumerRoom.getApiId())) {
+                    clientApi.setClientId(costumerRoom.getClientId());
+                    break;
+                }
+            }
+        }
         ));
     }
-
-    public Completable deleteClient(Client client) {
-        return dao.delete(client)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+    private boolean isFreeUser() {
+        return profile.equals("ROLE_FREE_ACCOUNT");
     }
 
+    private boolean isUserPremium() {
+        return profile.equals("ROLE_PROFISSIONAL");
+    }
+
+    public void insertOnRoom(Costumer costumer) {
+        if(isFreeUser()){
+            costumer.setClientId(null);
+            costumer.setCompanyId(tenant);
+            dao.insert(costumer).subscribe();
+        }
+    }
 }

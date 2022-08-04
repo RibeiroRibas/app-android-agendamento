@@ -35,7 +35,7 @@
     <string name="expense_date">Data da Compra</string>
     <string name="start_time">Início ás:</string>
     <string name="hrs">hrs</string>
-    <string name="client">Cliente</string>
+    <string name="costumer">Cliente</string>
     <string name="search">Buscar</string>
     <string name="service">Serviço</string>
     <string name="duration">Duração</string>

@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import br.com.beautystyle.model.enuns.RepeatOrNot;
 
@@ -86,4 +87,12 @@ public class Expense implements Serializable {
         this.expenseDate = expenseDate;
     }
 
+    public boolean isNotExistOnApi(List<Expense> expensesFromApi) {
+        for (Expense fromApi : expensesFromApi) {
+            if (this.apiId.equals(fromApi.getApiId())) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

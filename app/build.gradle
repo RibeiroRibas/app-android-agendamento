@@ -21,18 +21,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
     buildFeatures {
         viewBinding true
     }
+    compileSdkVersion 31
 }
 
 dependencies {
 
     def room_version = "2.4.2"
-    def view_model_version = "2.4.1"
+    def view_model_version = "2.5.0"
 
     //room
     implementation "androidx.room:room-runtime:$room_version"
@@ -40,9 +41,8 @@ dependencies {
     implementation "androidx.room:room-rxjava3:$room_version"
     implementation "androidx.room:room-common:$room_version"
 
-
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'

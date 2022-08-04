@@ -1,6 +1,6 @@
 package br.com.beautystyle.ui.fragment.event;
 
-import static android.content.ContentValues.TAG;
+import static br.com.beautystyle.ui.activity.ContantsActivity.KEY_CLICK_FAB_NAVIGATION;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_INSERT_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EVENT;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_EVENT;
@@ -10,7 +10,6 @@ import static br.com.beautystyle.util.ConstantsUtil.MMMM_YYYY;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -29,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
@@ -39,30 +39,27 @@ import java.util.List;
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.entity.Event;
+import br.com.beautystyle.ViewModel.EventViewModel;
+import br.com.beautystyle.ViewModel.factory.EventFactory;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
 import br.com.beautystyle.repository.EventRepository;
-import br.com.beautystyle.repository.ResultsCallBack;
-import br.com.beautystyle.repository.RoomRepository;
+import br.com.beautystyle.repository.Resource;
 import br.com.beautystyle.ui.ListDaysView;
 import br.com.beautystyle.ui.activity.NewEventActivity;
 import br.com.beautystyle.ui.adapter.listview.EventListAdapter;
 import br.com.beautystyle.ui.adapter.recyclerview.ListDaysAdapter;
 import br.com.beautystyle.util.CalendarUtil;
-import io.reactivex.rxjava3.disposables.Disposable;
 
 public class EventListFragment extends Fragment implements ListDaysAdapter.OnDayListener {
 
     private ListView eventsListView;
-    private ListDaysView daysListView;
+    private ListDaysView daysList;
     private TextView monthAndYear;
     private ActivityResultLauncher<Intent> activityResultLauncher;
     private EventListAdapter adapterEvents;
-    @Inject
-    RoomRepository roomRepository;
+    private EventViewModel eventViewModel;
     @Inject
     EventRepository eventRepository;
-    private Disposable subscribe;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -78,7 +75,9 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        daysListView = new ListDaysView();
+        EventFactory factory = new EventFactory(eventRepository);
+        eventViewModel = new ViewModelProvider(this, factory).get(EventViewModel.class);
+        daysList = new ListDaysView();
     }
 
     @Override
@@ -86,19 +85,55 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_list_event, container, false);
 
-        initWidgets(inflatedView);
-        setDaysListAdapter(inflatedView);// onClickListener in ListDaysAdapter
-        setEventListAdapter();
-
-        eventListOnClickListener();
-        monthAndYear.setText(CalendarUtil.formatLocalDate(CalendarUtil.selectedDate, MMMM_YYYY));
-
         registerActivityResult();
-        getEventsByDate(CalendarUtil.selectedDate);
+
+        setMonthAndYearTextView(inflatedView);
+        setDaysRecyclerViewAdapter(inflatedView);// onClickListener in ListDaysAdapter
+        setEventListViewAdapter(inflatedView);
+
+        // LISTENER
+        eventListOnClickListener();
+        fabNavigationClickListener();
 
         return inflatedView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        eventsLiveData();
+    }
+
+    private void fabNavigationClickListener() {
+        Bundle arguments = getArguments();
+        if (isFabOnClickListener(arguments)) {
+            launchNewEventActivity(new EventWithClientAndJobs(), KEY_INSERT_EVENT);
+            arguments.remove(KEY_CLICK_FAB_NAVIGATION);
+            setArguments(arguments);
+        }
+    }
+
+    private boolean isFabOnClickListener(Bundle arguments) {
+        return arguments != null && arguments.containsKey(KEY_CLICK_FAB_NAVIGATION);
+    }
+
+    private void setMonthAndYearTextView(View inflatedView) {
+        monthAndYear = inflatedView.findViewById(R.id.fragment_list_event_month_and_year);
+        monthAndYear.setText(CalendarUtil.formatLocalDate(CalendarUtil.selectedDate, MMMM_YYYY));
+    }
+
+    private void getEventsByDateFromApiLiveData() {
+        eventViewModel.getAllByDateFromApiLiveData(CalendarUtil.selectedDate)
+                .observe(requireActivity(), this::updateAdapters);
+    }
+
+    private void updateAdapters(Resource<List<EventWithClientAndJobs>> resource) {
+        if (resource.isDataNotNull()) {
+            updateAdapters(resource.getData());
+        } else {
+            showErrorMessage(resource.getError());
+        }
+    }
 
     @Override
     public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
@@ -120,70 +155,85 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
                 .setTitle("Removendo item da Agenda")
                 .setMessage("Tem certeza que deseja remover o item selecionado?")
                 .setPositiveButton("Sim", (dialog, which) -> {
-                    AdapterView.AdapterContextMenuInfo menuInfo =
-                            (AdapterView.AdapterContextMenuInfo) itemId.getMenuInfo();
                     EventWithClientAndJobs eventWithClientAndJobs =
-                            (EventWithClientAndJobs) adapterEvents.getItem(menuInfo.position);
-                    deleteEvent(eventWithClientAndJobs.getEvent());
+                            getEventByAdapterPosition(itemId);
+                    checkIsEventNotNull(eventWithClientAndJobs);
                 })
                 .setNegativeButton("Não", null)
                 .show();
     }
 
-    private void deleteEvent(Event selectedEvent) {
-        if (selectedEvent.getEventId() > 0) {
-            eventRepository.deleteOnApi(selectedEvent.getApiId(), new ResultsCallBack<Void>() {
-                @Override
-                public void onSuccess(Void resultado) {
-                    deleteOnRoom(selectedEvent);
-                }
+    private EventWithClientAndJobs getEventByAdapterPosition(MenuItem itemId) {
+        AdapterView.AdapterContextMenuInfo menuInfo =
+                (AdapterView.AdapterContextMenuInfo) itemId.getMenuInfo();
+        return (EventWithClientAndJobs) adapterEvents.getItem(menuInfo.position);
+    }
 
-                @Override
-                public void onError(String erro) {
-                    showErrorMessage(erro);
-                }
-            });
+    private void checkIsEventNotNull(EventWithClientAndJobs selectedEvent) {
+        if (selectedEvent.isEventNotNull()) {
+            delete(selectedEvent);
         } else {
             Toast.makeText(requireActivity(), "Não é possível remover um horário vazio",
                     Toast.LENGTH_LONG).show();
         }
     }
 
-    private void deleteOnRoom(Event selectedEvent) {
-        eventRepository.deleteOnRoom(selectedEvent)
-                .doOnComplete(() -> daysListView.toScrollPosition(selectedEvent.getEventDate()))
-                .subscribe();
+    private void delete(EventWithClientAndJobs selectedEvent) {
+        if(eventRepository.isUserPremium()){
+            eventViewModel.deleteOnApi(selectedEvent.getEvent())
+                    .observe(requireActivity(), this::checkResourceResponse);
+        }else{
+            eventViewModel.deleteOnRoom(selectedEvent.getEvent())
+                    .observe(requireActivity(), this::checkResourceResponse);
+        }
     }
 
-    private void initWidgets(View inflatedView) {
-        eventsListView = inflatedView.findViewById(R.id.fragment_list_event_list_view);
-        monthAndYear = inflatedView.findViewById(R.id.fragment_list_event_month_and_year);
+    private void checkResourceResponse(Resource<?> resource) {
+        if (resource.isErrorNotNull()) {
+            showErrorMessage(resource.getError());
+        } else {
+            daysList.toScrollPosition(CalendarUtil.selectedDate);
+        }
     }
 
-    private void setDaysListAdapter(View inflatedView) {
+    private void setDaysRecyclerViewAdapter(View inflatedView) {
         RecyclerView daysList = inflatedView.findViewById(R.id.fragment_list_event_days_list_rv);
-        daysListView.setAdapter(daysList, this);
+        this.daysList.setAdapter(daysList, this);
     }
 
-    private void setEventListAdapter() {
+    private void setEventListViewAdapter(View inflatedView) {
         adapterEvents = new EventListAdapter(requireActivity());
+        eventsListView = inflatedView.findViewById(R.id.fragment_list_event_list_view);
         eventsListView.setAdapter(adapterEvents);
         registerForContextMenu(eventsListView);
     }
 
     private void eventListOnClickListener() {
         eventsListView.setOnItemClickListener((adapter, view, position, id) -> {
-            EventWithClientAndJobs eventWithClientAndJobs = (EventWithClientAndJobs) adapter.getItemAtPosition(position);
-            Intent intent = new Intent(requireActivity(), NewEventActivity.class)
-                    .putExtra(KEY_UPDATE_EVENT, eventWithClientAndJobs);
-            activityResultLauncher.launch(intent);
+            EventWithClientAndJobs eventWithClientAndJobs =
+                    (EventWithClientAndJobs) adapter.getItemAtPosition(position);
+            launchNewEventActivity(eventWithClientAndJobs, KEY_UPDATE_EVENT);
         });
+    }
+
+    private void launchNewEventActivity(EventWithClientAndJobs eventWithClientAndJobs,
+                                        String keyUpdateEvent) {
+        Intent intent = new Intent(requireActivity(), NewEventActivity.class)
+                .putExtra(keyUpdateEvent, eventWithClientAndJobs);
+        activityResultLauncher.launch(intent);
     }
 
     @Override
     public void onDayClick(LocalDate date, int position) {
         CalendarUtil.selectedDate = date;
-        getEventsByDate(CalendarUtil.selectedDate);
+        eventsLiveData();
+    }
+
+    private void eventsLiveData() {
+        getEventsByDateFromRoomLiveData();
+        if(eventRepository.isUserPremium()){
+            getEventsByDateFromApiLiveData();
+        }
     }
 
     @Override
@@ -207,7 +257,13 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         if (result.getResultCode() == REQUEST_CODE_UPDATE_EVENT) {
             EventWithClientAndJobs event =
                     (EventWithClientAndJobs) intent.getSerializableExtra(KEY_UPDATE_EVENT);
-            updateEventOnApi(event);
+            if(eventRepository.isUserPremium()){
+                eventViewModel.updateOnApi(event)
+                        .observe(requireActivity(), this::checkResourceResponse);
+            }else{
+                eventViewModel.updateOnRoom(event)
+                        .observe(requireActivity(), this::checkResourceResponse);
+            }
         }
     }
 
@@ -215,129 +271,28 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         if (result.getResultCode() == REQUEST_CODE_INSERT_EVENT) {
             EventWithClientAndJobs event =
                     (EventWithClientAndJobs) intent.getSerializableExtra(KEY_INSERT_EVENT);
-            insertEventOnApi(event);
+            if(eventRepository.isUserPremium()){
+                eventViewModel.insertOnApi(event)
+                        .observe(requireActivity(), this::checkResourceResponse);
+            }else{
+                eventViewModel.insertOnRoom(event)
+                        .observe(requireActivity(), this::checkResourceResponse);
+            }
         }
     }
 
-    private void updateEventOnApi(EventWithClientAndJobs event) {
-        eventRepository.updateOnApi(event, new ResultsCallBack<Void>() {
-                    @Override
-                    public void onSuccess(Void result) {
-                        updateEventOnRoom(event);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                }
-        );
+    private void getEventsByDateFromRoomLiveData() {
+        eventViewModel.getByDateFromRoomLiveData()
+                .observe(requireActivity(), this::updateAdapters);
     }
 
-    private void updateEventOnRoom(EventWithClientAndJobs event) {
-        roomRepository.updateEvent(event,
-                new ResultsCallBack<Void>() {
-                    @Override
-                    public void onSuccess(Void result) {
-                        daysListView.toScrollPosition(CalendarUtil.selectedDate);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
+    private void updateAdapters(List<EventWithClientAndJobs> events) {
+        adapterEvents.update(events);
+        daysList.changeScrollPosition();
     }
 
-    private void insertEventOnApi(EventWithClientAndJobs event) {
-        eventRepository.insertOnApi(event, new ResultsCallBack<EventWithClientAndJobs>() {
-            @Override
-            public void onSuccess(EventWithClientAndJobs eventFromApi) {
-                event.getEvent().setApiId(eventFromApi.getEvent().getApiId());
-                insertEventOnRoom(event);
-            }
-
-            @Override
-            public void onError(String erro) {
-                showErrorMessage(erro);
-            }
-        });
-    }
-
-    private void insertEventOnRoom(EventWithClientAndJobs eventFromApi) {
-        roomRepository.insertEvent(eventFromApi,
-                new ResultsCallBack<Void>() {
-                    @Override
-                    public void onSuccess(Void result) {
-                        daysListView.toScrollPosition(CalendarUtil.selectedDate);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
-    }
-
-    private void getEventsByDate(LocalDate eventDate) {
-        subscribe = eventRepository.getByDateFromRooom(eventDate)
-                .doOnSuccess(events -> {
-                    updateAdapters(events, eventDate);
-                    getByDateFromApi(eventDate);
-                })
-                .subscribe();
-    }
-
-    private void updateAdapters(List<EventWithClientAndJobs> events, LocalDate eventDate) {
-        adapterEvents.updateAdapterListView(events);
-        daysListView.changeScrollPosition(eventDate);
-    }
-
-    private void getByDateFromApi(LocalDate eventDate) {
-        eventRepository.getByDateFromApi(eventDate,
-                new ResultsCallBack<List<EventWithClientAndJobs>>() {
-                    @Override
-                    public void onSuccess(List<EventWithClientAndJobs> events) {
-                        //update local database -> clients -> jobs -> events
-                        if (!events.isEmpty())
-                            updateLocalDatabase(events, eventDate);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-
-                        showErrorMessage(erro);
-                    }
-                });
-
-
-    }
-
-    private void updateLocalDatabase(List<EventWithClientAndJobs> events, LocalDate eventDate) {
-        roomRepository.updateLocalDatabase(events,
-                new ResultsCallBack<List<EventWithClientAndJobs>>() {
-                    @Override
-                    public void onSuccess(List<EventWithClientAndJobs> events) {
-                        updateAdapters(events, eventDate);
-                    }
-
-                    @Override
-                    public void onError(String erro) {
-                        showErrorMessage(erro);
-                    }
-                });
-    }
-
-    private void showErrorMessage(String erro) {
+    private void showErrorMessage(String error) {
         if (this.getActivity() != null)
-            Toast.makeText(requireActivity(), erro, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i(TAG, "onDestroy: ");
-        if (subscribe != null)
-            subscribe.dispose();
+            Toast.makeText(requireActivity(), error, Toast.LENGTH_LONG).show();
     }
 }

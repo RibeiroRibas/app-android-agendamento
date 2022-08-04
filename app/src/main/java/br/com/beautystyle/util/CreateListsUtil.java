@@ -1,13 +1,15 @@
 package br.com.beautystyle.util;
 
-import static br.com.beautystyle.util.ConstantsUtil.MMMM;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-import br.com.beautystyle.database.room.references.EventWithClientAndJobs;
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
 
 public class CreateListsUtil {
 
@@ -33,22 +35,22 @@ public class CreateListsUtil {
     }
 
     private static void updateEventList(List<EventWithClientAndJobs> eventWithJobsByDate) {
-        for (EventWithClientAndJobs findedEvent : eventWithJobsByDate) {
+        for (EventWithClientAndJobs foundEvent : eventWithJobsByDate) {
             boolean matched = false;
             for (int i = 0; i < events.size(); i++) {
-                if (findedEvent.getEvent().getStarTime()
+                if (foundEvent.getEvent().getStarTime()
                         .equals(events.get(i).getEvent().getStarTime())) {
-                    events.set(i, findedEvent);
-                    events.removeIf(ev -> ev.getEvent().getStarTime().isAfter(findedEvent.getEvent().getStarTime())
-                            & ev.getEvent().getStarTime().isBefore(findedEvent.getEvent().getEndTime()));
+                    events.set(i, foundEvent);
+                    events.removeIf(ev -> ev.getEvent().getStarTime().isAfter(foundEvent.getEvent().getStarTime())
+                            & ev.getEvent().getStarTime().isBefore(foundEvent.getEvent().getEndTime()));
                     matched = true;
                 }
 
             }
             if (!matched) {
-                events.add(findedEvent);
-                events.removeIf(ev -> ev.getEvent().getStarTime().isAfter(findedEvent.getEvent().getStarTime())
-                        & ev.getEvent().getStarTime().isBefore(findedEvent.getEvent().getEndTime()));
+                events.add(foundEvent);
+                events.removeIf(ev -> ev.getEvent().getStarTime().isAfter(foundEvent.getEvent().getStarTime())
+                        & ev.getEvent().getStarTime().isBefore(foundEvent.getEvent().getEndTime()));
             }
         }
         events.sort(new SortByEventStartTime());
@@ -59,13 +61,15 @@ public class CreateListsUtil {
         endTime = LocalTime.of(20, 0);
     }
 
-    public static List<String> createMonthsList() {
+    public static LiveData<List<String>> createMonthsList() {
+        MutableLiveData<List<String>> liveData = new MutableLiveData<>();
         List<String> months = new ArrayList<>();
-        for (int month = 1; month < 12; month++) {
-            months.add(CalendarUtil.formatLocalDate(
-                    LocalDate.of(2022,month,1),MMMM));
+        for (int monthValue = 1; monthValue <= 12; monthValue++) {
+            String month = Month.of(monthValue).toString().toUpperCase(Locale.ROOT);
+            months.add(month);
         }
-        return months;
+        liveData.setValue(months);
+        return liveData;
     }
 }
 
