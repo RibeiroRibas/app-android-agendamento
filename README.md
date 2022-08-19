@@ -19,7 +19,8 @@ Colocar em prática meus estudos da linguagem java junto com o android framework
 - `Funcionalidade 7`: Relatório financeiro -> diario, mensal e por período
 - `Funcionalidade 8`: Salvar dados em um banco local, no caso, no próprio smatphone.
 
-![git ap beauty](https://user-images.githubusercontent.com/96504657/158278647-2f32acfe-6410-44a1-b95d-04b706589a80.jpg)
+<img src="https://user-images.githubusercontent.com/96504657/185512784-cd349ac6-a7d0-496f-b4fe-74326933823f.gif" width="25%" height="25%"/>---<img src="https://user-images.githubusercontent.com/96504657/185514465-cf977cda-36c2-4a66-aac7-9bfc215bbbf4.gif" width="25%" height="25%"/>---<img src="https://user-images.githubusercontent.com/96504657/185519607-9a566af3-d5ad-42f3-865c-4cc43140b67e.gif" width="25%" height="25%"/>
+
 
 
 ## 📁 Acesso ao projeto
