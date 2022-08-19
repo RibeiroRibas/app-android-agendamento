@@ -19,9 +19,19 @@ Colocar em prática meus estudos da linguagem java junto com o android framework
 - `Funcionalidade 6`: Possibilitar a seleção de mais de um tipo de serviço quando for agendar um horario.
 - `Funcionalidade 7`: Relatório financeiro -> diario, mensal e por período
 - `Funcionalidade 8`: Salvar dados em um banco local, no caso, no próprio smatphone.
+- `Funcionalidade 9`: Salvar dados em um banco Remoto(cloud heroku) atravéz de uma aplicação Spring Boot.
+- `Funcionalidade 10`: Autenticar Usuário através de uma tela de login(via token para servidor remoto).
 
 <img src="https://user-images.githubusercontent.com/96504657/185512784-cd349ac6-a7d0-496f-b4fe-74326933823f.gif" width="25%" height="25%"/>---<img src="https://user-images.githubusercontent.com/96504657/185514465-cf977cda-36c2-4a66-aac7-9bfc215bbbf4.gif" width="25%" height="25%"/>---<img src="https://user-images.githubusercontent.com/96504657/185519607-9a566af3-d5ad-42f3-865c-4cc43140b67e.gif" width="25%" height="25%"/>
 <img src="https://user-images.githubusercontent.com/96504657/185660120-104370b4-7411-4586-a60b-e0ad42076d25.gif" width="25%" height="25%"/>---<img src="https://user-images.githubusercontent.com/96504657/185663171-dd75de6c-d07e-4a18-9d23-2e3a8901202c.gif" width="25%" height="25%"/>---<img src="https://user-images.githubusercontent.com/96504657/185665274-71d89857-ec33-4785-896e-31ba47282aa8.gif" width="25%" height="25%"/>
+
+# :scroll: Características GERAIS
+
+- `1`: Após autenticar o usuário pela primeira vez faze-lo de forma automática sempre que abrir o aplicativo.
+- `2`: Não permitir sobrepor um agendamento, ou seja, não é possível marcar mais de um agendamento no mesmo horário.
+- `3`: Não permitir excluir um horário caso o mesmo esteja vazio, ou seja, disponível.
+- `4`: Permitir alterar o tempo de duração de um agendamento de forma automática caso o mesmo exceda o limite disponivel na agenda.
+- `5`: Os agendamentos possuem cores distintas, são elas: branco(para agendamentos que já aconteceram), amarelo(para agendamentos qua ainda não aconteceram e que foram feitos pelo PROFISSIONAL), rosa(agendamentos que ainda não aconteceram e que foram feitos pelo CLIENTE.
 
 ## 📁 Acesso ao projeto
 
