@@ -33,6 +33,8 @@ Colocar em prática meus estudos da linguagem java junto com o android framework
 - `4`: Permitir alterar o tempo de duração de um agendamento de forma automática caso o mesmo exceda o limite disponivel na agenda.
 - `5`: Os agendamentos possuem cores distintas, são elas: branco(para agendamentos que já aconteceram), amarelo(para agendamentos qua ainda não aconteceram e que foram feitos pelo PROFISSIONAL), rosa(agendamentos que ainda não aconteceram e que foram feitos pelo CLIENTE).
 
+![cores agenda](https://user-images.githubusercontent.com/96504657/185721559-158d38b3-be27-4a65-a7b5-1ab930511430.jpg)
+
 ### SERVIDOR CLOUD :cloud:
 
 - `1`: Backup de dados.
