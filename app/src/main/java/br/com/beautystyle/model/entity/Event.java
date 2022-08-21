@@ -17,8 +17,8 @@ import br.com.beautystyle.model.enuns.StatusPagamento;
 public class Event implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    private Long eventId =0L;
-    private Long clientCreatorId =0L;
+    private Long eventId = 0L;
+    private Long clientCreatorId = 0L;
     private LocalDate eventDate;
     private LocalTime starTime;
     private LocalTime endTime;
@@ -114,10 +114,11 @@ public class Event implements Serializable {
     public LocalTime checkEndTime(List<EventWithClientAndJobs> eventList) {
         LocalTime reducedEndTime = null;
         for (EventWithClientAndJobs ev : eventList) {
-            if (ev.getEvent().getStarTime().isAfter(getStarTime())
-                    && getEndTime().isAfter(ev.getEvent().getStarTime())
-                    && !getEventId().equals(ev.getEvent().getEventId())) {
+            if (ev.getEvent().getStarTime().isAfter(starTime)
+                    && endTime.isAfter(ev.getEvent().getStarTime())
+                    && !eventId.equals(ev.getEvent().getEventId())) {
                 reducedEndTime = ev.getEvent().getStarTime();
+                break;
             }
         }
         return reducedEndTime;
@@ -131,15 +132,19 @@ public class Event implements Serializable {
     }
 
     public boolean checkId() {
-        return eventId>0;
+        return eventId > 0;
     }
 
     public boolean isNotExistOnApi(List<Event> events) {
         for (Event fromApi : events) {
-            if (this.apiId.equals(fromApi.getApiId())) {
+            if (apiId != null && apiId.equals(fromApi.getApiId())) {
                 return false;
             }
         }
         return true;
+    }
+
+    public boolean isApiIdEquals(EventWithClientAndJobs eventFromApi) {
+        return apiId != null && apiId.equals(eventFromApi.getEvent().getApiId());
     }
 }

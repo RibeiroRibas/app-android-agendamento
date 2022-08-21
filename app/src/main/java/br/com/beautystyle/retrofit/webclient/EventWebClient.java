@@ -16,6 +16,7 @@ import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.retrofit.callback.CallBackReturn;
 import br.com.beautystyle.retrofit.callback.CallBackWithoutReturn;
 import br.com.beautystyle.retrofit.service.EventService;
+import br.com.beautystyle.util.CalendarUtil;
 import retrofit2.Call;
 
 public class EventWebClient {
@@ -34,7 +35,6 @@ public class EventWebClient {
 
     public void insert(EventWithClientAndJobs event,
                        ResultsCallBack<EventWithClientAndJobs> callBack) {
-            event.getEvent().setCompanyId(tenant);
             Call<EventWithClientAndJobs> callInsert = service.insert(event, token);
             callInsert.enqueue(new CallBackReturn<>(
                             new CallBackReturn.CallBackResponse<EventWithClientAndJobs>() {
@@ -86,10 +86,10 @@ public class EventWebClient {
         }));
     }
 
-    public void getAllByDate(LocalDate date,
+    public void getAllByDate(
                              ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
             Call<List<EventWithClientAndJobs>> callByDate =
-                    service.getByDate(date, tenant, token);
+                    service.getByDate(CalendarUtil.selectedDate, tenant, token);
             callByDate.enqueue(new CallBackReturn<>(
                             new CallBackReturn.CallBackResponse<List<EventWithClientAndJobs>>() {
                                 @Override

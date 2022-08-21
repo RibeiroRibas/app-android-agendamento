@@ -16,8 +16,8 @@ import io.reactivex.rxjava3.core.Single;
 @Dao
 public interface RoomJobDao {
 
-    @Query("SELECT * FROM Job")
-    Single<List<Job>> getAll();
+    @Query("SELECT * FROM Job WHERE companyId= :tenant")
+    Single<List<Job>> getAll(Long tenant);
 
     @Update
     Completable update(Job service);
@@ -31,8 +31,8 @@ public interface RoomJobDao {
     @Update
     Completable updateAll(List<Job> updateJobs);
 
-    @Query("SELECT * FROM Job")
-    Observable<List<Job>> getAllLiveData();
+    @Query("SELECT * FROM Job WHERE companyId= :tenant")
+    Observable<List<Job>> getAllLiveData(Long tenant);
 
     @Insert
     Completable insert(Job job);

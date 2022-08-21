@@ -94,12 +94,7 @@ public class CategoryListFragment extends DialogFragment {
     }
 
     private void updateAdapterLiveData() {
-        getAllFromRoomLiveData();
-        repository.getAllFromApi();
-    }
-
-    private void getAllFromRoomLiveData() {
-        viewModel.getAllFromRoomLiveData().observe(requireActivity(), resource -> {
+        viewModel.getAllLiveData().observe(requireActivity(), resource -> {
             if(resource.isDataNotNull()){
                 adapterCategories.update(resource.getData());
             }else{

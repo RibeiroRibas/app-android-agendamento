@@ -1,5 +1,12 @@
 package br.com.beautystyle.repository;
 
+import static br.com.beautystyle.repository.ConstantsRepository.FREE_ACCOUNT;
+import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.USER_PREMIUM;
+
+import android.content.SharedPreferences;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -18,18 +25,33 @@ public class CategoryRepository {
     @Inject
     CategoryWebClient webClient;
     private final MutableLiveData<Resource<List<Category>>> liveData = new MutableLiveData<>();
+    private final Long tenant;
+    private final String profile;
 
     @Inject
-    public CategoryRepository() {
+    public CategoryRepository(SharedPreferences preferences) {
+        profile = preferences.getString(PROFILE_SHARED_PREFERENCES, "");
+        tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-
-
     public void insert(Category category) {
+        if(isPremiumUser()){
+            insertOnApi(category);
+        }
+        if(isFreeAccount()){
+            insertOnRoom(category);
+        }
+    }
+
+    private void insertOnRoom(Category category) {
+        dao.insert(category).subscribe();
+    }
+
+    private void insertOnApi(Category category) {
         webClient.insert(category, new ResultsCallBack<Category>() {
             @Override
             public void onSuccess(Category result) {
-                dao.insert(category).subscribe();
+                insertOnRoom(result);
             }
 
             @Override
@@ -40,10 +62,23 @@ public class CategoryRepository {
     }
 
     public void update(Category category) {
+        if(isPremiumUser()){
+            updateOnApi(category);
+        }
+        if(isFreeAccount()){
+            updateOnRoom(category);
+        }
+    }
+
+    private void updateOnRoom(Category category) {
+        dao.update(category).subscribe();
+    }
+
+    private void updateOnApi(Category category) {
         webClient.update(category, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                dao.update(category).subscribe();
+                updateOnRoom(category);
             }
 
             @Override
@@ -54,10 +89,23 @@ public class CategoryRepository {
     }
 
     public void delete(Category category) {
+        if(isPremiumUser()){
+            deleteOnApi(category);
+        }
+        if(isFreeAccount()){
+            deleteOnRoom(category);
+        }
+    }
+
+    private void deleteOnRoom(Category category) {
+        dao.delete(category).subscribe();
+    }
+
+    private void deleteOnApi(Category category) {
         webClient.delete(category.getApiId(), new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                dao.delete(category).subscribe();
+               deleteOnRoom(category);
             }
 
             @Override
@@ -67,14 +115,21 @@ public class CategoryRepository {
         });
     }
 
-    public LiveData<Resource<List<Category>>> getAllFromRoomLiveData() {
-        dao.getAll().doOnNext(categories -> {
-            liveData.setValue(new Resource<>(categories,null));
-        }).subscribe();
+    public LiveData<Resource<List<Category>>> getAllLiveData() {
+        getAllFromRoom();
+        if(isPremiumUser()){
+            getAllFromApi();
+        }
         return liveData;
     }
 
-    public void getAllFromApi() {
+    private void getAllFromRoom() {
+        dao.getAllObservable(tenant).doOnNext(categories -> {
+            liveData.setValue(new Resource<>(categories,null));
+        }).subscribe();
+    }
+
+    private void getAllFromApi() {
         webClient.getAll(new ResultsCallBack<List<Category>>() {
             @Override
             public void onSuccess(List<Category> categoriesFromApi) {
@@ -89,11 +144,19 @@ public class CategoryRepository {
     }
 
     private void updateLocal(List<Category> categoriesFromApi) {
-        dao.getAllSingle().doOnSuccess(categoriesFromRoom->{
+        dao.getAllSingle(tenant).doOnSuccess(categoriesFromRoom->{
             deleteFromRoomIfNotExistOnApi(categoriesFromApi,categoriesFromRoom);
             setIdFromRoomToApi(categoriesFromRoom, categoriesFromApi);
             dao.insertAll(categoriesFromApi).subscribe();
         }).subscribe();
+    }
+
+    public boolean isFreeAccount() {
+        return profile.equals(FREE_ACCOUNT);
+    }
+
+    public boolean isPremiumUser() {
+        return profile.equals(USER_PREMIUM);
     }
 
     private void deleteFromRoomIfNotExistOnApi(List<Category> categoriesFromApi,
@@ -111,4 +174,5 @@ public class CategoryRepository {
                 fromApi.setId(fromRoom.getId());
         }));
     }
+
 }

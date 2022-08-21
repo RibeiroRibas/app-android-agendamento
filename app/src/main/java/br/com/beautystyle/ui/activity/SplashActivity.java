@@ -116,4 +116,5 @@ public class SplashActivity extends AppCompatActivity {
     private void showErrorMessage(String error) {
         Toast.makeText(this, error, Toast.LENGTH_LONG).show();
     }
+
 }

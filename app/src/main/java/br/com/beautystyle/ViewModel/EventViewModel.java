@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
@@ -48,40 +47,23 @@ public class EventViewModel extends ViewModel {
         clientLiveData.setValue(costumer);
     }
 
-    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateFromRoomLiveData() {
-        return repository.getByDateFromRoom();
+    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateLiveData() {
+        return repository.getByDateLiveData();
     }
 
-    public LiveData<Resource<List<EventWithClientAndJobs>>> getAllByDateFromApiLiveData(
-            LocalDate selectedDate) {
-        return repository.getByDateFromApi(selectedDate);
+    public LiveData<Resource<EventWithClientAndJobs>> insert(EventWithClientAndJobs event) {
+        return repository.insert(event);
     }
 
-    public LiveData<Resource<EventWithClientAndJobs>> insertOnApi(EventWithClientAndJobs event) {
-        return repository.insertOnApi(event);
+    public LiveData<Resource<Void>> update(EventWithClientAndJobs event) {
+        return repository.update(event);
     }
 
-    public LiveData<Resource<Void>> updateOnApi(EventWithClientAndJobs event) {
-        return repository.updateOnApi(event);
-    }
-
-    public LiveData<Resource<Void>> deleteOnApi(Event event) {
-        return repository.deleteOnApi(event);
+    public LiveData<Resource<Void>> delete(Event event) {
+        return repository.delete(event);
     }
 
     public LiveData<Resource<List<Report>>> getReportByPeriod() {
         return  repository.getReportByPeriod();
-    }
-
-    public LiveData<Resource<Void>> insertOnRoom(EventWithClientAndJobs event) {
-        return repository.insertOnRoom(event);
-    }
-
-    public LiveData<Resource<Void>> deleteOnRoom(Event event) {
-        return repository.deleteOnRoom(event);
-    }
-
-    public LiveData<Resource<Void>> updateOnRoom(EventWithClientAndJobs event) {
-        return repository.updateOnRoom(event);
     }
 }

@@ -45,7 +45,6 @@ public class JobWebClient {
     }
 
     public void insert(Job job, ResultsCallBack<Job> callBack) {
-        job.setCompanyId(tenant);
         Call<Job> callJob = service.insert(job, token);
         callJob.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<Job>() {
             @Override

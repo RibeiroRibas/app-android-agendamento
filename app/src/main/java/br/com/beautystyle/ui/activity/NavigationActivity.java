@@ -21,6 +21,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ui.fragment.CalendarViewFragment;
@@ -63,9 +66,7 @@ public class NavigationActivity extends AppCompatActivity {
                 .setPositiveButton("SIM", (dialog, whichButton) -> {
                     finish();
                     dialog.dismiss();
-                }).setNegativeButton("NÃO", (dialog, whichButton) -> {
-                    dialog.dismiss();
-                }).show();
+                }).setNegativeButton("NÃO", (dialog, whichButton) -> dialog.dismiss()).show();
     }
 
     private void fabNewEventListener() {
@@ -86,9 +87,7 @@ public class NavigationActivity extends AppCompatActivity {
 
 
     private void fabCostumerListener() {
-        costumerFab.setOnClickListener(v -> {
-            navigationFab.callOnClick();
-        });
+        costumerFab.setOnClickListener(v -> navigationFab.callOnClick());
     }
 
     private void initFabWidgets() {
@@ -162,43 +161,40 @@ public class NavigationActivity extends AppCompatActivity {
 
     private void setAnimation(boolean clicked) {
         if (!clicked) {
-            Animation fromBottom = AnimationUtils.loadAnimation(this, R.anim.from_bottom_left_anim);
-            costumerFab.setAnimation(fromBottom);
-
-            fromBottom = AnimationUtils.loadAnimation(this, R.anim.from_bottom_right_anim);
-            profileFab.setAnimation(fromBottom);
-
-            fromBottom = AnimationUtils.loadAnimation(this, R.anim.from_bottom_center_anim);
-            newEventFab.setAnimation(fromBottom);
-
-            Animation rotateOpen = AnimationUtils.loadAnimation(this, R.anim.rotate_open_anim);
-            navigationFab.setAnimation(rotateOpen);
+            setAnimation(costumerFab, R.anim.from_bottom_left_anim);
+            setAnimation(profileFab, R.anim.from_bottom_right_anim);
+            setAnimation(newEventFab, R.anim.from_bottom_center_anim);
+            setAnimation(navigationFab, R.anim.rotate_open_anim);
         } else {
-            Animation toBottom = AnimationUtils.loadAnimation(this, R.anim.to_bottom_left_anim);
-            costumerFab.setAnimation(toBottom);
-
-            toBottom = AnimationUtils.loadAnimation(this, R.anim.to_bottom_right_anim);
-            profileFab.setAnimation(toBottom);
-
-            toBottom = AnimationUtils.loadAnimation(this, R.anim.to_bottom_center_anim);
-            newEventFab.setAnimation(toBottom);
-
-            Animation rotateClose = AnimationUtils.loadAnimation(this, R.anim.rotate_close_anim);
-            navigationFab.setAnimation(rotateClose);
+            setAnimation(costumerFab, R.anim.to_bottom_left_anim);
+            setAnimation(profileFab, R.anim.to_bottom_right_anim);
+            setAnimation(newEventFab, R.anim.to_bottom_center_anim);
+            setAnimation(navigationFab, R.anim.rotate_close_anim);
         }
+    }
+
+    private void setAnimation(FloatingActionButton fab, int id) {
+        Animation fromBottom = AnimationUtils.loadAnimation(this, id);
+        fab.setAnimation(fromBottom);
     }
 
     private void setVisibility(boolean clicked) {
         if (!clicked) {
-            costumerFab.setVisibility(View.VISIBLE);
-            profileFab.setVisibility(View.VISIBLE);
-            newEventFab.setVisibility(View.VISIBLE);
+            setVisibility(View.VISIBLE);
         } else {
-            costumerFab.setVisibility(View.INVISIBLE);
-            profileFab.setVisibility(View.INVISIBLE);
-            newEventFab.setVisibility(View.INVISIBLE);
+            setVisibility(View.GONE);
         }
     }
+
+    private void setVisibility(int visibility) {
+        List<FloatingActionButton> fabs =
+                new ArrayList<>(Arrays.asList(costumerFab, profileFab, newEventFab));
+        fabs.forEach(fab -> {
+            fab.setVisibility(visibility);
+            fab.setEnabled(!clicked);
+        });
+    }
+
 
     private Bundle createBundle() {
         Bundle bundle = new Bundle();

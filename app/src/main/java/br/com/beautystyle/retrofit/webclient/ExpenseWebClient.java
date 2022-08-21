@@ -32,7 +32,6 @@ public class ExpenseWebClient {
     }
 
     public void insert(Expense expense, ResultsCallBack<Expense> callBack) {
-        expense.setCompanyId(tenant);
         Call<Expense> callNewExpense = service.insert(expense, token);
         callNewExpense.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<Expense>() {
             @Override

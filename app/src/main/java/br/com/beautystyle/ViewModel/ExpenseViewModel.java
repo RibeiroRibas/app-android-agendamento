@@ -19,12 +19,8 @@ public class ExpenseViewModel extends ViewModel {
         this.repository = repository;
     }
 
-    public LiveData<Resource<List<Expense>>> getByPeriodFromRoom() {
-        return repository.getByPeriodFromRoom();
-    }
-
-    public LiveData<Resource<List<Expense>>> getByPeriodFromApi() {
-        return repository.getByPeriodFromApi();
+    public LiveData<Resource<List<Expense>>> getByPeriodLiveData() {
+        return repository.getByPeriodLiveData();
     }
 
     public LiveData<Resource<Expense>> insert(Expense expense) {
@@ -39,8 +35,8 @@ public class ExpenseViewModel extends ViewModel {
         return repository.delete(expense);
     }
 
-    public LiveData<Resource<List<String>>> getYearsListFromApi() {
-        return repository.getYearsListFromApi();
+    public LiveData<Resource<List<String>>> getYearsListLiveData() {
+        return repository.getYearsListLiveData();
     }
 
     public LiveData<List<String>> getMonthsOfTheYearList() {

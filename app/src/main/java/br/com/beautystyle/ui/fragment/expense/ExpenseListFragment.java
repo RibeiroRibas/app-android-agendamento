@@ -171,13 +171,8 @@ public class ExpenseListFragment extends Fragment {
     }
 
     private void updateAdapterExpensesLiveData() {
-        getByPeriodFromRoomLiveData();
-        getByPeriodFromApiLiveData();
-    }
-
-    private void getByPeriodFromApiLiveData() {
-        expenseViewModel.getByPeriodFromApi().observe(requireActivity(),
-                this::checkResourceValue);
+        expenseViewModel.getByPeriodLiveData()
+                .observe(requireActivity(), this::checkResourceValue);
     }
 
     private void checkResourceValue(Resource<List<Expense>> resource) {
@@ -187,11 +182,6 @@ public class ExpenseListFragment extends Fragment {
             adapterExpenses.publishResultsChangedList(resource.getData());
             setTextMonthAndYear(CalendarUtil.selectedDate);
         }
-    }
-
-    private void getByPeriodFromRoomLiveData() {
-        expenseViewModel.getByPeriodFromRoom()
-                .observe(requireActivity(), this::checkResourceValue);
     }
 
     private void setTextMonthAndYear(LocalDate date) {
@@ -273,7 +263,7 @@ public class ExpenseListFragment extends Fragment {
     }
 
     private void setAdapterYearsLiveData() {
-        expenseViewModel.getYearsListFromApi().observe(requireActivity(), resource -> {
+        expenseViewModel.getYearsListLiveData().observe(requireActivity(), resource -> {
             if (resource.isErrorNotNull()) {
                 showErrorMessage(resource.getError());
             } else {

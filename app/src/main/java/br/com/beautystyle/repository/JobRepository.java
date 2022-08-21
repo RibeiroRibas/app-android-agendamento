@@ -1,7 +1,9 @@
 package br.com.beautystyle.repository;
 
+import static br.com.beautystyle.repository.ConstantsRepository.FREE_ACCOUNT;
 import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.USER_PREMIUM;
 
 import android.content.SharedPreferences;
 
@@ -35,7 +37,7 @@ public class JobRepository {
     }
 
     public void updateJobs(List<Job> jobsFromApi, ResultsCallBack<List<Job>> callBack) {
-        dao.getAll().doOnSuccess(jobsFromRoom -> {
+        dao.getAll(tenant).doOnSuccess(jobsFromRoom -> {
             if (callBack == null)
                 deleteFromRoomIfNotExistOnApi(jobsFromApi, jobsFromRoom);
             mergeJobId(jobsFromRoom, jobsFromApi);
@@ -85,7 +87,7 @@ public class JobRepository {
     private void mergeJobId(List<Job> jobsFromRoom, List<Job> jobsFromApi) {
         jobsFromApi.forEach(jobApi ->
                 jobsFromRoom.forEach(jobRoom -> {
-                    if (jobApi.getApiId().equals(jobRoom.getApiId())) {
+                    if (jobRoom.isApiIdEquals(jobApi)) {
                         jobApi.setJobId(jobRoom.getJobId());
                     }
                 })
@@ -93,53 +95,68 @@ public class JobRepository {
     }
 
     public LiveData<Resource<List<Job>>> getAllLiveData() {
-        dao.getAllLiveData().doOnNext(jobs -> {
+        getAllFromRoomObservable();
+        if (isUserPremium()) {
+            getAllFromApi();
+        }
+        return mutableLiveData;
+    }
+
+    private void getAllFromRoomObservable() {
+        dao.getAllLiveData(tenant).doOnNext(jobs -> {
                     Resource<List<Job>> resource = new Resource<>(jobs, null);
                     mutableLiveData.setValue(resource);
                 }).doOnError(error ->
                         mutableLiveData.setValue(new Resource<>(null, error.getMessage())))
                 .subscribe();
-        return mutableLiveData;
     }
 
-    public void getAllFromApi() {
-        if(isUserPremium()){
-            webClient.getAll(new ResultsCallBack<List<Job>>() {
-                @Override
-                public void onSuccess(List<Job> jobs) {
-                    updateJobs(jobs, null);
-                }
+    private void getAllFromApi() {
+        webClient.getAll(new ResultsCallBack<List<Job>>() {
+            @Override
+            public void onSuccess(List<Job> jobs) {
+                updateJobs(jobs, null);
+            }
 
-                @Override
-                public void onError(String error) {
-                    mutableLiveData.setValue(new Resource<>(null, error));
-                }
-            });
-        }
+            @Override
+            public void onError(String error) {
+                mutableLiveData.setValue(new Resource<>(null, error));
+            }
+        });
     }
 
-    public void insertOnApi(Job job) {
-        if(isUserPremium()){
-            webClient.insert(job, new ResultsCallBack<Job>() {
-                @Override
-                public void onSuccess(Job result) {
-                    result.setJobId(null);
-                    dao.insert(result).subscribe();
-                }
+    private void insertOnApi(Job job) {
+        webClient.insert(job, new ResultsCallBack<Job>() {
+            @Override
+            public void onSuccess(Job result) {
+                insertOnRoom(result);
+            }
 
-                @Override
-                public void onError(String error) {
-                    mutableLiveData.setValue(new Resource<>(null, error));
-                }
-            });
-        }
+            @Override
+            public void onError(String error) {
+                mutableLiveData.setValue(new Resource<>(null, error));
+            }
+        });
     }
 
     public void update(Job job) {
+        if (isUserPremium()) {
+            updateOnApi(job);
+        }
+        if (isFreeAccount()) {
+            updateOnRoom(job);
+        }
+    }
+
+    private void updateOnRoom(Job job) {
+        dao.update(job).subscribe();
+    }
+
+    private void updateOnApi(Job job) {
         webClient.update(job, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                dao.update(job).subscribe();
+                updateOnRoom(job);
             }
 
             @Override
@@ -150,10 +167,23 @@ public class JobRepository {
     }
 
     public void delete(Job job) {
+        if(isUserPremium()){
+            deleteOnApi(job);
+        }
+        if(isFreeAccount()){
+            deleteOnRoom(job);
+        }
+    }
+
+    private void deleteOnRoom(Job job) {
+        dao.delete(job).subscribe();
+    }
+
+    private void deleteOnApi(Job job) {
         webClient.delete(job, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                dao.delete(job).subscribe();
+                deleteOnRoom(job);
             }
 
             @Override
@@ -163,19 +193,26 @@ public class JobRepository {
         });
     }
 
-    private boolean isFreeUser() {
-        return profile.equals("ROLE_FREE_ACCOUNT");
+    private boolean isFreeAccount() {
+        return profile.equals(FREE_ACCOUNT);
     }
 
     private boolean isUserPremium() {
-        return profile.equals("ROLE_PROFISSIONAL");
+        return profile.equals(USER_PREMIUM);
     }
 
-    public void insertOnRoom(Job job) {
-        if(isFreeUser()){
-            job.setJobId(null);
-            job.setCompanyId(tenant);
-            dao.insert(job).subscribe();
+    public void insert(Job job) {
+        job.setCompanyId(tenant);
+        if (isUserPremium()) {
+            insertOnApi(job);
         }
+        if (isFreeAccount()) {
+            insertOnRoom(job);
+        }
+    }
+
+    private void insertOnRoom(Job job) {
+        job.setJobId(null);
+        dao.insert(job).subscribe();
     }
 }

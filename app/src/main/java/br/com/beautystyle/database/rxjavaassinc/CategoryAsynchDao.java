@@ -22,8 +22,8 @@ public class CategoryAsynchDao {
         dao = database.getRoomCategoryDao();
     }
 
-    public Observable<List<Category>> getAll() {
-        return dao.getAllObservable()
+    public Observable<List<Category>> getAllObservable(Long tenant) {
+        return dao.getAllObservable(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
@@ -52,8 +52,8 @@ public class CategoryAsynchDao {
                 .subscribeOn(Schedulers.io());
     }
 
-    public Single<List<Category>> getAllSingle() {
-        return dao.getAllSingle()
+    public Single<List<Category>> getAllSingle(Long tenant) {
+        return dao.getAllSingle(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }

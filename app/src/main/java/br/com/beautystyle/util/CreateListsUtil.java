@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -63,13 +64,19 @@ public class CreateListsUtil {
 
     public static LiveData<List<String>> createMonthsList() {
         MutableLiveData<List<String>> liveData = new MutableLiveData<>();
-        List<String> months = new ArrayList<>();
-        for (int monthValue = 1; monthValue <= 12; monthValue++) {
-            String month = Month.of(monthValue).toString().toUpperCase(Locale.ROOT);
-            months.add(month);
-        }
+        List<String> months = getMonths();
         liveData.setValue(months);
         return liveData;
+    }
+
+    public static List<String> getMonths(){
+        List<String> months = new ArrayList<>();
+        for (int monthValue = 1; monthValue <= 12; monthValue++) {
+            String month =
+                    Month.of(monthValue).getDisplayName(TextStyle.FULL,new Locale("pt","br"));
+            months.add(month);
+        }
+        return  months;
     }
 }
 

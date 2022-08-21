@@ -26,7 +26,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @Module
 public class NetworkModule {
 
-    //private static final String URL_BASE = "http://192.168.3.214:8080/";
+  //  private static final String URL_BASE = "http://192.168.3.214:8080/";
     private static final String URL_BASE = "https://api-beauty-style.herokuapp.com";
 
     @Singleton

@@ -23,8 +23,8 @@ public class JobAsynchDao {
         dao = database.getRoomJobDao();
     }
 
-    public Observable<List<Job>> getAllLiveData() {
-        return dao.getAllLiveData()
+    public Observable<List<Job>> getAllLiveData(Long tenant) {
+        return dao.getAllLiveData(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
@@ -53,8 +53,8 @@ public class JobAsynchDao {
                 .subscribeOn(Schedulers.io());
     }
 
-    public Single<List<Job>> getAll() {
-        return dao.getAll()
+    public Single<List<Job>> getAll(Long tenant) {
+        return dao.getAll(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }

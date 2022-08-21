@@ -3,6 +3,9 @@ package br.com.beautystyle.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
+import br.com.beautystyle.model.entity.Expense;
+
 public class Report {
 
     private String clientName;
@@ -10,6 +13,21 @@ public class Report {
     private BigDecimal eventValue;
     private String expenseCategory;
     private BigDecimal expenseValue;
+
+    public Report(EventWithClientAndJobs event) {
+        clientName = event.getClient().getName();
+        date = event.getEvent().getEventDate();
+        eventValue = event.getEvent().getValueEvent();
+    }
+
+    public Report(Expense expense) {
+        date = expense.getExpenseDate();
+        expenseCategory = expense.getCategory();
+        expenseValue = expense.getPrice();
+    }
+
+    public Report() {
+    }
 
     public String getClientName() {
         return clientName;

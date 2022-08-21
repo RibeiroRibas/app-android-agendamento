@@ -428,24 +428,14 @@ public class NewEventActivity extends AppCompatActivity {
     private void checkRequiredFields() {
         if (checkFields()) {
             setEvent();
-            if (eventRepository.isFreeUser()) {
-                getByDateFromRoom();
-            } else {
-                getByDateFromApi();
-            }
+            getByDateLiveData();
         } else {
             requiredFieldsAlertDialog();
         }
     }
 
-    private void getByDateFromRoom() {
-        eventViewModel.getByDateFromRoomLiveData()
-                .observe(this, this::checkResourceResponse);
-        ;
-    }
-
-    private void getByDateFromApi() {
-        eventViewModel.getAllByDateFromApiLiveData(CalendarUtil.selectedDate)
+    private void getByDateLiveData() {
+        eventViewModel.getByDateLiveData()
                 .observe(this, this::checkResourceResponse);
     }
 

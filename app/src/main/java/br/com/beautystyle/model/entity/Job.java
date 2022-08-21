@@ -104,4 +104,8 @@ public class Job implements Serializable {
         }
         return true;
     }
+
+    public boolean isApiIdEquals(Job jobApi) {
+        return apiId != null && apiId.equals(jobApi.getApiId());
+    }
 }

@@ -17,11 +17,11 @@ import io.reactivex.rxjava3.core.Single;
 @Dao
 public interface RoomClientDao {
 
-    @Query("SELECT * FROM Costumer")
-    Single<List<Costumer>> getAll();
+    @Query("SELECT * FROM Costumer WHERE companyId= :tenant")
+    Single<List<Costumer>> getAll(Long tenant);
 
-    @Query("SELECT * FROM Costumer")
-    Observable<List<Costumer>> getAllObservable();
+    @Query("SELECT * FROM Costumer WHERE companyId= :tenant")
+    Observable<List<Costumer>> getAllObservable(Long tenant);
 
     @Update
     Completable update(Costumer costumer);

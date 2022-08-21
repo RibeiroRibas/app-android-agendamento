@@ -9,4 +9,5 @@ public interface ConstantsRepository {
     String IS_LOGGED_SHARED_PREFERENCES = "isLogged";
     String USER_SHARED_PREFERENCES = "user_preferences";
     String USER_PREMIUM = "ROLE_PROFISSIONAL";
+    String FREE_ACCOUNT = "ROLE_FREE_ACCOUNT";
 }

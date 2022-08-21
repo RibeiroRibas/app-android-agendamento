@@ -78,13 +78,12 @@ public class JobListFragment extends Fragment {
         setFragmentResultListener();
 
         jobsLiveData();
-        repository.getAllFromApi();
 
         return viewInflate;
     }
 
     private void jobsLiveData() {
-        jobViewModel.getAllFromRoomLiveData().observe(requireActivity(), resource -> {
+        jobViewModel.getAllLiveData().observe(requireActivity(), resource -> {
             if (resource.isDataNotNull()) {
                 adapter.update(resource.getData());
             } else {
@@ -220,8 +219,7 @@ public class JobListFragment extends Fragment {
     private void isInsert(Bundle result) {
         if (result.containsKey(KEY_INSERT_JOB)) {
             Job job = (Job) result.getSerializable(KEY_INSERT_JOB);
-            repository.insertOnRoom(job);
-            repository.insertOnApi(job);
+            repository.insert(job);
         }
     }
 

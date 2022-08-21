@@ -122,11 +122,6 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         monthAndYear.setText(CalendarUtil.formatLocalDate(CalendarUtil.selectedDate, MMMM_YYYY));
     }
 
-    private void getEventsByDateFromApiLiveData() {
-        eventViewModel.getAllByDateFromApiLiveData(CalendarUtil.selectedDate)
-                .observe(requireActivity(), this::updateAdapters);
-    }
-
     private void updateAdapters(Resource<List<EventWithClientAndJobs>> resource) {
         if (resource.isDataNotNull()) {
             updateAdapters(resource.getData());
@@ -179,13 +174,8 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
     }
 
     private void delete(EventWithClientAndJobs selectedEvent) {
-        if(eventRepository.isUserPremium()){
-            eventViewModel.deleteOnApi(selectedEvent.getEvent())
+            eventViewModel.delete(selectedEvent.getEvent())
                     .observe(requireActivity(), this::checkResourceResponse);
-        }else{
-            eventViewModel.deleteOnRoom(selectedEvent.getEvent())
-                    .observe(requireActivity(), this::checkResourceResponse);
-        }
     }
 
     private void checkResourceResponse(Resource<?> resource) {
@@ -231,9 +221,6 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
 
     private void eventsLiveData() {
         getEventsByDateFromRoomLiveData();
-        if(eventRepository.isUserPremium()){
-            getEventsByDateFromApiLiveData();
-        }
     }
 
     @Override
@@ -257,13 +244,8 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         if (result.getResultCode() == REQUEST_CODE_UPDATE_EVENT) {
             EventWithClientAndJobs event =
                     (EventWithClientAndJobs) intent.getSerializableExtra(KEY_UPDATE_EVENT);
-            if(eventRepository.isUserPremium()){
-                eventViewModel.updateOnApi(event)
+                eventViewModel.update(event)
                         .observe(requireActivity(), this::checkResourceResponse);
-            }else{
-                eventViewModel.updateOnRoom(event)
-                        .observe(requireActivity(), this::checkResourceResponse);
-            }
         }
     }
 
@@ -271,18 +253,13 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         if (result.getResultCode() == REQUEST_CODE_INSERT_EVENT) {
             EventWithClientAndJobs event =
                     (EventWithClientAndJobs) intent.getSerializableExtra(KEY_INSERT_EVENT);
-            if(eventRepository.isUserPremium()){
-                eventViewModel.insertOnApi(event)
-                        .observe(requireActivity(), this::checkResourceResponse);
-            }else{
-                eventViewModel.insertOnRoom(event)
-                        .observe(requireActivity(), this::checkResourceResponse);
-            }
+            eventViewModel.insert(event)
+                    .observe(requireActivity(), this::checkResourceResponse);
         }
     }
 
     private void getEventsByDateFromRoomLiveData() {
-        eventViewModel.getByDateFromRoomLiveData()
+        eventViewModel.getByDateLiveData()
                 .observe(requireActivity(), this::updateAdapters);
     }
 

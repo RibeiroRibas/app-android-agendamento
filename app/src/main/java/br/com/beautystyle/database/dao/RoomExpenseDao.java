@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import java.time.LocalDate;
@@ -12,14 +13,10 @@ import java.util.List;
 
 import br.com.beautystyle.model.entity.Expense;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 
 @Dao
 public interface RoomExpenseDao {
-
-    @Query("SELECT * FROM expense")
-    Observable<List<Expense>> getAll();
 
     @Delete
     Completable delete(Expense selectedExpense);
@@ -30,16 +27,17 @@ public interface RoomExpenseDao {
     @Update
     Completable update(Expense expense);
 
-    @Query("SELECT * FROM expense e WHERE e.expenseDate = :date")
-    Single<List<Expense>> getByDate(LocalDate date);
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Single<List<Long>> insertAll(List<Expense> response);
 
-    @Query("SELECT e.expenseDate FROM expense e")
-    Single<List<LocalDate>> getYearsList();
+    @Query("SELECT e.expenseDate FROM expense e WHERE companyId= :tenant")
+    Single<List<LocalDate>> getYearsList(Long tenant);
 
-    @Query("SELECT * FROM expense e WHERE e.expenseDate >= :startDate AND e.expenseDate <= :endDate")
-    Single<List<Expense>> getByPeriod(LocalDate startDate, LocalDate endDate);
+    @Query("SELECT * FROM expense e WHERE companyId= :tenant AND e.expenseDate >= :startDate AND e.expenseDate <= :endDate")
+    Single<List<Expense>> getByPeriod(LocalDate startDate, LocalDate endDate, Long tenant);
+
+    @Transaction
+    @Query("SELECT * FROM expense e WHERE e.expenseDate = :date AND companyId= :tenant")
+    Single<List<Expense>> getByDate(LocalDate date, Long tenant);
 
 }

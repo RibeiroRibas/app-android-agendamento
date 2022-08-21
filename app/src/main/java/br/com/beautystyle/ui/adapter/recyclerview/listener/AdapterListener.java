@@ -1,5 +1,6 @@
 package br.com.beautystyle.ui.adapter.recyclerview.listener;
 
+import br.com.beautystyle.database.references.EventWithClientAndJobs;
 import br.com.beautystyle.model.entity.Category;
 import br.com.beautystyle.model.entity.Costumer;
 import br.com.beautystyle.model.entity.Expense;
@@ -13,6 +14,9 @@ public class AdapterListener {
 
     public interface OnClientClickListener {
         void onItemClick(Costumer costumer);
+    }
+    public interface OnEventClickListener {
+        void onItemClick(EventWithClientAndJobs event);
     }
 
     public interface OnJobClickListener {

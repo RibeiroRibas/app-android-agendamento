@@ -19,8 +19,8 @@ import io.reactivex.rxjava3.core.Single;
 public interface RoomEventDao {
 
     @Transaction
-    @Query("SELECT * FROM Event ev WHERE ev.eventDate = :date")
-    Single<List<EventWithClientAndJobs>> getByDate(LocalDate date);
+    @Query("SELECT * FROM Event ev WHERE ev.eventDate = :date AND companyId= :tenant")
+    Single<List<EventWithClientAndJobs>> getByDate(LocalDate date, Long tenant);
 
     @Insert
     Single<Long> insert(Event event);
@@ -36,4 +36,13 @@ public interface RoomEventDao {
 
     @Update
     Completable updateAll(List<Event> eventList);
+
+    @Transaction
+    @Query("SELECT * FROM event e WHERE companyId= :tenant AND " +
+            "e.eventDate >= :startDate AND e.eventDate <= :endDate")
+    Single<List<EventWithClientAndJobs>> getByPeriod(LocalDate startDate,LocalDate endDate, Long tenant);
+
+    @Query("SELECT e.eventDate FROM event e WHERE companyId= :tenant")
+    Single<List<LocalDate>> getYearsList(Long tenant);
+
 }

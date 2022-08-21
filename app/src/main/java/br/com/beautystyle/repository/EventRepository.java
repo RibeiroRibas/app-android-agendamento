@@ -1,8 +1,10 @@
 package br.com.beautystyle.repository;
 
 import static android.content.ContentValues.TAG;
+import static br.com.beautystyle.repository.ConstantsRepository.FREE_ACCOUNT;
 import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.USER_PREMIUM;
 
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -52,21 +54,25 @@ public class EventRepository {
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateFromRoom() {
+    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateLiveData() {
         MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents = new MutableLiveData<>();
-        dao.getAllByDate(CalendarUtil.selectedDate).doOnSuccess(eventsFromRoom -> {
-                    Resource<List<EventWithClientAndJobs>> resource =
-                            new Resource<>(eventsFromRoom, null);
-                    mutableEvents.setValue(resource);
-                }).doOnError(error ->
-                        mutableEvents.setValue(new Resource<>(null, error.getMessage())))
-                .subscribe();
+        getByDateFromRoom(mutableEvents);
+        if (isUserPremium()) {
+            getByDateFromApi(mutableEvents);
+        }
         return mutableEvents;
     }
 
-    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateFromApi(LocalDate date) {
-        MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents = new MutableLiveData<>();
-        webClient.getAllByDate(date, new ResultsCallBack<List<EventWithClientAndJobs>>() {
+    private void getByDateFromRoom(MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents) {
+        dao.getByDate(tenant).doOnSuccess(eventsFromRoom -> {
+            Resource<List<EventWithClientAndJobs>> resource =
+                    new Resource<>(eventsFromRoom, null);
+            mutableEvents.setValue(resource);
+        }).subscribe();
+    }
+
+    private void getByDateFromApi(MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents) {
+        webClient.getAllByDate(new ResultsCallBack<List<EventWithClientAndJobs>>() {
             @Override
             public void onSuccess(List<EventWithClientAndJobs> eventsFromApi) {
                 updateLocalDatabase(eventsFromApi, mutableEvents);
@@ -77,7 +83,6 @@ public class EventRepository {
                 mutableEvents.setValue(new Resource<>(null, error));
             }
         });
-        return mutableEvents;
     }
 
     private void updateLocalDatabase(List<EventWithClientAndJobs> eventsFromApi,
@@ -97,17 +102,6 @@ public class EventRepository {
         });
     }
 
-    public void updateAll(List<EventWithClientAndJobs> eventsFromApi,
-                          ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-        dao.getAllByDate(CalendarUtil.selectedDate)
-                .doOnSuccess(eventsFromRoom -> {
-                            deleteFromRoomIfNotExistOnApi(eventsFromApi, eventsFromRoom);
-                            setEventIdToUpdate(eventsFromRoom, eventsFromApi);
-                            updateAllOnRoom(eventsFromApi, callBack);
-                        }
-                ).subscribe();
-    }
-
     private void updateAllOnRoom(List<EventWithClientAndJobs> eventsFromApi,
                                  ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
         List<Event> eventsToUpdate = getEventsToUpdate(eventsFromApi);
@@ -124,7 +118,7 @@ public class EventRepository {
                 .doOnSuccess(ids -> {
                             setEventIds(newEvents, ids);
                             mergeEventId(eventsFromApi, newEvents);
-                            callBack.onSuccess(eventsFromApi);
+                            eventWithJobRepository.updateAll(eventsFromApi,callBack);
                         }
                 ).subscribe();
     }
@@ -144,7 +138,7 @@ public class EventRepository {
                               List<Event> newEvents) {
         eventsFromApi.forEach(eventFromApi ->
                 newEvents.forEach(newEvent -> {
-                            if ((isApiIdEquals(eventFromApi.getEvent(), newEvent))) {
+                            if (newEvent.isApiIdEquals(eventFromApi)) {
                                 setEventIds(eventFromApi.getEvent(), newEvent);
                             }
                         }
@@ -178,7 +172,7 @@ public class EventRepository {
                                     List<EventWithClientAndJobs> eventsFromApi) {
         eventsFromRoom.forEach(eventFromRoom ->
                 eventsFromApi.forEach(eventFromApi -> {
-                    if (isApiIdEquals(eventFromRoom.getEvent(), eventFromApi.getEvent())) {
+                    if (eventFromRoom.isApiIdEquals(eventFromApi)) {
                         setEventIds(eventFromApi.getEvent(), eventFromRoom.getEvent());
                     }
                 })
@@ -189,16 +183,25 @@ public class EventRepository {
         eventFromApi.setEventId(eventFromRoom.getEventId());
     }
 
-    private boolean isApiIdEquals(Event eventFromRoom, Event eventFromApi) {
-        return eventFromRoom.getApiId().equals(eventFromApi.getApiId());
+    public LiveData<Resource<EventWithClientAndJobs>> insert(EventWithClientAndJobs event) {
+        MutableLiveData<Resource<EventWithClientAndJobs>> liveData = new MutableLiveData<>();
+        event.getEvent().setCompanyId(tenant);
+        if (isUserPremium()) {
+            insertOnApi(event, liveData);
+        }
+        if (isFreeAccount()) {
+            insertOnRoom(event, liveData);
+        }
+        return liveData;
     }
 
-    public LiveData<Resource<EventWithClientAndJobs>> insertOnApi(EventWithClientAndJobs event) {
-        MutableLiveData<Resource<EventWithClientAndJobs>> liveData = new MutableLiveData<>();
+    private void insertOnApi(EventWithClientAndJobs event,
+                             MutableLiveData<Resource<EventWithClientAndJobs>> liveData) {
         webClient.insert(event, new ResultsCallBack<EventWithClientAndJobs>() {
             @Override
             public void onSuccess(EventWithClientAndJobs result) {
-                liveData.setValue(new Resource<>(result, null));
+                event.getEvent().setApiId(result.getEvent().getApiId());
+                insertOnRoom(event,liveData);
             }
 
             @Override
@@ -206,7 +209,27 @@ public class EventRepository {
                 liveData.setValue(new Resource<>(null, error));
             }
         });
-        return liveData;
+    }
+
+    public void insertOnRoom(EventWithClientAndJobs eventWithClientAndJobs,
+                             MutableLiveData<Resource<EventWithClientAndJobs>> liveData) {
+        Event event = eventWithClientAndJobs.getEvent();
+        event.setEventId(null);
+        dao.insert(event)
+                .doOnSuccess(id -> {
+                    eventWithClientAndJobs.getEvent().setEventId(id);
+                    insertEventWithJobsCrossRef(eventWithClientAndJobs, liveData);
+                })
+                .subscribe();
+    }
+
+    private void insertEventWithJobsCrossRef(EventWithClientAndJobs eventWithClientAndJobs,
+                                             MutableLiveData<Resource<EventWithClientAndJobs>> liveData) {
+        List<EventJobCrossRef> eventJobCrossRefs =
+                new ArrayList<>(getEventJobsCrossRefs(eventWithClientAndJobs));
+        eventWithJobRepository.insert(eventJobCrossRefs).doOnComplete(() ->
+                liveData.setValue(new Resource<>(eventWithClientAndJobs, null))
+        ).subscribe();
     }
 
     private List<EventJobCrossRef> getEventJobsCrossRefs(EventWithClientAndJobs event) {
@@ -215,12 +238,22 @@ public class EventRepository {
                 .collect(Collectors.toList());
     }
 
-    public LiveData<Resource<Void>> updateOnApi(EventWithClientAndJobs event) {
+    public LiveData<Resource<Void>> update(EventWithClientAndJobs event) {
         MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        if (isUserPremium()) {
+            updateOnApi(event, liveData);
+        }
+        if (isFreeAccount()) {
+            updateOnRoom(event, liveData);
+        }
+        return liveData;
+    }
+
+    private void updateOnApi(EventWithClientAndJobs event, MutableLiveData<Resource<Void>> liveData) {
         webClient.update(event, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                liveData.setValue(new Resource<>(result, null));
+                updateOnRoom(event, liveData);
             }
 
             @Override
@@ -228,15 +261,33 @@ public class EventRepository {
                 liveData.setValue(new Resource<>(null, error));
             }
         });
+    }
+
+    public void updateOnRoom(EventWithClientAndJobs eventWithClientAndJobs,
+                             MutableLiveData<Resource<Void>> liveData) {
+        dao.update(eventWithClientAndJobs.getEvent())
+                .doOnComplete(() ->
+                        eventWithJobRepository.update(
+                                eventWithClientAndJobs, liveData)
+                ).subscribe();
+    }
+
+    public LiveData<Resource<Void>> delete(Event event) {
+        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+        if (isUserPremium()) {
+            deleteOnApi(event, liveData);
+        }
+        if (isFreeAccount()) {
+            deleteOnRoom(event, liveData);
+        }
         return liveData;
     }
 
-    public LiveData<Resource<Void>> deleteOnApi(Event event) {
-        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
+    private void deleteOnApi(Event event, MutableLiveData<Resource<Void>> liveData) {
         webClient.delete(event.getApiId(), new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                liveData.setValue(new Resource<>(result, null));
+                deleteOnRoom(event, liveData);
             }
 
             @Override
@@ -244,9 +295,13 @@ public class EventRepository {
                 liveData.setValue(new Resource<>(null, error));
             }
         });
-        return liveData;
     }
 
+    public void deleteOnRoom(Event event, MutableLiveData<Resource<Void>> liveData) {
+        dao.delete(event).doOnComplete(() ->
+                        liveData.setValue(new Resource<>(null, null)))
+                .subscribe();
+    }
 
     public void updateCostumersJobsAndEvents(List<EventWithClientAndJobs> events,
                                              ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
@@ -322,7 +377,7 @@ public class EventRepository {
         events.forEach(event ->
                 event.getJobs().forEach(jobFromApi ->
                         jobs.forEach(job -> {
-                            if (jobFromApi.getApiId().equals(job.getApiId())) {
+                            if (job.isApiIdEquals(jobFromApi)) {
                                 jobFromApi.setJobId(job.getJobId());
                             }
                         })
@@ -330,20 +385,15 @@ public class EventRepository {
         );
     }
 
-    private void updateEvents(List<EventWithClientAndJobs> events,
+    private void updateEvents(List<EventWithClientAndJobs> eventsFromApi,
                               ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-        updateAll(events, new ResultsCallBack<List<EventWithClientAndJobs>>() {
-            @Override
-            public void onSuccess(List<EventWithClientAndJobs> events) {
-                eventWithJobRepository.updateAll(events,callBack);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        });
-
+        dao.getByDate(tenant)
+                .doOnSuccess(eventsFromRoom -> {
+                            deleteFromRoomIfNotExistOnApi(eventsFromApi, eventsFromRoom);
+                            setEventIdToUpdate(eventsFromRoom, eventsFromApi);
+                            updateAllOnRoom(eventsFromApi, callBack);
+                        }
+                ).subscribe();
     }
 
     public LiveData<Resource<List<Report>>> getReportByPeriod() {
@@ -364,56 +414,11 @@ public class EventRepository {
         return liveData;
     }
 
-    public LiveData<Resource<Void>> insertOnRoom(EventWithClientAndJobs eventWithClientAndJobs) {
-        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
-        Event event = eventWithClientAndJobs.getEvent();
-        event.setEventId(null);
-        event.setCompanyId(tenant);
-        dao.insert(event)
-                .doOnSuccess(id -> {
-                    eventWithClientAndJobs.getEvent().setEventId(id);
-                    insertEventWithJobsCrossRef(eventWithClientAndJobs, liveData);
-                })
-                .subscribe();
-        return liveData;
+    private boolean isFreeAccount() {
+        return profile.equals(FREE_ACCOUNT);
     }
 
-    public boolean isFreeUser() {
-        return profile.equals("ROLE_FREE_ACCOUNT");
-    }
-
-    public boolean isUserPremium() {
-        return profile.equals("ROLE_PROFISSIONAL");
-    }
-
-    private void insertEventWithJobsCrossRef(EventWithClientAndJobs eventWithClientAndJobs,
-                                             MutableLiveData<Resource<Void>> liveData) {
-        List<EventJobCrossRef> eventJobCrossRefs =
-                new ArrayList<>(getEventJobsCrossRefs(eventWithClientAndJobs));
-        eventWithJobRepository.insert(eventJobCrossRefs).doOnComplete(() ->
-                liveData.setValue(new Resource<>(null, null))
-        ).subscribe();
-    }
-
-    public LiveData<Resource<Void>> deleteOnRoom(Event event) {
-        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
-        dao.delete(event).doOnError(error ->
-                        liveData.setValue(new Resource<>(null, error.getMessage()))
-                ).doOnComplete(() ->
-                        liveData.setValue(new Resource<>(null, null)))
-                .subscribe();
-        return liveData;
-    }
-
-    public LiveData<Resource<Void>> updateOnRoom(EventWithClientAndJobs eventWithClientAndJobs) {
-        MutableLiveData<Resource<Void>> liveData = new MutableLiveData<>();
-        dao.update(eventWithClientAndJobs.getEvent())
-                .doOnComplete(() ->
-                        eventWithJobRepository.update(
-                                eventWithClientAndJobs, liveData)
-                ).doOnError(error ->
-                        liveData.setValue(new Resource<>(null, error.getMessage()))
-                ).subscribe();
-        return liveData;
+    private boolean isUserPremium() {
+        return profile.equals(USER_PREMIUM);
     }
 }

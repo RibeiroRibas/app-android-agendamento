@@ -68,4 +68,8 @@ public class EventWithClientAndJobs implements Serializable {
     public boolean isEventNotNull() {
         return event.getEventId() > 0;
     }
+
+    public boolean isApiIdEquals(EventWithClientAndJobs eventFromApi) {
+        return event.isApiIdEquals(eventFromApi);
+    }
 }

@@ -17,7 +17,7 @@ public class JobViewModel extends ViewModel {
         this.repository = repository;
     }
 
-    public LiveData<Resource<List<Job>>> getAllFromRoomLiveData() {
+    public LiveData<Resource<List<Job>>> getAllLiveData() {
         return repository.getAllLiveData();
     }
 

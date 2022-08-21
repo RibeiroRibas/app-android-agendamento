@@ -13,6 +13,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -30,6 +31,7 @@ import br.com.beautystyle.model.UserLogin;
 import br.com.beautystyle.model.UserToken;
 import br.com.beautystyle.model.entity.User;
 import br.com.beautystyle.repository.UserRepository;
+import br.com.beautystyle.ui.ProgressBottom;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -39,6 +41,7 @@ public class LoginActivity extends AppCompatActivity {
     private UserViewModel viewModel;
     private SharedPreferences preferences;
     private EditText email, password;
+    private ProgressBottom progressBottom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +79,12 @@ public class LoginActivity extends AppCompatActivity {
     private void btnLoginAuthenticationListener() {
         Button btnAuthentication = findViewById(R.id.activity_login_btn);
         btnAuthentication.setOnClickListener(v -> {
+            password.clearFocus();
+            email.clearFocus();
             if (checkRequiredFields()) {
+                ProgressBar progressBar = findViewById(R.id.activity_login_progress_bar);
+                progressBottom = new ProgressBottom(progressBar);
+                progressBottom.buttonActivated();
                 String userEmail = email.getText().toString();
                 String userPassword = password.getText().toString();
                 UserLogin userLogin = new UserLogin(userEmail, userPassword);
@@ -111,6 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                 User user = new User(userLogin, resource.getData().getProfiles());
                 insertUserOnRoom(user);
             }else{
+                progressBottom.buttonFinished();
                 showErrorMessage(resource.getError());
             }
         });
@@ -122,6 +131,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void startNavigationActivity() {
+        progressBottom.buttonFinished();
         Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
         startActivity(intent);
     }

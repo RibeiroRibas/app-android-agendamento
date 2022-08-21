@@ -17,12 +17,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.beautystyle.R;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.List;
 
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.ReportViewModel;
 import br.com.beautystyle.util.CalendarUtil;
+import br.com.beautystyle.util.CreateListsUtil;
 
 public class MonthlyReportFragment extends Fragment {
 
@@ -103,19 +103,31 @@ public class MonthlyReportFragment extends Fragment {
         monthsOfTheYear.setOnItemClickListener((parent, view, position, id) -> {
             String yearValue = years.getText().toString();
             String month = monthsOfTheYear.getText().toString();
+            int monthValue = getMonthValue(month);
             if (!yearValue.isEmpty()) {
-                CalendarUtil.selectedDate = LocalDate.of(Integer.parseInt(yearValue), Month.valueOf(month), 1);
+                CalendarUtil.selectedDate = LocalDate.of(Integer.parseInt(yearValue),monthValue, 1);
                 viewModel.addMonthlyReport();
             }
         });
     }
 
+    private int getMonthValue(String month) {
+        List<String> months = CreateListsUtil.getMonths();
+        for(int i =0; i<months.size();i++){
+            if(months.get(i).equals(month)){
+                return i+1;
+            }
+        }
+        return 0;
+    }
+
     private void adapterYearsListener() {
         years.setOnItemClickListener(((parent, view, position, id) -> {
             String month = monthsOfTheYear.getText().toString();
+            int monthValue = getMonthValue(month);
             int yearValue = Integer.parseInt(years.getText().toString());
             if (!month.isEmpty()) {
-                CalendarUtil.selectedDate = LocalDate.of(yearValue, Month.from(Month.valueOf(month)), 1);
+                CalendarUtil.selectedDate = LocalDate.of(yearValue, monthValue, 1);
                 viewModel.addMonthlyReport();
             }
         }));

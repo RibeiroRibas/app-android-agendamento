@@ -47,7 +47,8 @@ public class EventWithJobRepository {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public void update(EventWithClientAndJobs eventWithClientAndJobs, MutableLiveData<Resource<Void>> liveData) {
+    public void update(EventWithClientAndJobs eventWithClientAndJobs,
+                       MutableLiveData<Resource<Void>> liveData) {
         List<EventJobCrossRef> eventJobCrossRefs =
                 new ArrayList<>(getEventJobsCrossRefs(eventWithClientAndJobs));
         deleteEventWithJobsCrossRef(liveData, eventJobCrossRefs);
@@ -59,21 +60,19 @@ public class EventWithJobRepository {
                 .collect(Collectors.toList());
     }
 
-    private void deleteEventWithJobsCrossRef(MutableLiveData<Resource<Void>> liveData, List<EventJobCrossRef> eventJobCrossRefs) {
+    private void deleteEventWithJobsCrossRef(MutableLiveData<Resource<Void>> liveData,
+                                             List<EventJobCrossRef> eventJobCrossRefs) {
         deleteAllByIds(eventJobCrossRefs)
                 .doOnComplete(() ->
                         insertEventJobsCrossRef(liveData, eventJobCrossRefs)
-                ).doOnError(error ->
-                        liveData.setValue(new Resource<>(null, error.getMessage())))
-                .subscribe();
+                ).subscribe();
     }
 
-    private void insertEventJobsCrossRef(MutableLiveData<Resource<Void>> liveData, List<EventJobCrossRef> eventJobCrossRefs) {
+    private void insertEventJobsCrossRef(MutableLiveData<Resource<Void>> liveData,
+                                         List<EventJobCrossRef> eventJobCrossRefs) {
         insert(eventJobCrossRefs)
                 .doOnComplete(() ->
                         liveData.setValue(new Resource<>(null, null))
-                ).doOnError(error ->
-                        liveData.setValue(new Resource<>(null, error.getMessage()))
                 ).subscribe();
     }
 

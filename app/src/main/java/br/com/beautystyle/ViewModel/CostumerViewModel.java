@@ -19,8 +19,8 @@ public class CostumerViewModel extends ViewModel {
         this.repository = repository;
     }
 
-    public LiveData<Resource<List<Costumer>>> getAllFromRoomLiveData() {
-        return repository.getAllFromRoomLiveData();
+    public LiveData<Resource<List<Costumer>>> getAllLiveData() {
+        return repository.getAllLiveData();
     }
 
     public LiveData<List<Costumer>> getContactListFromSmartphone(Context context) {

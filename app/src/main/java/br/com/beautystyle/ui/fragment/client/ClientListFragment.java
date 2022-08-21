@@ -100,13 +100,12 @@ public class ClientListFragment extends Fragment {
         setFragmentResultListener();
 
         costumersObserver();
-        repository.getAllFromApi();
 
         return inflateDView;
     }
 
     private void costumersObserver() {
-        costumerViewModel.getAllFromRoomLiveData().observe(requireActivity(), resource -> {
+        costumerViewModel.getAllLiveData().observe(requireActivity(), resource -> {
             if (resource.isDataNotNull()) {
                 adapter.update(resource.getData());
             } else {
@@ -302,8 +301,8 @@ public class ClientListFragment extends Fragment {
     private void isInsert(Bundle result) {
         if (result.containsKey(KEY_INSERT_CLIENT)) {
             Costumer costumer = (Costumer) result.getSerializable(KEY_INSERT_CLIENT);
-            repository.insertOnRoom(costumer);
-            repository.insertOnApi(costumer);
+            repository.insert(costumer);
+
         }
     }
 

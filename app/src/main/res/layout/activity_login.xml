@@ -70,11 +70,28 @@
         android:layout_width="250dp"
         android:layout_height="48dp"
         android:layout_marginTop="16dp"
+        android:focusable="true"
+
         android:background="@drawable/custom_input_login"
         android:text="Entrar"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="@+id/activity_login_toggle"
         app:layout_constraintStart_toStartOf="@+id/activity_login_toggle"
         app:layout_constraintTop_toBottomOf="@+id/activity_login_toggle" />
+
+    <ProgressBar
+        android:id="@+id/activity_login_progress_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/black"
+        android:indeterminateTintMode="src_atop"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/activity_login_btn"
+        app:layout_constraintStart_toStartOf="@+id/activity_login_btn"
+        app:layout_constraintTop_toBottomOf="@+id/activity_login_btn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

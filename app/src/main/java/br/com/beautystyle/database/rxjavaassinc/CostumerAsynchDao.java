@@ -22,14 +22,14 @@ public class CostumerAsynchDao {
         dao = database.getRoomClientDao();
     }
 
-    public Observable<List<Costumer>> getAllObservable() {
-        return dao.getAllObservable()
+    public Observable<List<Costumer>> getAllObservable(Long tenant) {
+        return dao.getAllObservable(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
 
-    public Single<List<Costumer>> getAll() {
-        return dao.getAll()
+    public Single<List<Costumer>> getAll(Long tenant) {
+        return dao.getAll(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }

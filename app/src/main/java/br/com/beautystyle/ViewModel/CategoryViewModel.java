@@ -17,7 +17,7 @@ public class CategoryViewModel extends ViewModel {
         this.repository = repository;
     }
 
-    public LiveData<Resource<List<Category>>> getAllFromRoomLiveData() {
-        return repository.getAllFromRoomLiveData();
+    public LiveData<Resource<List<Category>>> getAllLiveData() {
+        return repository.getAllLiveData();
     }
 }

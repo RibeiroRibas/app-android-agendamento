@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import br.com.beautystyle.database.BeautyStyleDatabase;
 import br.com.beautystyle.database.dao.RoomExpenseDao;
 import br.com.beautystyle.model.entity.Expense;
+import br.com.beautystyle.util.CalendarUtil;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -47,10 +48,23 @@ public class ExpenseAsynchDao {
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public Single<List<Expense>> getByPeriod(LocalDate startDate, LocalDate endDate){
-        return dao.getByPeriod(startDate, endDate)
+    public Single<List<Expense>> getByPeriod(LocalDate startDate,
+                                             LocalDate endDate,
+                                             Long tenant) {
+        return dao.getByPeriod(startDate, endDate, tenant)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
+    public Single<List<LocalDate>> getYearsList(Long tenant) {
+        return dao.getYearsList(tenant)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public Single<List<Expense>> getByDate(Long tenant) {
+        return dao.getByDate(CalendarUtil.selectedDate,tenant)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
 }

@@ -1,7 +1,9 @@
 package br.com.beautystyle.repository;
 
+import static br.com.beautystyle.repository.ConstantsRepository.FREE_ACCOUNT;
 import static br.com.beautystyle.repository.ConstantsRepository.PROFILE_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
+import static br.com.beautystyle.repository.ConstantsRepository.USER_PREMIUM;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -43,18 +45,22 @@ public class ClientRepository {
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public LiveData<Resource<List<Costumer>>> getAllFromRoomLiveData() {
-        dao.getAllObservable().doOnNext(costumersFromRoom -> {
-                    Resource<List<Costumer>> resource = new Resource<>(costumersFromRoom, null);
-                    mutableCostumers.setValue(resource);
-                }).doOnError(error ->
-                        mutableCostumers.setValue(new Resource<>(null, error.getMessage())))
-                .subscribe();
+    public LiveData<Resource<List<Costumer>>> getAllLiveData() {
+        getAllFromRoomObservable();
+        if(isUserPremium()){
+            getAllFromApi();
+        }
         return mutableCostumers;
     }
 
-    public void getAllFromApi() {
-        if(isUserPremium()){
+    private void getAllFromRoomObservable() {
+        dao.getAllObservable(tenant).doOnNext(costumersFromRoom -> {
+                    Resource<List<Costumer>> resource = new Resource<>(costumersFromRoom, null);
+                    mutableCostumers.setValue(resource);
+                }).subscribe();
+    }
+
+    private void getAllFromApi() {
             webClient.getAll(new ResultsCallBack<List<Costumer>>() {
                 @Override
                 public void onSuccess(List<Costumer> costumersFromApi) {
@@ -66,31 +72,27 @@ public class ClientRepository {
                     mutableCostumers.setValue(new Resource<>(null, error));
                 }
             });
-        }
     }
 
-    public void insertOnApi(Costumer newCostumer) {
-        if(isUserPremium()){
-            webClient.insert(newCostumer, new ResultsCallBack<Costumer>() {
-                @Override
-                public void onSuccess(Costumer costumer) {
-                    costumer.setClientId(null);
-                    dao.insert(costumer).subscribe();
-                }
-
-                @Override
-                public void onError(String error) {
-                    mutableCostumers.setValue(new Resource<>(null, error));
-                }
-            });
-        }
-    }
 
     public void update(Costumer costumer) {
+        if(isUserPremium()) {
+            updateOnApi(costumer);
+        }
+        if(isFreeUser()){
+            updateOnRoom(costumer);
+        }
+    }
+
+    private void updateOnRoom(Costumer costumer) {
+        dao.update(costumer).subscribe();
+    }
+
+    private void updateOnApi(Costumer costumer) {
         webClient.update(costumer, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                dao.update(costumer).subscribe();
+               updateOnRoom(costumer);
             }
 
             @Override
@@ -101,10 +103,23 @@ public class ClientRepository {
     }
 
     public void delete(Costumer costumer) {
+        if(isUserPremium()){
+            deleteOnApi(costumer);
+        }
+        if(isFreeUser()){
+            deleteOnRoom(costumer);
+        }
+    }
+
+    private void deleteOnRoom(Costumer costumer) {
+        dao.delete(costumer).subscribe();
+    }
+
+    private void deleteOnApi(Costumer costumer) {
         webClient.delete(costumer, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                dao.delete(costumer).subscribe();
+                deleteOnRoom(costumer);
             }
 
             @Override
@@ -115,11 +130,24 @@ public class ClientRepository {
     }
 
     public void insertAll(List<Costumer> contactList) {
+        if(isUserPremium()){
+            insertAllOnApi(contactList);
+        }
+        if(isFreeUser()){
+            insertAllOnRoom(contactList);
+        }
+    }
+
+    private void insertAllOnRoom(List<Costumer> costumers) {
+        dao.insertAll(costumers).subscribe();
+    }
+
+    private void insertAllOnApi(List<Costumer> contactList) {
         webClient.insertAll(contactList, new ResultsCallBack<List<Costumer>>() {
             @Override
             public void onSuccess(List<Costumer> costumers) {
                 costumers.forEach(costumer -> costumer.setClientId(null));
-                dao.insertAll(costumers).subscribe();
+                insertAllOnRoom(costumers);
             }
 
             @Override
@@ -140,7 +168,7 @@ public class ClientRepository {
 
     public LiveData<List<Costumer>> getContactListFromSmartphone(Context context) {
         MutableLiveData<List<Costumer>> mutableContactList = new MutableLiveData<>();
-        dao.getAll()
+        dao.getAll(tenant)
                 .doOnSuccess(costumersFromRoom ->
                         getNewContacts(context, costumersFromRoom)
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -199,7 +227,7 @@ public class ClientRepository {
 
     public void updateAndInsertAll(List<Costumer> clientsFromApi,
                                    ResultsCallBack<List<Costumer>> callBack) {
-        dao.getAll()
+        dao.getAll(tenant)
                 .doOnSuccess(clientsFromRoom -> {
                     if (callBack == null)
                         deleteFromRoomIfNotExistOnApi(clientsFromApi, clientsFromRoom);
@@ -255,18 +283,39 @@ public class ClientRepository {
         ));
     }
     private boolean isFreeUser() {
-        return profile.equals("ROLE_FREE_ACCOUNT");
+        return profile.equals(FREE_ACCOUNT);
     }
 
     private boolean isUserPremium() {
-        return profile.equals("ROLE_PROFISSIONAL");
+        return profile.equals(USER_PREMIUM);
     }
 
-    public void insertOnRoom(Costumer costumer) {
+    public void insert(Costumer costumer) {
         if(isFreeUser()){
-            costumer.setClientId(null);
-            costumer.setCompanyId(tenant);
-            dao.insert(costumer).subscribe();
+            insertOnRoom(costumer);
         }
+        if(isUserPremium()){
+            insertOnApi(costumer);
+        }
+    }
+
+    private void insertOnApi(Costumer costumer) {
+        webClient.insert(costumer, new ResultsCallBack<Costumer>() {
+            @Override
+            public void onSuccess(Costumer costumer) {
+                insertOnRoom(costumer);
+            }
+
+            @Override
+            public void onError(String error) {
+                mutableCostumers.setValue(new Resource<>(null, error));
+            }
+        });
+    }
+
+    private void insertOnRoom(Costumer costumer) {
+        costumer.setClientId(null);
+        costumer.setCompanyId(tenant);
+        dao.insert(costumer).subscribe();
     }
 }
