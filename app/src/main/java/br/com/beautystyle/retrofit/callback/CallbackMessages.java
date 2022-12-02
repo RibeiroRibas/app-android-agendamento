@@ -6,4 +6,5 @@ public interface CallbackMessages {
     String NO_INTERNET_CONNECTION = "Internet Indisponível";
     String MESSAGE_SERVER_ERROR = "Erro no Servidor";
     String BAD_CREDENTIALS = "Email ou Senha Inválidos";
+    String DURATION_TIME_IS_NOT_AVAILABLE = "Tempo de duração excede o tempo disponível na agenda!";
 }

@@ -9,6 +9,6 @@ public class SortByEventStartTime implements Comparator<EventWithClientAndJobs> 
 
     @Override
     public int compare(EventWithClientAndJobs o1, EventWithClientAndJobs o2) {
-        return o1.getEvent().getStarTime().compareTo(o2.getEvent().getStarTime());
+        return o1.getEvent().getStartTime().compareTo(o2.getEvent().getStartTime());
     }
 }

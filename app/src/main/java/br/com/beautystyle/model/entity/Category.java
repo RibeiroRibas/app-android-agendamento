@@ -14,7 +14,7 @@ public class Category implements Serializable {
     private Long id;
     private String name;
     private Long apiId;
-    private Long companyId;
+    private Long tenant;
 
     @Ignore
     public Category(String name) {
@@ -48,12 +48,12 @@ public class Category implements Serializable {
         this.name = name;
     }
 
-    public Long getCompanyId() {
-        return companyId;
+    public Long getTenant() {
+        return tenant;
     }
 
-    public void setCompanyId(Long companyId) {
-        this.companyId = companyId;
+    public void setTenant(Long tenant) {
+        this.tenant = tenant;
     }
 
     public boolean isApiIdEquals(Category categoryFromApi) {

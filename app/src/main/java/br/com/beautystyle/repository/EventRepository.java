@@ -13,8 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,27 +22,30 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
-import br.com.beautystyle.database.rxjavaassinc.EventAsynchDao;
-import br.com.beautystyle.model.Report;
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.database.rxjava.EventRxJava;
+import br.com.beautystyle.model.entity.BlockTime;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.model.entity.Event;
 import br.com.beautystyle.model.entity.EventJobCrossRef;
 import br.com.beautystyle.model.entity.Job;
+import br.com.beautystyle.retrofit.model.dto.EventWithClientAndJobsDto;
+import br.com.beautystyle.retrofit.model.form.EventForm;
 import br.com.beautystyle.retrofit.webclient.EventWebClient;
-import br.com.beautystyle.util.CalendarUtil;
 
 public class EventRepository {
 
     @Inject
     EventWebClient webClient;
     @Inject
-    EventAsynchDao dao;
+    EventRxJava dao;
     @Inject
     EventWithJobRepository eventWithJobRepository;
     @Inject
     ClientRepository costumerRepository;
     @Inject
     JobRepository jobRepository;
+    @Inject
+    BlockTimeRepository blockTimeRepository;
     private final String profile;
     private final Long tenant;
 
@@ -54,8 +55,8 @@ public class EventRepository {
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateLiveData() {
-        MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents = new MutableLiveData<>();
+    public LiveData<Resource<EventWithClientAndJobsDto>> getByDateLiveData() {
+        MutableLiveData<Resource<EventWithClientAndJobsDto>> mutableEvents = new MutableLiveData<>();
         getByDateFromRoom(mutableEvents);
         if (isUserPremium()) {
             getByDateFromApi(mutableEvents);
@@ -63,18 +64,24 @@ public class EventRepository {
         return mutableEvents;
     }
 
-    private void getByDateFromRoom(MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents) {
+    private void getByDateFromRoom(MutableLiveData<Resource<EventWithClientAndJobsDto>> mutableEvents) {
         dao.getByDate(tenant).doOnSuccess(eventsFromRoom -> {
-            Resource<List<EventWithClientAndJobs>> resource =
-                    new Resource<>(eventsFromRoom, null);
-            mutableEvents.setValue(resource);
+            blockTimeRepository.getAllByDate()
+                    .doOnSuccess(blockTimes -> {
+                        EventWithClientAndJobsDto events = new EventWithClientAndJobsDto(
+                                eventsFromRoom, blockTimes
+                        );
+                        Resource<EventWithClientAndJobsDto> resource =
+                                new Resource<>(events, null);
+                        mutableEvents.setValue(resource);
+                    }).subscribe();
         }).subscribe();
     }
 
-    private void getByDateFromApi(MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents) {
-        webClient.getAllByDate(new ResultsCallBack<List<EventWithClientAndJobs>>() {
+    private void getByDateFromApi(MutableLiveData<Resource<EventWithClientAndJobsDto>> mutableEvents) {
+        webClient.getAllByDate(new ResultsCallBack<EventWithClientAndJobsDto>() {
             @Override
-            public void onSuccess(List<EventWithClientAndJobs> eventsFromApi) {
+            public void onSuccess(EventWithClientAndJobsDto eventsFromApi) {
                 updateLocalDatabase(eventsFromApi, mutableEvents);
             }
 
@@ -85,22 +92,45 @@ public class EventRepository {
         });
     }
 
-    private void updateLocalDatabase(List<EventWithClientAndJobs> eventsFromApi,
-                                     MutableLiveData<Resource<List<EventWithClientAndJobs>>> mutableEvents) {
+    private void updateLocalDatabase(EventWithClientAndJobsDto eventsFromApiDto,
+                                     MutableLiveData<Resource<EventWithClientAndJobsDto>> mutableEvents) {
         //update costumers -> update jobs -> update events
-        updateCostumersJobsAndEvents(eventsFromApi, new ResultsCallBack<List<EventWithClientAndJobs>>() {
-            @Override
-            public void onSuccess(List<EventWithClientAndJobs> events) {
-                Resource<List<EventWithClientAndJobs>> resource = new Resource<>(events, null);
-                mutableEvents.setValue(resource);
-            }
+        List<EventWithClientAndJobs> eventsFromApi = eventsFromApiDto.getEvents();
+        updateCostumersAndJobsAndEvents(eventsFromApi,
+                new ResultsCallBack<List<EventWithClientAndJobs>>() {
+                    @Override
+                    public void onSuccess(List<EventWithClientAndJobs> events) {
+                        eventsFromApiDto.setEvents(events);
+                        updateBlockTimes(eventsFromApiDto, mutableEvents);
+                    }
 
-            @Override
-            public void onError(String error) {
-                mutableEvents.setValue(new Resource<>(null, error));
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        mutableEvents.setValue(new Resource<>(null, error));
+                    }
+                });
     }
+
+    private void updateBlockTimes(EventWithClientAndJobsDto eventsFromApiDto,
+                                  MutableLiveData<Resource<EventWithClientAndJobsDto>> mutableEvents) {
+
+        blockTimeRepository.updateAll(eventsFromApiDto.getBlockTimes(),
+                new ResultsCallBack<List<BlockTime>>() {
+                    @Override
+                    public void onSuccess(List<BlockTime> blockTimes) {
+                        eventsFromApiDto.setBlockTimes(blockTimes);
+                        Resource<EventWithClientAndJobsDto> resource =
+                                new Resource<>(eventsFromApiDto, null);
+                        mutableEvents.setValue(resource);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        mutableEvents.setValue(new Resource<>(null, error));
+                    }
+                });
+    }
+
 
     private void updateAllOnRoom(List<EventWithClientAndJobs> eventsFromApi,
                                  ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
@@ -113,12 +143,12 @@ public class EventRepository {
     private void insertAllOnRoom(List<EventWithClientAndJobs> eventsFromApi,
                                  ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
         List<Event> newEvents = getEventsToInsert(eventsFromApi);
-        newEvents.forEach(event -> event.setEventId(null));
+        newEvents.forEach(event -> event.setId(null));
         dao.insertAll(newEvents)
                 .doOnSuccess(ids -> {
                             setEventIds(newEvents, ids);
                             mergeEventId(eventsFromApi, newEvents);
-                            eventWithJobRepository.updateAll(eventsFromApi,callBack);
+                            eventWithJobRepository.updateAll(eventsFromApi, callBack);
                         }
                 ).subscribe();
     }
@@ -126,29 +156,30 @@ public class EventRepository {
     private void deleteFromRoomIfNotExistOnApi(List<EventWithClientAndJobs> eventsFromApi,
                                                List<EventWithClientAndJobs> eventsFromRoom) {
         eventsFromRoom.forEach(fromRoom -> {
-            List<Event> events = eventsFromApi.stream()
-                    .map(EventWithClientAndJobs::getEvent)
-                    .collect(Collectors.toList());
-            if (fromRoom.getEvent().isNotExistOnApi(events))
+            if (isNotExistOnApi(eventsFromApi, fromRoom))
                 dao.delete(fromRoom.getEvent()).subscribe();
         });
     }
 
+    private boolean isNotExistOnApi(List<EventWithClientAndJobs> eventsFromApi,
+                                    EventWithClientAndJobs fromRoom) {
+        return eventsFromApi.stream()
+                .map(EventWithClientAndJobs::getEvent)
+                .noneMatch(eventFromApi -> fromRoom.getEvent().isApiIdEquals(eventFromApi.getApiId()));
+    }
+
     private void mergeEventId(List<EventWithClientAndJobs> eventsFromApi,
                               List<Event> newEvents) {
-        eventsFromApi.forEach(eventFromApi ->
-                newEvents.forEach(newEvent -> {
-                            if (newEvent.isApiIdEquals(eventFromApi)) {
-                                setEventIds(eventFromApi.getEvent(), newEvent);
-                            }
-                        }
-                )
-        );
+        eventsFromApi.stream().map(EventWithClientAndJobs::getEvent)
+                .forEach(eventFromApi -> newEvents.forEach(newEvent -> {
+                    if (newEvent.isApiIdEquals(eventFromApi.getApiId()))
+                        eventFromApi.setId(newEvent.getId());
+                }));
     }
 
     private void setEventIds(List<Event> eventsToInsert, List<Long> ids) {
         for (int i = 0; i < eventsToInsert.size(); i++) {
-            eventsToInsert.get(i).setEventId(ids.get(i));
+            eventsToInsert.get(i).setId(ids.get(i));
         }
     }
 
@@ -156,7 +187,7 @@ public class EventRepository {
     private List<Event> getEventsToInsert(List<EventWithClientAndJobs> eventsFromApi) {
         return eventsFromApi.stream()
                 .map(EventWithClientAndJobs::getEvent)
-                .filter(event -> !event.checkId())
+                .filter(event -> !event.isEventIdNotNull())
                 .collect(Collectors.toList());
     }
 
@@ -164,7 +195,7 @@ public class EventRepository {
     private List<Event> getEventsToUpdate(List<EventWithClientAndJobs> eventsFromApi) {
         return eventsFromApi.stream()
                 .map(EventWithClientAndJobs::getEvent)
-                .filter(Event::checkId)
+                .filter(Event::isEventIdNotNull)
                 .collect(Collectors.toList());
     }
 
@@ -180,28 +211,32 @@ public class EventRepository {
     }
 
     private void setEventIds(Event eventFromApi, Event eventFromRoom) {
-        eventFromApi.setEventId(eventFromRoom.getEventId());
+        eventFromApi.setId(eventFromRoom.getId());
     }
 
     public LiveData<Resource<EventWithClientAndJobs>> insert(EventWithClientAndJobs event) {
         MutableLiveData<Resource<EventWithClientAndJobs>> liveData = new MutableLiveData<>();
-        event.getEvent().setCompanyId(tenant);
         if (isUserPremium()) {
             insertOnApi(event, liveData);
         }
         if (isFreeAccount()) {
+            event.getEvent().setTenant(tenant);
             insertOnRoom(event, liveData);
         }
         return liveData;
     }
 
+
     private void insertOnApi(EventWithClientAndJobs event,
                              MutableLiveData<Resource<EventWithClientAndJobs>> liveData) {
-        webClient.insert(event, new ResultsCallBack<EventWithClientAndJobs>() {
+        EventForm eventForm = new EventForm(event.getEvent(),
+                event.getCustomer().getApiId(),
+                event.getJobs());
+        webClient.insert(eventForm, new ResultsCallBack<EventWithClientAndJobs>() {
             @Override
             public void onSuccess(EventWithClientAndJobs result) {
                 event.getEvent().setApiId(result.getEvent().getApiId());
-                insertOnRoom(event,liveData);
+                insertOnRoom(event, liveData);
             }
 
             @Override
@@ -214,10 +249,9 @@ public class EventRepository {
     public void insertOnRoom(EventWithClientAndJobs eventWithClientAndJobs,
                              MutableLiveData<Resource<EventWithClientAndJobs>> liveData) {
         Event event = eventWithClientAndJobs.getEvent();
-        event.setEventId(null);
         dao.insert(event)
                 .doOnSuccess(id -> {
-                    eventWithClientAndJobs.getEvent().setEventId(id);
+                    eventWithClientAndJobs.getEvent().setId(id);
                     insertEventWithJobsCrossRef(eventWithClientAndJobs, liveData);
                 })
                 .subscribe();
@@ -234,7 +268,7 @@ public class EventRepository {
 
     private List<EventJobCrossRef> getEventJobsCrossRefs(EventWithClientAndJobs event) {
         return event.getJobs().stream()
-                .map(job -> new EventJobCrossRef(event.getEvent().getEventId(), job.getJobId()))
+                .map(job -> new EventJobCrossRef(event.getEvent().getId(), job.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -250,7 +284,10 @@ public class EventRepository {
     }
 
     private void updateOnApi(EventWithClientAndJobs event, MutableLiveData<Resource<Void>> liveData) {
-        webClient.update(event, new ResultsCallBack<Void>() {
+        EventForm eventForm = new EventForm(event.getEvent(),
+                event.getCustomer().getApiId(),
+                event.getJobs());
+        webClient.update(eventForm, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
                 updateOnRoom(event, liveData);
@@ -303,14 +340,14 @@ public class EventRepository {
                 .subscribe();
     }
 
-    public void updateCostumersJobsAndEvents(List<EventWithClientAndJobs> events,
-                                             ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-        List<Costumer> costumers = getClients(events);
-        costumerRepository.updateAndInsertAll(costumers,
-                new ResultsCallBack<List<Costumer>>() {
+    public void updateCostumersAndJobsAndEvents(List<EventWithClientAndJobs> events,
+                                                ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
+        List<Customer> customers = getClients(events);
+        costumerRepository.updateAndInsertAll(customers,
+                new ResultsCallBack<List<Customer>>() {
                     @Override
-                    public void onSuccess(List<Costumer> costumers) {
-                        setCostumerIdOnEvents(costumers, events);
+                    public void onSuccess(List<Customer> customers) {
+                        setCostumerIdOnEvents(customers, events);
                         updateJobs(events, callBack);
                     }
 
@@ -323,21 +360,21 @@ public class EventRepository {
     }
 
     @NonNull
-    private List<Costumer> getClients(List<EventWithClientAndJobs> events) {
+    private List<Customer> getClients(List<EventWithClientAndJobs> events) {
         return events.stream()
-                .map(EventWithClientAndJobs::getClient)
+                .map(EventWithClientAndJobs::getCustomer)
                 .distinct()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private void setCostumerIdOnEvents(List<Costumer> costumers, List<EventWithClientAndJobs> events) {
+    private void setCostumerIdOnEvents(List<Customer> customers, List<EventWithClientAndJobs> events) {
         events.forEach(event ->
-                costumers.forEach(client -> {
+                customers.forEach(client -> {
                     try {
-                        if (event.getClient().getApiId().equals(client.getApiId())) {
-                            event.getClient().setClientId(client.getClientId());
-                            event.getEvent().setClientCreatorId(client.getClientId());
+                        if (event.getCustomer().getApiId().equals(client.getApiId())) {
+                            event.getCustomer().setId(client.getId());
+                            event.getEvent().setCustomerCreatorId(client.getId());
                         }
                     } catch (Exception error) {
                         Log.i(TAG, "eventApiId Null: " + error);
@@ -378,7 +415,7 @@ public class EventRepository {
                 event.getJobs().forEach(jobFromApi ->
                         jobs.forEach(job -> {
                             if (job.isApiIdEquals(jobFromApi)) {
-                                jobFromApi.setJobId(job.getJobId());
+                                jobFromApi.setId(job.getId());
                             }
                         })
                 )
@@ -394,24 +431,6 @@ public class EventRepository {
                             updateAllOnRoom(eventsFromApi, callBack);
                         }
                 ).subscribe();
-    }
-
-    public LiveData<Resource<List<Report>>> getReportByPeriod() {
-        MutableLiveData<Resource<List<Report>>> liveData = new MutableLiveData<>();
-        LocalDate startDate = CalendarUtil.selectedDate.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
-        webClient.getReportByPeriod(startDate, endDate, new ResultsCallBack<List<Report>>() {
-            @Override
-            public void onSuccess(List<Report> result) {
-                liveData.setValue(new Resource<>(result, null));
-            }
-
-            @Override
-            public void onError(String error) {
-                liveData.setValue(new Resource<>(null, error));
-            }
-        });
-        return liveData;
     }
 
     private boolean isFreeAccount() {

@@ -7,8 +7,8 @@ import javax.inject.Inject;
 
 import br.com.beautystyle.database.BeautyStyleDatabase;
 import br.com.beautystyle.database.dao.RoomUserDao;
-import br.com.beautystyle.model.UserLogin;
-import br.com.beautystyle.model.UserToken;
+import br.com.beautystyle.retrofit.model.form.UserLoginForm;
+import br.com.beautystyle.retrofit.model.dto.UserDto;
 import br.com.beautystyle.model.entity.User;
 import br.com.beautystyle.retrofit.webclient.UserWebClient;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -26,11 +26,11 @@ public class UserRepository {
         dao = localDatabase.getRoomUserDao();
     }
 
-    public LiveData<Resource<UserToken>> authUser(UserLogin login) {
-        MutableLiveData<Resource<UserToken>> liveData = new MutableLiveData<>();
-        webClient.authUser(login, new ResultsCallBack<UserToken>() {
+    public LiveData<Resource<UserDto>> authUser(UserLoginForm login) {
+        MutableLiveData<Resource<UserDto>> liveData = new MutableLiveData<>();
+        webClient.authUser(login, new ResultsCallBack<UserDto>() {
             @Override
-            public void onSuccess(UserToken result) {
+            public void onSuccess(UserDto result) {
                 liveData.setValue(new Resource<>(result, null));
             }
 

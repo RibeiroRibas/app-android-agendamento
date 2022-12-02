@@ -1,4 +1,4 @@
-package br.com.beautystyle.database.rxjavaassinc;
+package br.com.beautystyle.database.rxjava;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,11 +15,11 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class EventAsynchDao {
+public class EventRxJava {
     private final RoomEventDao dao;
 
     @Inject
-    public EventAsynchDao(BeautyStyleDatabase database) {
+    public EventRxJava(BeautyStyleDatabase database) {
         dao = database.getRoomEventDao();
     }
 

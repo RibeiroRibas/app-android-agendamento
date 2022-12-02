@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/fragment_block_time_action_bar"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@color/purple_700"
+        android:contentDescription="@string/todo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="@string/block_time_"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="@+id/fragment_block_time_action_bar"
+        app:layout_constraintStart_toStartOf="@+id/fragment_block_time_action_bar"
+        app:layout_constraintTop_toTopOf="@+id/fragment_block_time_action_bar" />
+
+    <ImageView
+        android:id="@+id/fragment_block_time_insert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/fragment_block_time_action_bar"
+        app:layout_constraintEnd_toEndOf="@+id/fragment_block_time_action_bar"
+        app:layout_constraintTop_toTopOf="@+id/fragment_block_time_action_bar"
+        app:srcCompat="@drawable/ic_check"
+        android:contentDescription="@string/todo" />
+
+    <EditText
+        android:id="@+id/fragment_block_time_start"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/custom_default_input"
+        android:hint="@string/start_time_"
+        android:clickable="true"
+        android:digits="0,1,2,3,4,5,6,7,8,9,:"
+        android:focusable="false"
+        android:inputType="time"
+        android:padding="8dp"
+        app:layout_constraintEnd_toStartOf="@+id/fragment_block_time_end"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_block_time_action_bar"
+        tools:ignore="Autofill" />
+
+    <EditText
+        android:id="@+id/fragment_block_time_end"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_margin="8dp"
+        android:clickable="true"
+        android:digits="0,1,2,3,4,5,6,7,8,9,:"
+        android:focusable="false"
+        android:background="@drawable/custom_default_input"
+        android:hint="@string/end_time"
+        android:inputType="time"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/fragment_block_time_start"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_block_time_action_bar"
+        tools:ignore="Autofill" />
+
+    <EditText
+        android:id="@+id/fragment_block_time_reason"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/custom_default_input"
+        android:hint="@string/reason"
+        android:inputType="text"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/fragment_block_time_end"
+        app:layout_constraintStart_toStartOf="@+id/fragment_block_time_start"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_block_time_start"
+        tools:ignore="Autofill" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

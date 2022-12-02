@@ -2,8 +2,8 @@ package br.com.beautystyle.retrofit.webclient;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.model.UserLogin;
-import br.com.beautystyle.model.UserToken;
+import br.com.beautystyle.retrofit.model.form.UserLoginForm;
+import br.com.beautystyle.retrofit.model.dto.UserDto;
 import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.retrofit.callback.CallBackReturn;
 import br.com.beautystyle.retrofit.service.UserService;
@@ -18,11 +18,11 @@ public class UserWebClient {
     public UserWebClient() {
     }
 
-    public void authUser(UserLogin login, ResultsCallBack<UserToken> callBack) {
-        Call<UserToken> callAuth = service.auth(login);
-        callAuth.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<UserToken>() {
+    public void authUser(UserLoginForm login, ResultsCallBack<UserDto> callBack) {
+        Call<UserDto> callAuth = service.auth(login);
+        callAuth.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<UserDto>() {
             @Override
-            public void onSuccess(UserToken response) {
+            public void onSuccess(UserDto response) {
                 callBack.onSuccess(response);
             }
 

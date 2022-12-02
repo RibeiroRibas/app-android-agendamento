@@ -17,10 +17,10 @@ import io.reactivex.rxjava3.core.Single;
 @Dao
 public interface RoomCategoryDao {
 
-    @Query("SELECT * FROM category WHERE companyId= :tenant")
+    @Query("SELECT * FROM category WHERE tenant= :tenant")
     Observable<List<Category>> getAllObservable(Long tenant);
 
-    @Query("SELECT * FROM category WHERE companyId= :tenant")
+    @Query("SELECT * FROM category WHERE tenant= :tenant")
     Single<List<Category>> getAllSingle(Long tenant);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -34,6 +34,5 @@ public interface RoomCategoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Single<List<Long>> insertAll(List<Category> categoriesFromApi);
-
 
 }

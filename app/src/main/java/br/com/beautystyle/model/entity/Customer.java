@@ -9,32 +9,24 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-public class Costumer implements Serializable {
+public class Customer implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    private Long clientId = 0L;
+    private Long id;
     private String name;
     private String phone;
-    private Long companyId;
-    private Long apiId = 0L;
-    private Long userId = 0L;
+    private Long tenant;
+    private Long apiId;
+    private boolean isUser = false;
 
     @Ignore
-    public Costumer(String name, String phone) {
+    public Customer(String name, String phone) {
         this.apiId = null;
         this.name = name;
         this.phone = phone;
     }
 
-    public Costumer() {
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public Customer() {
     }
 
     public Long getApiId() {
@@ -45,20 +37,20 @@ public class Costumer implements Serializable {
         this.apiId = apiId;
     }
 
-    public Long getCompanyId() {
-        return companyId;
+    public Long getTenant() {
+        return tenant;
     }
 
-    public void setCompanyId(Long companyId) {
-        this.companyId = companyId;
+    public void setTenant(Long tenant) {
+        this.tenant = tenant;
     }
 
-    public Long getClientId() {
-        return clientId;
+    public Long getId() {
+        return id;
     }
 
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getPhone() {
@@ -77,46 +69,49 @@ public class Costumer implements Serializable {
         this.name = name;
     }
 
-    public boolean checkId() {
-        return clientId > 0;
+    public boolean isIdNotNull() {
+        return id != null;
     }
 
     public boolean checkApiId() {
         return apiId != null;
     }
 
-    public boolean isClientAnUser() {
-        return userId > 0;
+    public boolean isUser() {
+        return isUser;
+    }
+
+    public void setUser(boolean user) {
+        isUser = user;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Costumer costumer = (Costumer) o;
-        return Objects.equals(clientId, costumer.clientId)
-                && Objects.equals(name, costumer.name)
-                && Objects.equals(phone, costumer.phone)
-                && Objects.equals(companyId, costumer.companyId)
-                && Objects.equals(apiId, costumer.apiId)
-                && Objects.equals(userId, costumer.userId);
+        Customer customer = (Customer) o;
+        return Objects.equals(id, customer.id)
+                && Objects.equals(name, customer.name)
+                && Objects.equals(phone, customer.phone)
+                && Objects.equals(tenant, customer.tenant)
+                && Objects.equals(apiId, customer.apiId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clientId, name, phone, companyId, apiId, userId);
+        return Objects.hash(id, name, phone, tenant, apiId);
     }
 
-    public boolean isNewContact(List<Costumer> costumers) {
-        return costumers.stream()
+    public boolean isNewContact(List<Customer> customers) {
+        return customers.stream()
                 .noneMatch(client ->
                         client.getName().equals(this.name) &&
                                 client.getPhone().equals(this.phone)
                 );
     }
 
-    public boolean isNotExistOnApi(List<Costumer> costumerFromApi) {
-        for (Costumer fromApi : costumerFromApi) {
+    public boolean isNotExistOnApi(List<Customer> customerFromApi) {
+        for (Customer fromApi : customerFromApi) {
             if (this.apiId.equals(fromApi.getApiId())) {
                 return false;
             }
@@ -124,6 +119,9 @@ public class Costumer implements Serializable {
         return true;
     }
 
+    public boolean isApiIdEquals(Long apiId) {
+        return this.apiId != null && this.apiId.equals(apiId);
+    }
 }
 
 

@@ -1,18 +1,18 @@
-package br.com.beautystyle.model;
+package br.com.beautystyle.retrofit.model.form;
 
 import br.com.beautystyle.model.entity.User;
 
-public class UserLogin {
+public class UserLoginForm {
 
     private String email;
     private String password;
 
-    public UserLogin(String email, String password) {
+    public UserLoginForm(String email, String password) {
         this.email = email;
         this.password = password;
     }
 
-    public UserLogin(User user) {
+    public UserLoginForm(User user) {
         this.email = user.getEmail();
         this.password = user.getPassword();
     }

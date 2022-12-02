@@ -39,19 +39,19 @@ public class CreateListsUtil {
         for (EventWithClientAndJobs foundEvent : eventWithJobsByDate) {
             boolean matched = false;
             for (int i = 0; i < events.size(); i++) {
-                if (foundEvent.getEvent().getStarTime()
-                        .equals(events.get(i).getEvent().getStarTime())) {
+                if (foundEvent.getEvent().getStartTime()
+                        .equals(events.get(i).getEvent().getStartTime())) {
                     events.set(i, foundEvent);
-                    events.removeIf(ev -> ev.getEvent().getStarTime().isAfter(foundEvent.getEvent().getStarTime())
-                            & ev.getEvent().getStarTime().isBefore(foundEvent.getEvent().getEndTime()));
+                    events.removeIf(ev -> ev.getEvent().getStartTime().isAfter(foundEvent.getEvent().getStartTime())
+                            & ev.getEvent().getStartTime().isBefore(foundEvent.getEvent().getEndTime()));
                     matched = true;
                 }
 
             }
             if (!matched) {
                 events.add(foundEvent);
-                events.removeIf(ev -> ev.getEvent().getStarTime().isAfter(foundEvent.getEvent().getStarTime())
-                        & ev.getEvent().getStarTime().isBefore(foundEvent.getEvent().getEndTime()));
+                events.removeIf(ev -> ev.getEvent().getStartTime().isAfter(foundEvent.getEvent().getStartTime())
+                        & ev.getEvent().getStartTime().isBefore(foundEvent.getEvent().getEndTime()));
             }
         }
         events.sort(new SortByEventStartTime());

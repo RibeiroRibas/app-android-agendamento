@@ -18,9 +18,9 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.rxjavaassinc.EventAsynchDao;
-import br.com.beautystyle.database.rxjavaassinc.ExpenseAsynchDao;
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.database.rxjava.EventRxJava;
+import br.com.beautystyle.database.rxjava.ExpenseRxJava;
+import br.com.beautystyle.model.util.Report;
 import br.com.beautystyle.retrofit.webclient.ReportWebClient;
 import br.com.beautystyle.util.CalendarUtil;
 
@@ -31,9 +31,9 @@ public class ReportRepository {
     private final String profile;
     private final Long tenant;
     @Inject
-    EventAsynchDao eventDao;
+    EventRxJava eventDao;
     @Inject
-    ExpenseAsynchDao expenseDao;
+    ExpenseRxJava expenseDao;
 
     @Inject
     public ReportRepository(SharedPreferences preferences) {
@@ -126,9 +126,9 @@ public class ReportRepository {
     }
 
     private void getByDateFromRoom(ResultsCallBack<List<Report>> callBack) {
-        eventDao.getByDate(tenant).doOnSuccess(events->{
+        eventDao.getByDate(tenant).doOnSuccess(eventsFromRoom->{
             List<Report> reports = new ArrayList<>();
-            events.forEach(event -> reports.add(new Report(event)));
+            eventsFromRoom.forEach(event -> reports.add(new Report(event)));
             expenseDao.getByDate(tenant).doOnSuccess(expenses -> {
                 expenses.forEach(expense -> reports.add(new Report(expense)));
                 callBack.onSuccess(reports);

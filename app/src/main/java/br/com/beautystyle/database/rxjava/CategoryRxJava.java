@@ -1,4 +1,4 @@
-package br.com.beautystyle.database.rxjavaassinc;
+package br.com.beautystyle.database.rxjava;
 
 import java.util.List;
 
@@ -13,12 +13,12 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class CategoryAsynchDao {
+public class CategoryRxJava {
 
     private final RoomCategoryDao dao;
 
     @Inject
-    public CategoryAsynchDao(BeautyStyleDatabase database) {
+    public CategoryRxJava(BeautyStyleDatabase database) {
         dao = database.getRoomCategoryDao();
     }
 

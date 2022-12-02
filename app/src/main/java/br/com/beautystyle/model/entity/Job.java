@@ -1,5 +1,6 @@
 package br.com.beautystyle.model.entity;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -14,22 +15,24 @@ import java.util.Objects;
 public class Job implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    private Long jobId =0L;
+    @ColumnInfo(name = "jobId")
+    private Long id;
     private String name;
-    private BigDecimal valueOfJob;
+    private BigDecimal price;
     private LocalTime durationTime;
-    private Long companyId;
+    private Long tenant;
     private Long apiId;
 
     @Ignore
     public Job(String name, BigDecimal valueOfJob, LocalTime durationTime) {
         this.name = name;
-        this.valueOfJob = valueOfJob;
+        this.price = valueOfJob;
         this.durationTime = durationTime;
     }
 
     public Job() {
     }
+
 
     public Long getApiId() {
         return apiId;
@@ -39,28 +42,28 @@ public class Job implements Serializable {
         this.apiId = apiId;
     }
 
-    public Long getCompanyId() {
-        return companyId;
+    public Long getTenant() {
+        return tenant;
     }
 
-    public void setCompanyId(Long companyId) {
-        this.companyId = companyId;
+    public void setTenant(Long tenant) {
+        this.tenant = tenant;
     }
 
-    public Long getJobId() {
-        return jobId;
+    public Long getId() {
+        return id;
     }
 
-    public void setJobId(Long jobId) {
-        this.jobId = jobId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public BigDecimal getValueOfJob() {
-        return valueOfJob;
+    public BigDecimal getPrice() {
+        return price;
     }
 
     public LocalTime getDurationTime() {
@@ -71,16 +74,16 @@ public class Job implements Serializable {
         this.name = name;
     }
 
-    public void setValueOfJob(BigDecimal valueOfJob) {
-        this.valueOfJob = valueOfJob;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public void setDurationTime(LocalTime durationTime) {
         this.durationTime = durationTime;
     }
 
-    public boolean checkId() {
-        return jobId > 0;
+    public boolean isIdNotNull() {
+        return id != null;
     }
 
     @Override
@@ -88,12 +91,12 @@ public class Job implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Job job = (Job) o;
-        return Objects.equals(jobId, job.jobId) && Objects.equals(name, job.name) && Objects.equals(valueOfJob, job.valueOfJob) && Objects.equals(durationTime, job.durationTime) && Objects.equals(companyId, job.companyId) && Objects.equals(apiId, job.apiId);
+        return Objects.equals(id, job.id) && Objects.equals(name, job.name) && Objects.equals(price, job.price) && Objects.equals(durationTime, job.durationTime) && Objects.equals(tenant, job.tenant) && Objects.equals(apiId, job.apiId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(jobId, name, valueOfJob, durationTime, companyId, apiId);
+        return Objects.hash(id, name, price, durationTime, tenant, apiId);
     }
 
     public boolean isNotExistOnApi(List<Job> jobsFromApi) {

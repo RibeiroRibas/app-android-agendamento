@@ -1,10 +1,10 @@
 package br.com.beautystyle.retrofit.service;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.retrofit.model.dto.EventWithClientAndJobsDto;
+import br.com.beautystyle.retrofit.model.form.EventForm;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -16,32 +16,20 @@ import retrofit2.http.Path;
 
 public interface EventService {
 
-    @GET("event/{eventDate}/{companyId}")
-    Call<List<EventWithClientAndJobs>> getByDate(@Path("eventDate") LocalDate date,
-                                                 @Path("companyId") Long companyId,
-                                                 @Header("Authorization") String token);
+    @GET("event/by_professional/{eventDate}")
+    Call<EventWithClientAndJobsDto> getByDate(@Path("eventDate") LocalDate eventDate,
+                                                    @Header("Authorization") String token);
 
-    @POST("event")
-    Call<EventWithClientAndJobs> insert(@Body EventWithClientAndJobs event,
+    @POST("event/by_professional")
+    Call<EventWithClientAndJobs> insert(@Body EventForm event,
                                         @Header("Authorization") String token);
 
-    @PUT("event")
-    Call<Void> update(@Body EventWithClientAndJobs event, @Header("Authorization") String token);
+    @PUT("event/by_professional/{id}")
+    Call<Void> update(@Path("id") Long id,
+                      @Body EventForm event,
+                      @Header("Authorization") String token);
 
-    @DELETE("event/{id}")
-    Call<Void> delete(@Path("id") long id,@Header("Authorization") String token);
+    @DELETE("event/by_professional/{id}")
+    Call<Void> delete(@Path("id") Long id, @Header("Authorization") String token);
 
-    @GET("event/{companyId}")
-    Call<List<String>> getYearsList(@Path("companyId") Long tenant,
-                                    @Header("Authorization") String token);
-
-    @GET("event/report/{id}/{startDate}/{endDate}")
-    Call<List<Report>> getReportByPeriod(@Path("startDate") LocalDate startDate,
-                                         @Path("endDate") LocalDate endDate,
-                                         @Path("id") Long tenant,
-                                         @Header("Authorization") String token);
-    @GET("event/report/{id}/{date}")
-    Call<List<Report>> getReportByDate(@Path("date") LocalDate date,
-                                       @Path("id") Long tenant,
-                                       @Header("Authorization") String token);
 }

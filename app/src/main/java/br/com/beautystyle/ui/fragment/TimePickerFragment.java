@@ -8,24 +8,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-public class TimePickerFragment extends DialogFragment {
+import java.time.LocalTime;
 
+public class TimePickerFragment extends DialogFragment {
 
     private TimePickerDialog.OnTimeSetListener onTimeSetListener;
 
     private static int hour;
     private static int minute;
 
-    public static TimePickerFragment newInstance(TimePickerDialog.OnTimeSetListener timePickerDialog, boolean checkIs24hrs){
+    public static TimePickerFragment newInstance(TimePickerDialog.OnTimeSetListener timePickerDialog) {
         final TimePickerFragment listener = new TimePickerFragment();
         listener.setOnTimeSetListener(timePickerDialog);
-        if(checkIs24hrs){
-            hour = 1;
-            minute = 0;
-        }else{
-            hour = 7;
-            minute = 30;
-        }
+        hour = 1;
+        minute = 0;
+        return listener;
+    }
+
+    public static TimePickerFragment newInstance(TimePickerDialog.OnTimeSetListener timePickerDialog,
+                                                 LocalTime startTime) {
+        final TimePickerFragment listener = new TimePickerFragment();
+        listener.setOnTimeSetListener(timePickerDialog);
+        hour = startTime.getHour();
+        minute = startTime.getMinute();
         return listener;
     }
 

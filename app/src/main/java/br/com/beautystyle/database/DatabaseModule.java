@@ -1,6 +1,6 @@
 package br.com.beautystyle.database;
 
-import static br.com.beautystyle.database.DatabaseMigrations.MIGRATION_1_2;
+import static br.com.beautystyle.database.DatabaseMigrations.ALL_MIGRATIONS;
 
 import android.content.Context;
 
@@ -19,7 +19,7 @@ public class DatabaseModule {
     public BeautyStyleDatabase providesLocalDataBase(Context context){
         return Room
                 .databaseBuilder(context, BeautyStyleDatabase.class, "beautyStyle.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(ALL_MIGRATIONS)
                 .build();
     }
 }

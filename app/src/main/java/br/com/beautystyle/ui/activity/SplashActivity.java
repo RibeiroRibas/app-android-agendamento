@@ -17,13 +17,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.UserViewModel;
 import br.com.beautystyle.ViewModel.factory.UserFactory;
-import br.com.beautystyle.model.UserLogin;
-import br.com.beautystyle.model.UserToken;
+import br.com.beautystyle.model.entity.OpeningHours;
+import br.com.beautystyle.repository.OpeningHoursRepository;
+import br.com.beautystyle.retrofit.model.form.UserLoginForm;
+import br.com.beautystyle.retrofit.model.dto.UserDto;
 import br.com.beautystyle.model.entity.User;
 import br.com.beautystyle.repository.UserRepository;
 
@@ -33,6 +37,8 @@ public class SplashActivity extends AppCompatActivity {
     @Inject
     UserRepository userRepository;
     private UserViewModel viewModel;
+    @Inject
+    OpeningHoursRepository openingHoursRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +73,9 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void checkPremiumAccount(User user) {
-        UserLogin userLogin = new UserLogin(user);
+        UserLoginForm userLoginForm = new UserLoginForm(user);
         if (user.isPremiumAccount()) {
-            authUserOnApi(userLogin);
+            authUserOnApi(userLoginForm);
         } else {
             startNavigationActivity();
         }
@@ -89,11 +95,19 @@ public class SplashActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void authUserOnApi(UserLogin userLogin) {
-        viewModel.authUser(userLogin).observe(this, resource -> {
+    private void authUserOnApi(UserLoginForm userLoginForm) {
+        viewModel.authUser(userLoginForm).observe(this, resource -> {
             if (resource.isDataNotNull()) {
                 setPreferences(resource.getData());
-                startNavigationActivity();
+                openingHoursRepository.getAll().doOnSuccess(openingHours -> {
+                    openingHours.forEach(fromRoom -> {
+                        resource.getData().getOpeningHours().forEach(fromApi -> {
+                            if (fromRoom.isApiIdEquals(fromApi))
+                                fromApi.setId(fromRoom.getId());
+                        });
+                    });
+                    insertOpeningHoursOnRoom(resource.getData());
+                }).subscribe();
             } else {
                 showErrorMessage(resource.getError());
                 startLoginActivity();
@@ -101,15 +115,24 @@ public class SplashActivity extends AppCompatActivity {
         });
     }
 
+    private void insertOpeningHoursOnRoom(UserDto response) {
+        List<OpeningHours> openingHours = response.getOpeningHours();
+        openingHours.forEach(openingHour -> {
+            openingHour.setTenant(response.getTenant());
+        });
+        openingHoursRepository.insertAll(response.getOpeningHours())
+                .doOnComplete(this::startNavigationActivity).subscribe();
+    }
+
     private void startNavigationActivity() {
         Intent intent = new Intent(SplashActivity.this, NavigationActivity.class);
         startActivity(intent);
     }
 
-    private void setPreferences(UserToken userToken) {
+    private void setPreferences(UserDto userDto) {
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(TOKEN_SHARED_PREFERENCES, userToken.getTypeToken());
-        editor.putLong(TENANT_SHARED_PREFERENCES, userToken.getCompanyId());
+        editor.putString(TOKEN_SHARED_PREFERENCES, userDto.getTypeToken());
+        editor.putLong(TENANT_SHARED_PREFERENCES, userDto.getTenant());
         editor.apply();
     }
 

@@ -1,4 +1,4 @@
-package br.com.beautystyle.model;
+package br.com.beautystyle.model.util;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,15 +15,15 @@ public class Report {
     private BigDecimal expenseValue;
 
     public Report(EventWithClientAndJobs event) {
-        clientName = event.getClient().getName();
+        clientName = event.getCustomer().getName();
         date = event.getEvent().getEventDate();
-        eventValue = event.getEvent().getValueEvent();
+        eventValue = event.getEvent().getValue();
     }
 
     public Report(Expense expense) {
         date = expense.getExpenseDate();
         expenseCategory = expense.getCategory();
-        expenseValue = expense.getPrice();
+        expenseValue = expense.getValue();
     }
 
     public Report() {

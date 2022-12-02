@@ -108,7 +108,7 @@ public class NewJobFragment extends DialogFragment {
         nameJob.setText(job.getName());
         String duration = TimeUtil.formatLocalTime(job.getDurationTime());
         durationOfJob.setText(duration);
-        String value = CoinUtil.format(job.getValueOfJob(), REMOVE_SYMBOL);
+        String value = CoinUtil.format(job.getPrice(), REMOVE_SYMBOL);
         valueOfJob.setText(value);
     }
 
@@ -116,8 +116,7 @@ public class NewJobFragment extends DialogFragment {
         durationOfJob.setOnClickListener(v2 ->
                 getParentFragmentManager()
                         .beginTransaction()
-                        .add(TimePickerFragment.newInstance(
-                                timeListener, true), TAG_EVENT_DURATION
+                        .add(TimePickerFragment.newInstance(timeListener), TAG_EVENT_DURATION
                         )
                         .commit()
         );
@@ -152,7 +151,7 @@ public class NewJobFragment extends DialogFragment {
 
         job.setName(name);
         job.setDurationTime(duration);
-        job.setValueOfJob(value);
+        job.setPrice(value);
     }
 
     private void setResult() {

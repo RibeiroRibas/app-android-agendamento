@@ -56,7 +56,7 @@ public class EventWithJobRepository {
 
     private List<EventJobCrossRef> getEventJobsCrossRefs(EventWithClientAndJobs event) {
         return event.getJobs().stream()
-                .map(job -> new EventJobCrossRef(event.getEvent().getEventId(), job.getJobId()))
+                .map(job -> new EventJobCrossRef(event.getEvent().getId(), job.getId()))
                 .collect(Collectors.toList());
     }
 

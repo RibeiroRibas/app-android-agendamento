@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.util.Report;
 import br.com.beautystyle.model.entity.Expense;
 import br.com.beautystyle.repository.ExpenseRepository;
 import br.com.beautystyle.repository.Resource;

@@ -32,7 +32,7 @@ android {
 
 dependencies {
 
-    def room_version = "2.4.2"
+    def room_version = "2.4.3"
     def view_model_version = "2.5.0"
 
     //room

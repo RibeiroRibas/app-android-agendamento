@@ -16,14 +16,14 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.rxjavaassinc.JobAsynchDao;
+import br.com.beautystyle.database.rxjava.JobRxJava;
 import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.retrofit.webclient.JobWebClient;
 
 public class JobRepository {
 
     @Inject
-    JobAsynchDao dao;
+    JobRxJava dao;
     @Inject
     JobWebClient webClient;
     private final MutableLiveData<Resource<List<Job>>> mutableLiveData = new MutableLiveData<>();
@@ -44,7 +44,7 @@ public class JobRepository {
             List<Job> jobsToUpdate = getJobsToUpdate(jobsFromApi);
             dao.updateAll(jobsToUpdate).doOnComplete(() -> {
                 List<Job> newJobs = getJobsToInsert(jobsFromApi);
-                newJobs.forEach(job -> job.setJobId(null));
+                newJobs.forEach(job -> job.setId(null));
                 dao.insertAll(newJobs).doOnSuccess(idList -> {
                     if (callBack != null) {
                         setJobsIds(newJobs, idList);
@@ -66,21 +66,21 @@ public class JobRepository {
 
     private void setJobsIds(List<Job> newJobs, List<Long> idList) {
         for (int i = 0; i < newJobs.size(); i++) {
-            newJobs.get(i).setJobId(idList.get(i));
+            newJobs.get(i).setId(idList.get(i));
         }
     }
 
     @NonNull
     private List<Job> getJobsToInsert(List<Job> jobsFromApi) {
         return jobsFromApi.stream()
-                .filter(job -> !job.checkId())
+                .filter(job -> !job.isIdNotNull())
                 .collect(Collectors.toList());
     }
 
     @NonNull
     private List<Job> getJobsToUpdate(List<Job> jobsFromApi) {
         return jobsFromApi.stream()
-                .filter(Job::checkId)
+                .filter(Job::isIdNotNull)
                 .collect(Collectors.toList());
     }
 
@@ -88,7 +88,7 @@ public class JobRepository {
         jobsFromApi.forEach(jobApi ->
                 jobsFromRoom.forEach(jobRoom -> {
                     if (jobRoom.isApiIdEquals(jobApi)) {
-                        jobApi.setJobId(jobRoom.getJobId());
+                        jobApi.setId(jobRoom.getId());
                     }
                 })
         );
@@ -202,17 +202,16 @@ public class JobRepository {
     }
 
     public void insert(Job job) {
-        job.setCompanyId(tenant);
         if (isUserPremium()) {
             insertOnApi(job);
         }
         if (isFreeAccount()) {
+            job.setTenant(tenant);
             insertOnRoom(job);
         }
     }
 
     private void insertOnRoom(Job job) {
-        job.setJobId(null);
         dao.insert(job).subscribe();
     }
 }

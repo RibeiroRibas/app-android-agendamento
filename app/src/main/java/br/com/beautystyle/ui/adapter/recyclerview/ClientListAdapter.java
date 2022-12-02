@@ -19,20 +19,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.ui.adapter.recyclerview.listener.AdapterListener;
 import br.com.beautystyle.util.SortByClientName;
 
 public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.ListClientHolder> {
 
-    private final List<Costumer> costumers;
-    private final List<Costumer> costumersToFilter;
+    private final List<Customer> customers;
+    private final List<Customer> costumersToFilter;
     private final Context context;
     private AdapterListener.OnClientClickListener onItemClickListener;
 
     public ClientListAdapter(Context context) {
         this.context = context;
-        this.costumers = new ArrayList<>();
+        this.customers = new ArrayList<>();
         this.costumersToFilter = new ArrayList<>();
     }
 
@@ -50,15 +50,15 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
 
     @Override
     public void onBindViewHolder(@NonNull ListClientHolder holder, int position) {
-        if (!costumers.isEmpty()) {
-            Costumer costumer = costumers.get(position);
-            holder.setClientName(costumer);
+        if (!customers.isEmpty()) {
+            Customer customer = customers.get(position);
+            holder.setClientName(customer);
         }
     }
 
     @Override
     public int getItemCount() {
-        return costumers.size();
+        return customers.size();
     }
 
     public void setOnItemClickListener(AdapterListener.OnClientClickListener onItemClickListener) {
@@ -74,17 +74,17 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
     }
 
     private void itemRemoved(String newText) {
-        List<Costumer> filteredCostumers = filterByInputText(newText);
-        for (Costumer costumer : filteredCostumers) {
-            int index = costumers.indexOf(costumer);
-            costumers.remove(costumer);
+        List<Customer> filteredCustomers = filterByInputText(newText);
+        for (Customer customer : filteredCustomers) {
+            int index = customers.indexOf(customer);
+            customers.remove(customer);
             notifyItemRemoved(index);
         }
     }
 
     @NonNull
-    private List<Costumer> filterByInputText(String newText) {
-        return costumers.stream()
+    private List<Customer> filterByInputText(String newText) {
+        return customers.stream()
                 .filter(client ->
                         !client.getName().toLowerCase()
                                 .contains(newText.toLowerCase())
@@ -93,30 +93,30 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
     }
 
     private void itemRangeInserted() {
-        notifyItemRangeRemoved(0, this.costumers.size());
-        this.costumers.clear();
-        this.costumers.addAll(costumersToFilter);
-        notifyItemRangeInserted(0, this.costumers.size());
+        notifyItemRangeRemoved(0, this.customers.size());
+        this.customers.clear();
+        this.customers.addAll(costumersToFilter);
+        notifyItemRangeInserted(0, this.customers.size());
     }
 
-    public void update(List<Costumer> costumers) {
-        notifyItemRangeRemoved(0, this.costumers.size());
-        this.costumers.clear();
+    public void update(List<Customer> customers) {
+        notifyItemRangeRemoved(0, this.customers.size());
+        this.customers.clear();
         costumersToFilter.clear();
-        this.costumers.addAll(costumers);
-        this.costumers.sort(new SortByClientName());
-        costumersToFilter.addAll(this.costumers);
-        notifyItemRangeInserted(0, this.costumers.size());
+        this.customers.addAll(customers);
+        this.customers.sort(new SortByClientName());
+        costumersToFilter.addAll(this.customers);
+        notifyItemRangeInserted(0, this.customers.size());
     }
 
-    public Costumer getClientAtPosition(int position) {
-        return costumers.get(position);
+    public Customer getClientAtPosition(int position) {
+        return customers.get(position);
     }
 
     class ListClientHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
 
         private final TextView costumerNameTv;
-        private Costumer costumer;
+        private Customer customer;
 
         public ListClientHolder(@NonNull View itemView) {
             super(itemView);
@@ -127,12 +127,12 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Li
         }
 
         private void onClickListener() {
-            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(costumer));
+            itemView.setOnClickListener(v -> onItemClickListener.onItemClick(customer));
         }
 
-        public void setClientName(Costumer costumer) {
-            this.costumer = costumer;
-            costumerNameTv.setText(costumer.getName());
+        public void setClientName(Customer customer) {
+            this.customer = customer;
+            costumerNameTv.setText(customer.getName());
         }
 
         @Override

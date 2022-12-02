@@ -8,20 +8,18 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import br.com.beautystyle.model.enuns.RepeatOrNot;
-
 @Entity
 public class Expense implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
     private Long id;
     private String description;
-    private BigDecimal price;
+    private BigDecimal value;
     private LocalDate expenseDate;
     private String category;
-    private RepeatOrNot repeatOrNot;
-    private Long companyId;
-    private Long apiId = 0L;
+    private boolean repeat;
+    private Long tenant;
+    private Long apiId;
 
     public Long getApiId() {
         return apiId;
@@ -31,20 +29,12 @@ public class Expense implements Serializable {
         this.apiId = apiId;
     }
 
-    public Long getCompanyId() {
-        return companyId;
+    public Long getTenant() {
+        return tenant;
     }
 
-    public void setCompanyId(Long companyId) {
-        this.companyId = companyId;
-    }
-
-    public RepeatOrNot getRepeatOrNot() {
-        return repeatOrNot;
-    }
-
-    public void setRepeatOrNot(RepeatOrNot repeatOrNot) {
-        this.repeatOrNot = repeatOrNot;
+    public void setTenant(Long tenant) {
+        this.tenant = tenant;
     }
 
     public Long getId() {
@@ -71,12 +61,12 @@ public class Expense implements Serializable {
         this.description = description;
     }
 
-    public BigDecimal getPrice() {
-        return price;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
+    public void setValue(BigDecimal value) {
+        this.value = value;
     }
 
     public LocalDate getExpenseDate() {
@@ -87,12 +77,26 @@ public class Expense implements Serializable {
         this.expenseDate = expenseDate;
     }
 
+    public boolean isRepeat() {
+        return repeat;
+    }
+
+    public void setRepeat(boolean repeat) {
+        this.repeat = repeat;
+    }
+
     public boolean isNotExistOnApi(List<Expense> expensesFromApi) {
+        if(this.apiId == null) return true;
+
         for (Expense fromApi : expensesFromApi) {
             if (this.apiId.equals(fromApi.getApiId())) {
                 return false;
             }
         }
         return true;
+    }
+
+    public boolean isApiIdEquals(Expense expenseFromApi) {
+        return apiId != null && apiId.equals(expenseFromApi.getApiId());
     }
 }

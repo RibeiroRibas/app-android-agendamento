@@ -24,5 +24,13 @@ public interface ConstantFragment {
     String KEY_NAME_CATEGORY = "newCategory";
     String KEY_UPDATE_CATEGORY = "updateCategory";
     String TAG_CALENDAR_VIEW = "calendarView";
+    String TAG_START_TIME = "startTime";
+    String TAG_END_TIME = "endTime";
+    String KEY_BLOCK_TIME = "blockTime";
+    String KEY_INSERT_BLOCK_TIME = "insertBlockTime";
+    String TAG_INSERT_BLOCK_TIME = "tagInsertBlockTime";
+    String TAG_UPDATE_BLOCK_TIME = "tagUpdateBlockTime";
+    String KEY_UPDATE_BLOCK_TIME = "keyUpdateBlockTime";
+    String KEY_START_TIME = "keyStartTime";
 
 }

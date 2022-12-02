@@ -10,7 +10,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.util.Report;
 import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.retrofit.callback.CallBackReturn;
 import br.com.beautystyle.retrofit.service.ReportService;

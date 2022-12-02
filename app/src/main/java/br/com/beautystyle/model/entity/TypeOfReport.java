@@ -1,4 +1,4 @@
-package br.com.beautystyle.model.enuns;
+package br.com.beautystyle.model.entity;
 
 import java.util.List;
 import java.util.stream.Collectors;

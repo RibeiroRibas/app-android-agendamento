@@ -1,6 +1,5 @@
 package br.com.beautystyle.retrofit.webclient;
 
-import static br.com.beautystyle.repository.ConstantsRepository.TENANT_SHARED_PREFERENCES;
 import static br.com.beautystyle.repository.ConstantsRepository.TOKEN_SHARED_PREFERENCES;
 
 import android.content.SharedPreferences;
@@ -21,16 +20,14 @@ public class CategoryWebClient {
     @Inject
     CategoryService service;
     private final String token;
-    private final Long tenant;
 
     @Inject
     public CategoryWebClient(SharedPreferences preferences) {
         token = preferences.getString(TOKEN_SHARED_PREFERENCES, "");
-        tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
     public void getAll(ResultsCallBack<List<Category>> callBack) {
-        Call<List<Category>> callCategories = service.getAllByCompanyId(tenant, token);
+        Call<List<Category>> callCategories = service.getAll(token);
         callCategories.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Category>>() {
             @Override
             public void onSuccess(List<Category> response) {
@@ -45,7 +42,6 @@ public class CategoryWebClient {
     }
 
     public void insert(Category category, ResultsCallBack<Category> callBack) {
-        category.setCompanyId(tenant);
         Call<Category> callInsertCategory = service.insert(category, token);
         callInsertCategory.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<Category>() {
             @Override
@@ -61,12 +57,12 @@ public class CategoryWebClient {
     }
 
 
-    public void update(Category category, ResultsCallBack<Void> callBack) {
-        Call<Void> callUpdate = service.update(category, token);
-        callUpdate.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
+    public void update(Category category, ResultsCallBack<Category> callBack) {
+        Call<Category> callUpdate = service.update(category.getApiId(), category, token);
+        callUpdate.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<Category>() {
             @Override
-            public void onSuccess() {
-                callBack.onSuccess(null);
+            public void onSuccess(Category updatedCategory) {
+                callBack.onSuccess(updatedCategory);
             }
 
             @Override

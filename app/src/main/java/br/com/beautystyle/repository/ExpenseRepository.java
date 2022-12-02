@@ -17,8 +17,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.rxjavaassinc.ExpenseAsynchDao;
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.database.rxjava.ExpenseRxJava;
+import br.com.beautystyle.model.util.Report;
 import br.com.beautystyle.model.entity.Expense;
 import br.com.beautystyle.retrofit.webclient.ExpenseWebClient;
 import br.com.beautystyle.util.CalendarUtil;
@@ -28,7 +28,7 @@ public class ExpenseRepository {
     @Inject
     ExpenseWebClient webClient;
     @Inject
-    ExpenseAsynchDao dao;
+    ExpenseRxJava dao;
     private LocalDate startDate;
     private LocalDate endDate;
     private final String profile;
@@ -105,7 +105,7 @@ public class ExpenseRepository {
     private void setExpenseRoomId(List<Expense> expensesFromRoom, List<Expense> expensesFromApi) {
         expensesFromRoom.forEach(expenseFromRoom ->
                 expensesFromApi.forEach(expenseFromApi -> {
-                    if (expenseFromRoom.getApiId().equals(expenseFromApi.getApiId()))
+                    if (expenseFromRoom.isApiIdEquals(expenseFromApi))
                         expenseFromApi.setId(expenseFromRoom.getId());
                 }));
     }
@@ -145,7 +145,7 @@ public class ExpenseRepository {
 
     public LiveData<Resource<Expense>> insert(Expense expense) {
         MutableLiveData<Resource<Expense>> liveData = new MutableLiveData<>();
-        expense.setCompanyId(tenant);
+        expense.setTenant(tenant);
         if (isFreeAccount()) {
             insertOnRoom(expense, liveData);
         }

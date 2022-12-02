@@ -9,8 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 
+import br.com.beautystyle.retrofit.service.BlockTimeService;
 import br.com.beautystyle.retrofit.service.CategoryService;
-import br.com.beautystyle.retrofit.service.ClientService;
+import br.com.beautystyle.retrofit.service.CostumerService;
 import br.com.beautystyle.retrofit.service.EventService;
 import br.com.beautystyle.retrofit.service.ExpenseService;
 import br.com.beautystyle.retrofit.service.JobService;
@@ -26,8 +27,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @Module
 public class NetworkModule {
 
-  //  private static final String URL_BASE = "http://192.168.3.214:8080/";
-    private static final String URL_BASE = "https://api-beauty-style.herokuapp.com";
+    private static final String URL_BASE = "http://192.168.3.214:8080/";
+  //  private static final String URL_BASE = "https://api-beauty-style.herokuapp.com";
 
     @Singleton
     @Provides
@@ -38,7 +39,6 @@ public class NetworkModule {
                 .addConverterFactory(JacksonConverterFactory.create(mapper))
                 .build();
     }
-
 
     @Singleton
     @Provides
@@ -70,8 +70,8 @@ public class NetworkModule {
 
     @Singleton
     @Provides
-    public ClientService providesClientService(Retrofit retrofit) {
-        return retrofit.create(ClientService.class);
+    public CostumerService providesClientService(Retrofit retrofit) {
+        return retrofit.create(CostumerService.class);
     }
 
     @Singleton
@@ -102,6 +102,12 @@ public class NetworkModule {
     @Provides
     public ReportService providesReportService(Retrofit retrofit) {
         return retrofit.create(ReportService.class);
+    }
+
+    @Singleton
+    @Provides
+    public BlockTimeService providesBlockTimeService(Retrofit retrofit) {
+        return retrofit.create(BlockTimeService.class);
     }
 
 }

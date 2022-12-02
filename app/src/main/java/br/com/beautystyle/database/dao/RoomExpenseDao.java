@@ -30,14 +30,14 @@ public interface RoomExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Single<List<Long>> insertAll(List<Expense> response);
 
-    @Query("SELECT e.expenseDate FROM expense e WHERE companyId= :tenant")
+    @Query("SELECT e.expenseDate FROM expense e WHERE tenant= :tenant")
     Single<List<LocalDate>> getYearsList(Long tenant);
 
-    @Query("SELECT * FROM expense e WHERE companyId= :tenant AND e.expenseDate >= :startDate AND e.expenseDate <= :endDate")
+    @Query("SELECT * FROM expense e WHERE tenant= :tenant AND e.expenseDate >= :startDate AND e.expenseDate <= :endDate")
     Single<List<Expense>> getByPeriod(LocalDate startDate, LocalDate endDate, Long tenant);
 
     @Transaction
-    @Query("SELECT * FROM expense e WHERE e.expenseDate = :date AND companyId= :tenant")
+    @Query("SELECT * FROM expense e WHERE e.expenseDate = :date AND tenant= :tenant")
     Single<List<Expense>> getByDate(LocalDate date, Long tenant);
 
 }

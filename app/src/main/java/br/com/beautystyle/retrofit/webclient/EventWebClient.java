@@ -5,16 +5,14 @@ import static br.com.beautystyle.repository.ConstantsRepository.TOKEN_SHARED_PRE
 
 import android.content.SharedPreferences;
 
-import java.time.LocalDate;
-import java.util.List;
-
 import javax.inject.Inject;
 
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.Report;
 import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.retrofit.callback.CallBackReturn;
 import br.com.beautystyle.retrofit.callback.CallBackWithoutReturn;
+import br.com.beautystyle.retrofit.model.dto.EventWithClientAndJobsDto;
+import br.com.beautystyle.retrofit.model.form.EventForm;
 import br.com.beautystyle.retrofit.service.EventService;
 import br.com.beautystyle.util.CalendarUtil;
 import retrofit2.Call;
@@ -33,41 +31,39 @@ public class EventWebClient {
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public void insert(EventWithClientAndJobs event,
+    public void insert(EventForm event,
                        ResultsCallBack<EventWithClientAndJobs> callBack) {
-            Call<EventWithClientAndJobs> callInsert = service.insert(event, token);
-            callInsert.enqueue(new CallBackReturn<>(
-                            new CallBackReturn.CallBackResponse<EventWithClientAndJobs>() {
-                                @Override
-                                public void onSuccess(EventWithClientAndJobs response) {
-                                    callBack.onSuccess(response);
-                                }
-
-                                @Override
-                                public void onError(String error) {
-                                    callBack.onError(error);
-                                }
-                            }
-                    )
-            );
-    }
-
-    public void update(EventWithClientAndJobs event,
-                       ResultsCallBack<Void> callBack) {
-        Call<Void> callUpdate = service.update(event, token);
-        callUpdate.enqueue(new CallBackWithoutReturn(
-                        new CallBackWithoutReturn.CallBackResponse() {
+        Call<EventWithClientAndJobs> callInsert = service.insert(event, token);
+        callInsert.enqueue(new CallBackReturn<>(
+                        new CallBackReturn.CallBackResponse<EventWithClientAndJobs>() {
                             @Override
-                            public void onSuccess() {
-                                callBack.onSuccess(null);
+                            public void onSuccess(EventWithClientAndJobs response) {
+                                callBack.onSuccess(response);
                             }
 
                             @Override
-                            public void onError(String erro) {
-                                callBack.onError(erro);
+                            public void onError(String error) {
+                                callBack.onError(error);
                             }
                         }
                 )
+        );
+    }
+
+    public void update(EventForm event,
+                       ResultsCallBack<Void> callBack) {
+        Call<Void> callUpdate = service.update(event.getEvent().getApiId(), event, token);
+        callUpdate.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
+                    @Override
+                    public void onSuccess() {
+                        callBack.onSuccess(null);
+                    }
+
+                    @Override
+                    public void onError(String erro) {
+                        callBack.onError(erro);
+                    }
+                })
         );
     }
 
@@ -86,71 +82,24 @@ public class EventWebClient {
         }));
     }
 
-    public void getAllByDate(
-                             ResultsCallBack<List<EventWithClientAndJobs>> callBack) {
-            Call<List<EventWithClientAndJobs>> callByDate =
-                    service.getByDate(CalendarUtil.selectedDate, tenant, token);
-            callByDate.enqueue(new CallBackReturn<>(
-                            new CallBackReturn.CallBackResponse<List<EventWithClientAndJobs>>() {
-                                @Override
-                                public void onSuccess(List<EventWithClientAndJobs> eventListDto) {
-                                    callBack.onSuccess(eventListDto);
-                                }
+    public void getAllByDate(ResultsCallBack<EventWithClientAndJobsDto> callBack) {
 
-                                @Override
-                                public void onError(String error) {
-                                    callBack.onError(error);
-                                }
+        Call<EventWithClientAndJobsDto> callByDate =
+                service.getByDate(CalendarUtil.selectedDate, token);
+        callByDate.enqueue(new CallBackReturn<>(
+                        new CallBackReturn.CallBackResponse<EventWithClientAndJobsDto>() {
+                            @Override
+                            public void onSuccess(EventWithClientAndJobsDto eventListDto) {
+                                callBack.onSuccess(eventListDto);
                             }
-                    )
-            );
-    }
 
-    public void getYearsList(ResultsCallBack<List<String>> callBack) {
-        Call<List<String>> callYearsList = service.getYearsList(tenant, token);
-        callYearsList.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<String>>() {
-            @Override
-            public void onSuccess(List<String> response) {
-                callBack.onSuccess(response);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
-    }
-
-    public void getReportByPeriod(LocalDate startDate, LocalDate endDate,
-                                         ResultsCallBack<List<Report>> callBack) {
-        Call<List<Report>> callReport = service.getReportByPeriod(startDate, endDate, tenant, token);
-        callReport.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Report>>() {
-            @Override
-            public void onSuccess(List<Report> response) {
-                callBack.onSuccess(response);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
-    }
-
-    public void getEventReportByDate(LocalDate selectedDate,
-                                            ResultsCallBack<List<Report>> callBack) {
-        Call<List<Report>> callReport = service.getReportByDate(selectedDate, tenant, token);
-        callReport.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Report>>() {
-            @Override
-            public void onSuccess(List<Report> response) {
-                callBack.onSuccess(response);
-            }
-
-            @Override
-            public void onError(String error) {
-                callBack.onError(error);
-            }
-        }));
+                            @Override
+                            public void onError(String error) {
+                                callBack.onError(error);
+                            }
+                        }
+                )
+        );
     }
 
 }

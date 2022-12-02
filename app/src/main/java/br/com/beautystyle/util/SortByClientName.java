@@ -2,12 +2,12 @@ package br.com.beautystyle.util;
 
 import java.util.Comparator;
 
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.Customer;
 
-public class SortByClientName implements Comparator<Costumer> {
+public class SortByClientName implements Comparator<Customer> {
 
     @Override
-    public int compare(Costumer o1, Costumer o2) {
+    public int compare(Customer o1, Customer o2) {
         return o1.getName().compareToIgnoreCase(o2.getName());
     }
 }

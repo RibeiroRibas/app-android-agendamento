@@ -30,7 +30,7 @@ public class JobWebClient {
     }
 
     public void getAll(ResultsCallBack<List<Job>> callBack) {
-        Call<List<Job>> callJobs = service.getAllByCompanyId(tenant, token);
+        Call<List<Job>> callJobs = service.getAll(token);
         callJobs.enqueue(new CallBackReturn<>(new CallBackReturn.CallBackResponse<List<Job>>() {
             @Override
             public void onSuccess(List<Job> response) {
@@ -60,7 +60,7 @@ public class JobWebClient {
     }
 
     public void update(Job job, ResultsCallBack<Void> callBack) {
-        Call<Void> callJob = service.update(job, token);
+        Call<Void> callJob = service.update(job.getApiId(), job, token);
         callJob.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
             @Override
             public void onSuccess() {

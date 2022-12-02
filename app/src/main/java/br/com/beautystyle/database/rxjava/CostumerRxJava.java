@@ -1,65 +1,65 @@
-package br.com.beautystyle.database.rxjavaassinc;
+package br.com.beautystyle.database.rxjava;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
 import br.com.beautystyle.database.BeautyStyleDatabase;
-import br.com.beautystyle.database.dao.RoomClientDao;
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.database.dao.RoomCustomerDao;
+import br.com.beautystyle.model.entity.Customer;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class CostumerAsynchDao {
+public class CostumerRxJava {
 
-    private final RoomClientDao dao;
+    private final RoomCustomerDao dao;
 
     @Inject
-    public CostumerAsynchDao(BeautyStyleDatabase database) {
+    public CostumerRxJava(BeautyStyleDatabase database) {
         dao = database.getRoomClientDao();
     }
 
-    public Observable<List<Costumer>> getAllObservable(Long tenant) {
+    public Observable<List<Customer>> getAllObservable(Long tenant) {
         return dao.getAllObservable(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
 
-    public Single<List<Costumer>> getAll(Long tenant) {
+    public Single<List<Customer>> getAll(Long tenant) {
         return dao.getAll(tenant)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
 
-    public Completable insert(Costumer costumer) {
-        return dao.insert(costumer)
+    public Completable insert(Customer customer) {
+        return dao.insert(customer)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
 
-    public Completable update(Costumer costumer) {
-        return dao.update(costumer)
+    public Completable update(Customer customer) {
+        return dao.update(customer)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
 
-    public Single<List<Long>> insertAll(List<Costumer> response) {
+    public Single<List<Long>> insertAll(List<Customer> response) {
         return dao.insertAll(response)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io());
     }
 
-    public Completable delete(Costumer costumer) {
-        return dao.delete(costumer)
+    public Completable delete(Customer customer) {
+        return dao.delete(customer)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public Completable updateAll(List<Costumer> updatedCostumerList) {
-        return dao.updateAll(updatedCostumerList)
+    public Completable updateAll(List<Customer> updatedCustomerList) {
+        return dao.updateAll(updatedCustomerList)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }

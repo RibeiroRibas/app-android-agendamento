@@ -9,17 +9,17 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.repository.ResultsCallBack;
 import br.com.beautystyle.retrofit.callback.CallBackReturn;
 import br.com.beautystyle.retrofit.callback.CallBackWithoutReturn;
-import br.com.beautystyle.retrofit.service.ClientService;
+import br.com.beautystyle.retrofit.service.CostumerService;
 import retrofit2.Call;
 
 public class CostumerWebClient {
 
     @Inject
-    ClientService service;
+    CostumerService service;
     private final String token;
     private final Long tenant;
 
@@ -29,13 +29,13 @@ public class CostumerWebClient {
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public void getAll(ResultsCallBack<List<Costumer>> callBack) {
-        Call<List<Costumer>> callClients = service.getAllByCompanyId(tenant, token);
+    public void getAll(ResultsCallBack<List<Customer>> callBack) {
+        Call<List<Customer>> callClients = service.getAll(token);
         callClients.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<List<Costumer>>() {
+                new CallBackReturn.CallBackResponse<List<Customer>>() {
                     @Override
-                    public void onSuccess(List<Costumer> costumerList) {
-                        callBack.onSuccess(costumerList);
+                    public void onSuccess(List<Customer> customerList) {
+                        callBack.onSuccess(customerList);
                     }
 
                     @Override
@@ -45,14 +45,13 @@ public class CostumerWebClient {
                 }));
     }
 
-    public void insert(Costumer costumer, ResultsCallBack<Costumer> callBack) {
-        costumer.setCompanyId(tenant);
-        Call<Costumer> callNewClient = service.insert(costumer, token);
+    public void insert(Customer customer, ResultsCallBack<Customer> callBack) {
+        Call<Customer> callNewClient = service.insert(customer, token);
         callNewClient.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<Costumer>() {
+                new CallBackReturn.CallBackResponse<Customer>() {
                     @Override
-                    public void onSuccess(Costumer costumer) {
-                        callBack.onSuccess(costumer);
+                    public void onSuccess(Customer customer) {
+                        callBack.onSuccess(customer);
                     }
 
                     @Override
@@ -63,8 +62,8 @@ public class CostumerWebClient {
         ));
     }
 
-    public void update(Costumer costumer, ResultsCallBack<Void> callBack) {
-        Call<Void> callUpdateClient = service.update(costumer, token);
+    public void update(Customer customer, ResultsCallBack<Void> callBack) {
+        Call<Void> callUpdateClient = service.update(customer, token);
         callUpdateClient.enqueue(new CallBackWithoutReturn(new CallBackWithoutReturn.CallBackResponse() {
             @Override
             public void onSuccess() {
@@ -78,8 +77,8 @@ public class CostumerWebClient {
         }));
     }
 
-    public void delete(Costumer costumer, ResultsCallBack<Void> callBack) {
-        Call<Void> callDeletedClient = service.delete(costumer.getApiId(), token);
+    public void delete(Customer customer, ResultsCallBack<Void> callBack) {
+        Call<Void> callDeletedClient = service.delete(customer.getApiId(), token);
         callDeletedClient.enqueue(new CallBackWithoutReturn(
                         new CallBackWithoutReturn.CallBackResponse() {
                             @Override
@@ -96,14 +95,13 @@ public class CostumerWebClient {
         );
     }
 
-    public void insertAll(List<Costumer> contactList, ResultsCallBack<List<Costumer>> callBack) {
-        contactList.forEach(costumer -> costumer.setCompanyId(tenant));
-        Call<List<Costumer>> callClientList = service.insertAll(contactList, token);
+    public void insertAll(List<Customer> contactList, ResultsCallBack<List<Customer>> callBack) {
+        Call<List<Customer>> callClientList = service.insertAll(contactList, token);
         callClientList.enqueue(new CallBackReturn<>(
-                new CallBackReturn.CallBackResponse<List<Costumer>>() {
+                new CallBackReturn.CallBackResponse<List<Customer>>() {
                     @Override
-                    public void onSuccess(List<Costumer> costumers) {
-                        callBack.onSuccess(costumers);
+                    public void onSuccess(List<Customer> customers) {
+                        callBack.onSuccess(customers);
                     }
 
                     @Override

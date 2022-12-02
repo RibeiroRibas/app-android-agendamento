@@ -22,22 +22,29 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.beautystyle.R;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.UserViewModel;
 import br.com.beautystyle.ViewModel.factory.UserFactory;
-import br.com.beautystyle.model.UserLogin;
-import br.com.beautystyle.model.UserToken;
+import br.com.beautystyle.model.entity.OpeningHours;
 import br.com.beautystyle.model.entity.User;
+import br.com.beautystyle.repository.OpeningHoursRepository;
 import br.com.beautystyle.repository.UserRepository;
+import br.com.beautystyle.retrofit.model.dto.UserDto;
+import br.com.beautystyle.retrofit.model.form.UserLoginForm;
 import br.com.beautystyle.ui.ProgressBottom;
+import io.reactivex.rxjava3.core.Completable;
 
 
 public class LoginActivity extends AppCompatActivity {
 
     @Inject
     UserRepository userRepository;
+    @Inject
+    OpeningHoursRepository openingHoursRepository;
     private UserViewModel viewModel;
     private SharedPreferences preferences;
     private EditText email, password;
@@ -51,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
         injectActivity();
 
         UserFactory factory = new UserFactory(userRepository);
-        viewModel = new ViewModelProvider(this,factory).get(UserViewModel.class);
+        viewModel = new ViewModelProvider(this, factory).get(UserViewModel.class);
         preferences = getSharedPreferences(USER_SHARED_PREFERENCES, MODE_PRIVATE);
 
         initWidgets();
@@ -87,8 +94,8 @@ public class LoginActivity extends AppCompatActivity {
                 progressBottom.buttonActivated();
                 String userEmail = email.getText().toString();
                 String userPassword = password.getText().toString();
-                UserLogin userLogin = new UserLogin(userEmail, userPassword);
-                authUserOnApi(userLogin);
+                UserLoginForm userLoginForm = new UserLoginForm(userEmail, userPassword);
+                authUserOnApi(userLoginForm);
             } else {
                 requiredFieldsAlertDialog();
             }
@@ -112,23 +119,47 @@ public class LoginActivity extends AppCompatActivity {
                 .applicationComponent.injectLoginAct(this);
     }
 
-    private void authUserOnApi(UserLogin userLogin) {
-        viewModel.authUser(userLogin).observe(this,resource->{
-            if(resource.isDataNotNull()){
-                setPreferences(resource.getData(), userLogin.getEmail());
-                User user = new User(userLogin, resource.getData().getProfiles());
-                insertUserOnRoom(user);
-            }else{
+    private void authUserOnApi(UserLoginForm userLoginForm) {
+        viewModel.authUser(userLoginForm).observe(this, resource -> {
+            if (resource.isDataNotNull()) {
+                UserDto response = resource.getData();
+                setPreferences(response, userLoginForm.getEmail());
+
+                insertUserOnRoom(userLoginForm, response)
+                        .doOnComplete(() ->
+                                openingHoursRepository.getAll().doOnSuccess(openingHours -> {
+                                    openingHours.forEach(fromRoom -> {
+                                        response.getOpeningHours().forEach(fromApi -> {
+                                            if (fromRoom.isApiIdEquals(fromApi))
+                                                fromApi.setId(fromRoom.getId());
+                                        });
+                                    });
+                                    insertOpeningHoursOnRoom(response);
+                                }).subscribe()
+                        ).subscribe();
+
+
+            } else {
                 progressBottom.buttonFinished();
                 showErrorMessage(resource.getError());
             }
         });
     }
 
-    private void insertUserOnRoom(User user) {
-        userRepository.insertOnRoom(user)
+    private Completable insertUserOnRoom(UserLoginForm userLoginForm, UserDto response) {
+        User user = new User(userLoginForm, response.getProfiles());
+        return userRepository.insertOnRoom(user);
+    }
+
+    private void insertOpeningHoursOnRoom(UserDto response) {
+        List<OpeningHours> openingHours = response.getOpeningHours();
+        openingHours.forEach(openingHour -> {
+            openingHour.setTenant(response.getTenant());
+        });
+        openingHoursRepository.insertAll(response.getOpeningHours())
                 .doOnComplete(this::startNavigationActivity).subscribe();
     }
+
 
     private void startNavigationActivity() {
         progressBottom.buttonFinished();
@@ -136,12 +167,12 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void setPreferences(UserToken userToken, String email) {
+    private void setPreferences(UserDto userDto, String email) {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(EMAIL_SHARED_PREFERENCES, email);
-        editor.putString(TOKEN_SHARED_PREFERENCES, userToken.getTypeToken());
-        editor.putLong(TENANT_SHARED_PREFERENCES, userToken.getCompanyId());
-        editor.putString(PROFILE_SHARED_PREFERENCES, userToken.getProfile());
+        editor.putString(TOKEN_SHARED_PREFERENCES, userDto.getTypeToken());
+        editor.putLong(TENANT_SHARED_PREFERENCES, userDto.getTenant());
+        editor.putString(PROFILE_SHARED_PREFERENCES, userDto.getProfile());
         editor.putBoolean(IS_LOGGED_SHARED_PREFERENCES, true);
         editor.apply();
     }

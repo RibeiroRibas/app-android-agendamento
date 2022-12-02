@@ -26,7 +26,6 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 import br.com.beautystyle.model.entity.Expense;
-import br.com.beautystyle.model.enuns.RepeatOrNot;
 import br.com.beautystyle.ui.fragment.CalendarViewFragment;
 import br.com.beautystyle.ui.fragment.expense.CategoryListFragment;
 import br.com.beautystyle.util.CalendarUtil;
@@ -78,7 +77,7 @@ public class NewExpenseActivity extends AppCompatActivity {
         } else { // is new event mode
             setExpenseDate();
             nRepeat.setChecked(true);
-            expense.setRepeatOrNot(RepeatOrNot.NREPEAT);
+            expense.setRepeat(false);
         }
     }
 
@@ -91,12 +90,12 @@ public class NewExpenseActivity extends AppCompatActivity {
         purchaseDate.setText(CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY));
         categoryEditTxt.setText(expense.getCategory());
         expenseDescription.setText(expense.getDescription());
-        expenseValue.setText(CoinUtil.format(expense.getPrice(), REMOVE_SYMBOL));
+        expenseValue.setText(CoinUtil.format(expense.getValue(), REMOVE_SYMBOL));
         setCheckBoxRepeatOrNot();
     }
 
     private void setCheckBoxRepeatOrNot() {
-        if (expense.getRepeatOrNot().equals(RepeatOrNot.REPEAT)) {
+        if (expense.isRepeat()) {
             repeat.setChecked(true);
         } else {
             nRepeat.setChecked(true);
@@ -130,7 +129,7 @@ public class NewExpenseActivity extends AppCompatActivity {
         repeat.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 nRepeat.setChecked(false);
-                expense.setRepeatOrNot(RepeatOrNot.REPEAT);
+                expense.setRepeat(true);
             }
         });
     }
@@ -139,7 +138,7 @@ public class NewExpenseActivity extends AppCompatActivity {
         nRepeat.setOnCheckedChangeListener(((buttonView, isChecked) -> {
             if (buttonView.isChecked()) {
                 repeat.setChecked(false);
-                expense.setRepeatOrNot(RepeatOrNot.NREPEAT);
+                expense.setRepeat(false);
             }
         }));
     }
@@ -181,7 +180,7 @@ public class NewExpenseActivity extends AppCompatActivity {
     private void setExpense() {
         expense.setDescription(expenseDescription.getText().toString());
         String formattedPurchaseValue = formatExpenseValue();
-        expense.setPrice(new BigDecimal(formattedPurchaseValue));
+        expense.setValue(new BigDecimal(formattedPurchaseValue));
     }
 
     private String formatExpenseValue() {

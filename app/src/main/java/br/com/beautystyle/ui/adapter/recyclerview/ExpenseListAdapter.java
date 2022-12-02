@@ -120,7 +120,7 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
             this.expense = expense;
             String formattedDate = CalendarUtil.formatLocalDate(expense.getExpenseDate(), DD_MM_YYYY);
             date.setText(formattedDate);
-            String formattedValue = CoinUtil.format(expense.getPrice(), DESIRED_FORMAT);
+            String formattedValue = CoinUtil.format(expense.getValue(), DESIRED_FORMAT);
             value.setText(formattedValue);
             category.setText(expense.getCategory());
             description.setText(expense.getDescription());

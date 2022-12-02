@@ -10,10 +10,11 @@ import androidx.room.Ignore;
 import java.util.Objects;
 
 
-@Entity(primaryKeys = {"eventId", "jobId"},
-        foreignKeys = {
+@Entity(primaryKeys = {"eventId", "jobId"}
+        , foreignKeys = {
                 @ForeignKey(onDelete = CASCADE, entity = Event.class,
-                        parentColumns = "eventId", childColumns = "eventId")})
+                        parentColumns = "eventId", childColumns = "eventId")}
+)
 public class EventJobCrossRef {
 
     @ColumnInfo(index = true)

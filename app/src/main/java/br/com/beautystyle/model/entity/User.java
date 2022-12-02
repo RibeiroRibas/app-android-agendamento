@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey;
 
 import java.util.List;
 
-import br.com.beautystyle.model.UserLogin;
+import br.com.beautystyle.retrofit.model.form.UserLoginForm;
 
 @Entity
 public class User {
@@ -21,9 +21,9 @@ public class User {
     private String profile;
 
     @Ignore
-    public User(UserLogin userLogin, List<String> profiles) {
-        this.email = userLogin.getEmail();
-        this.password = userLogin.getPassword();
+    public User(UserLoginForm userLoginForm, List<String> profiles) {
+        this.email = userLoginForm.getEmail();
+        this.password = userLoginForm.getPassword();
         this.profile = profiles.get(0);
     }
 

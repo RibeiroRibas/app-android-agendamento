@@ -3,7 +3,7 @@ package br.com.beautystyle.retrofit.service;
 import java.time.LocalDate;
 import java.util.List;
 
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.util.Report;
 import br.com.beautystyle.model.entity.Expense;
 import retrofit2.Call;
 import retrofit2.http.Body;

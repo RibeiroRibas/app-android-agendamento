@@ -29,7 +29,7 @@ import javax.inject.Inject;
 import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.ReportViewModel;
 import br.com.beautystyle.ViewModel.factory.ReportFactory;
-import br.com.beautystyle.model.Report;
+import br.com.beautystyle.model.util.Report;
 import br.com.beautystyle.repository.ReportRepository;
 import br.com.beautystyle.ui.adapter.recyclerview.ReportListAdapter;
 import br.com.beautystyle.util.CoinUtil;

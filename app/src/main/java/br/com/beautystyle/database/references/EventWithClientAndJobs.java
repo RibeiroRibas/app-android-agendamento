@@ -10,10 +10,12 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.BlockTime;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.model.entity.Event;
 import br.com.beautystyle.model.entity.EventJobCrossRef;
 import br.com.beautystyle.model.entity.Job;
+import br.com.beautystyle.retrofit.model.form.EventForm;
 
 public class EventWithClientAndJobs implements Serializable {
 
@@ -21,10 +23,10 @@ public class EventWithClientAndJobs implements Serializable {
     public Event event = new Event();
 
     @Relation(
-            parentColumn = "clientCreatorId",
-            entityColumn = "clientId"
+            parentColumn = "customerCreatorId",
+            entityColumn = "id"
     )
-    private Costumer client = new Costumer();
+    private Customer customer = new Customer();
 
     @Relation(
             parentColumn = "eventId",
@@ -32,6 +34,9 @@ public class EventWithClientAndJobs implements Serializable {
             associateBy = @Junction(EventJobCrossRef.class)
     )
     public List<Job> jobs = new ArrayList<>();
+
+    @Ignore
+    private BlockTime blockTime;
 
     public EventWithClientAndJobs() {
     }
@@ -41,12 +46,17 @@ public class EventWithClientAndJobs implements Serializable {
         this.event = new Event(startTime);
     }
 
-    public Costumer getClient() {
-        return client;
+    @Ignore
+    public EventWithClientAndJobs(EventForm eventForm) {
+        this.event = getEvent();
     }
 
-    public void setClient(Costumer client) {
-        this.client = client;
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public Event getEvent() {
@@ -66,10 +76,30 @@ public class EventWithClientAndJobs implements Serializable {
     }
 
     public boolean isEventNotNull() {
-        return event.getEventId() > 0;
+        return event.isEventIdNotNull();
     }
 
     public boolean isApiIdEquals(EventWithClientAndJobs eventFromApi) {
-        return event.isApiIdEquals(eventFromApi);
+        return event.isApiIdEquals(eventFromApi.getEvent().getApiId());
+    }
+
+    public boolean isNotOver() {
+        return event.isNotOver();
+    }
+
+    public boolean isUserCustomer() {
+        return customer.isUser();
+    }
+
+    public BlockTime getBlockTime() {
+        return blockTime;
+    }
+
+    public void setBlockTime(BlockTime blockTime) {
+        this.blockTime = blockTime;
+    }
+
+    public boolean isBlockTimeNotNull() {
+        return blockTime!=null;
     }
 }

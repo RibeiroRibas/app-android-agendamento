@@ -1,5 +1,7 @@
 package br.com.beautystyle.repository;
 
+import static br.com.beautystyle.retrofit.callback.CallbackMessages.DURATION_TIME_IS_NOT_AVAILABLE;
+
 public class Resource<T> {
     private T data;
     private String error;
@@ -32,5 +34,9 @@ public class Resource<T> {
 
     public boolean isErrorNotNull() {
         return this.error!=null;
+    }
+
+    public boolean isDurationTimeNotAvailable() {
+        return error.contains(DURATION_TIME_IS_NOT_AVAILABLE);
     }
 }

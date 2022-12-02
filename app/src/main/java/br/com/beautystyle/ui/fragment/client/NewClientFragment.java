@@ -23,12 +23,12 @@ import com.example.beautystyle.R;
 
 import java.util.Objects;
 
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.Customer;
 
 public class NewClientFragment extends DialogFragment {
 
     private EditText nameClient, phoneClient;
-    private Costumer costumer = new Costumer();
+    private Customer customer = new Customer();
 
     @Nullable
     @Override
@@ -68,8 +68,8 @@ public class NewClientFragment extends DialogFragment {
     private void loadClient() {
         Bundle bundle = getArguments();
         if (isKeyUpdateClient(bundle)) {
-            costumer = (Costumer) bundle.getSerializable(KEY_UPDATE_CLIENT);
-            fillAllForm(costumer);
+            customer = (Customer) bundle.getSerializable(KEY_UPDATE_CLIENT);
+            fillAllForm(customer);
         }
     }
 
@@ -77,9 +77,9 @@ public class NewClientFragment extends DialogFragment {
         return bundle != null && getTag() != null && getTag().equals(TAG_UPDATE_CLIENT);
     }
 
-    private void fillAllForm(Costumer costumer) {
-        nameClient.setText(costumer.getName());
-        phoneClient.setText(costumer.getPhone());
+    private void fillAllForm(Customer customer) {
+        nameClient.setText(customer.getName());
+        phoneClient.setText(customer.getPhone());
     }
 
     private void setResultClientListener(View inflateNewEventView) {
@@ -105,26 +105,26 @@ public class NewClientFragment extends DialogFragment {
         setClient();
         if (getTag() != null) {
             if (getTag().equals(TAG_UPDATE_CLIENT)) {
-                setResult(KEY_UPDATE_CLIENT, costumer);
+                setResult(KEY_UPDATE_CLIENT);
             } else {
-                setResult(KEY_INSERT_CLIENT, costumer);
+                setResult(KEY_INSERT_CLIENT);
             }
         }
         Objects.requireNonNull(getDialog()).dismiss();
         getParentFragmentManager().beginTransaction().remove(this).commit();
     }
 
-    private void setResult(String key, Costumer costumer) {
+    private void setResult(String key) {
         Bundle result = new Bundle();
-        result.putSerializable(key, costumer);
+        result.putSerializable(key, customer);
         getParentFragmentManager().setFragmentResult(KEY_CLIENT, result);
     }
 
     private void setClient() {
         String name = nameClient.getText().toString();
-        costumer.setName(name);
+        customer.setName(name);
         String phone = phoneClient.getText().toString();
-        costumer.setPhone(phone);
+        customer.setPhone(phone);
     }
 
 }

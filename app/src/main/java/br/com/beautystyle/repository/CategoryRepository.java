@@ -14,14 +14,14 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.rxjavaassinc.CategoryAsynchDao;
+import br.com.beautystyle.database.rxjava.CategoryRxJava;
 import br.com.beautystyle.model.entity.Category;
 import br.com.beautystyle.retrofit.webclient.CategoryWebClient;
 
 public class CategoryRepository {
 
     @Inject
-    CategoryAsynchDao dao;
+    CategoryRxJava dao;
     @Inject
     CategoryWebClient webClient;
     private final MutableLiveData<Resource<List<Category>>> liveData = new MutableLiveData<>();
@@ -39,6 +39,7 @@ public class CategoryRepository {
             insertOnApi(category);
         }
         if(isFreeAccount()){
+            category.setTenant(tenant);
             insertOnRoom(category);
         }
     }
@@ -75,10 +76,10 @@ public class CategoryRepository {
     }
 
     private void updateOnApi(Category category) {
-        webClient.update(category, new ResultsCallBack<Void>() {
+        webClient.update(category, new ResultsCallBack<Category>() {
             @Override
-            public void onSuccess(Void result) {
-                updateOnRoom(category);
+            public void onSuccess(Category updatedCategory) {
+                updateOnRoom(updatedCategory);
             }
 
             @Override

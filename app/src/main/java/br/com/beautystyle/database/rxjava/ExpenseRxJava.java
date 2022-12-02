@@ -1,4 +1,4 @@
-package br.com.beautystyle.database.rxjavaassinc;
+package br.com.beautystyle.database.rxjava;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,12 +14,12 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class ExpenseAsynchDao {
+public class ExpenseRxJava {
 
     private final RoomExpenseDao dao;
 
     @Inject
-    public ExpenseAsynchDao(BeautyStyleDatabase database) {
+    public ExpenseRxJava(BeautyStyleDatabase database) {
         dao = database.getRoomExpenseDao();
     }
 

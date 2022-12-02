@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import br.com.beautystyle.database.rxjavaassinc.CostumerAsynchDao;
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.database.rxjava.CostumerRxJava;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.retrofit.webclient.CostumerWebClient;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Single;
@@ -32,10 +32,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class ClientRepository {
 
     @Inject
-    CostumerAsynchDao dao;
+    CostumerRxJava dao;
     @Inject
     CostumerWebClient webClient;
-    private final MutableLiveData<Resource<List<Costumer>>> mutableCostumers = new MutableLiveData<>();
+    private final MutableLiveData<Resource<List<Customer>>> mutableCostumers = new MutableLiveData<>();
     private final String profile;
     private final Long tenant;
 
@@ -45,9 +45,9 @@ public class ClientRepository {
         tenant = preferences.getLong(TENANT_SHARED_PREFERENCES, 0);
     }
 
-    public LiveData<Resource<List<Costumer>>> getAllLiveData() {
+    public LiveData<Resource<List<Customer>>> getAllLiveData() {
         getAllFromRoomObservable();
-        if(isUserPremium()){
+        if (isUserPremium()) {
             getAllFromApi();
         }
         return mutableCostumers;
@@ -55,44 +55,16 @@ public class ClientRepository {
 
     private void getAllFromRoomObservable() {
         dao.getAllObservable(tenant).doOnNext(costumersFromRoom -> {
-                    Resource<List<Costumer>> resource = new Resource<>(costumersFromRoom, null);
-                    mutableCostumers.setValue(resource);
-                }).subscribe();
+            Resource<List<Customer>> resource = new Resource<>(costumersFromRoom, null);
+            mutableCostumers.setValue(resource);
+        }).subscribe();
     }
 
     private void getAllFromApi() {
-            webClient.getAll(new ResultsCallBack<List<Costumer>>() {
-                @Override
-                public void onSuccess(List<Costumer> costumersFromApi) {
-                    updateAndInsertAll(costumersFromApi, null);
-                }
-
-                @Override
-                public void onError(String error) {
-                    mutableCostumers.setValue(new Resource<>(null, error));
-                }
-            });
-    }
-
-
-    public void update(Costumer costumer) {
-        if(isUserPremium()) {
-            updateOnApi(costumer);
-        }
-        if(isFreeUser()){
-            updateOnRoom(costumer);
-        }
-    }
-
-    private void updateOnRoom(Costumer costumer) {
-        dao.update(costumer).subscribe();
-    }
-
-    private void updateOnApi(Costumer costumer) {
-        webClient.update(costumer, new ResultsCallBack<Void>() {
+        webClient.getAll(new ResultsCallBack<List<Customer>>() {
             @Override
-            public void onSuccess(Void result) {
-               updateOnRoom(costumer);
+            public void onSuccess(List<Customer> costumersFromApi) {
+                updateAndInsertAll(costumersFromApi, null);
             }
 
             @Override
@@ -102,24 +74,24 @@ public class ClientRepository {
         });
     }
 
-    public void delete(Costumer costumer) {
-        if(isUserPremium()){
-            deleteOnApi(costumer);
+    public void update(Customer customer) {
+        if (isUserPremium()) {
+            updateOnApi(customer);
         }
-        if(isFreeUser()){
-            deleteOnRoom(costumer);
+        if (isFreeUser()) {
+            updateOnRoom(customer);
         }
     }
 
-    private void deleteOnRoom(Costumer costumer) {
-        dao.delete(costumer).subscribe();
+    private void updateOnRoom(Customer customer) {
+        dao.update(customer).subscribe();
     }
 
-    private void deleteOnApi(Costumer costumer) {
-        webClient.delete(costumer, new ResultsCallBack<Void>() {
+    private void updateOnApi(Customer customer) {
+        webClient.update(customer, new ResultsCallBack<Void>() {
             @Override
             public void onSuccess(Void result) {
-                deleteOnRoom(costumer);
+                updateOnRoom(customer);
             }
 
             @Override
@@ -129,25 +101,51 @@ public class ClientRepository {
         });
     }
 
-    public void insertAll(List<Costumer> contactList) {
-        if(isUserPremium()){
-            insertAllOnApi(contactList);
+    public void delete(Customer customer) {
+        if (isUserPremium()) {
+            deleteOnApi(customer);
         }
-        if(isFreeUser()){
+        if (isFreeUser()) {
+            deleteOnRoom(customer);
+        }
+    }
+
+    private void deleteOnRoom(Customer customer) {
+        dao.delete(customer).subscribe();
+    }
+
+    private void deleteOnApi(Customer customer) {
+        webClient.delete(customer, new ResultsCallBack<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                deleteOnRoom(customer);
+            }
+
+            @Override
+            public void onError(String error) {
+                mutableCostumers.setValue(new Resource<>(null, error));
+            }
+        });
+    }
+
+    public void insertAll(List<Customer> contactList) {
+        if (isUserPremium()) insertAllOnApi(contactList);
+
+        if (isFreeUser()) {
+            contactList.forEach(costumer -> costumer.setTenant(tenant));
             insertAllOnRoom(contactList);
         }
     }
 
-    private void insertAllOnRoom(List<Costumer> costumers) {
-        dao.insertAll(costumers).subscribe();
+    private void insertAllOnRoom(List<Customer> customers) {
+        dao.insertAll(customers).subscribe();
     }
 
-    private void insertAllOnApi(List<Costumer> contactList) {
-        webClient.insertAll(contactList, new ResultsCallBack<List<Costumer>>() {
+    private void insertAllOnApi(List<Customer> contactList) {
+        webClient.insertAll(contactList, new ResultsCallBack<List<Customer>>() {
             @Override
-            public void onSuccess(List<Costumer> costumers) {
-                costumers.forEach(costumer -> costumer.setClientId(null));
-                insertAllOnRoom(costumers);
+            public void onSuccess(List<Customer> customers) {
+                insertAllOnRoom(customers);
             }
 
             @Override
@@ -158,16 +156,16 @@ public class ClientRepository {
     }
 
 
-    private void deleteFromRoomIfNotExistOnApi(List<Costumer> costumersFromApi,
-                                               List<Costumer> costumersFromRoom) {
+    private void deleteFromRoomIfNotExistOnApi(List<Customer> costumersFromApi,
+                                               List<Customer> costumersFromRoom) {
         costumersFromRoom.forEach(fromRoom -> {
             if (fromRoom.isNotExistOnApi(costumersFromApi))
                 dao.delete(fromRoom).subscribe();
         });
     }
 
-    public LiveData<List<Costumer>> getContactListFromSmartphone(Context context) {
-        MutableLiveData<List<Costumer>> mutableContactList = new MutableLiveData<>();
+    public LiveData<List<Customer>> getContactListFromSmartphone(Context context) {
+        MutableLiveData<List<Customer>> mutableContactList = new MutableLiveData<>();
         dao.getAll(tenant)
                 .doOnSuccess(costumersFromRoom ->
                         getNewContacts(context, costumersFromRoom)
@@ -180,11 +178,11 @@ public class ClientRepository {
     }
 
     @SuppressLint("Range")
-    private Single<List<Costumer>> getNewContacts(Context context,
-                                                  List<Costumer> costumersFromRoom) {
+    private Single<List<Customer>> getNewContacts(Context context,
+                                                  List<Customer> costumersFromRoom) {
         return Single.create(emitter -> {
             Thread.sleep(5000);
-            List<Costumer> contactList = new ArrayList<>();
+            List<Customer> contactList = new ArrayList<>();
             Uri uri = ContactsContract.Contacts.CONTENT_URI;
             Cursor cursor = context.getContentResolver().query(uri, null, null, null);
             if (cursor.getCount() > 0) {
@@ -204,7 +202,7 @@ public class ClientRepository {
                         );
                     }
 
-                    Costumer contact = new Costumer(name, number);
+                    Customer contact = new Customer(name, number);
 
                     if (contact.isNewContact(costumersFromRoom)) {
                         contactList.add(contact);
@@ -225,24 +223,23 @@ public class ClientRepository {
                 .query(uriPhone, null, selection, new String[]{id}, null);
     }
 
-    public void updateAndInsertAll(List<Costumer> clientsFromApi,
-                                   ResultsCallBack<List<Costumer>> callBack) {
+    public void updateAndInsertAll(List<Customer> clientsFromApi,
+                                   ResultsCallBack<List<Customer>> callBack) {
         dao.getAll(tenant)
                 .doOnSuccess(clientsFromRoom -> {
                     if (callBack == null)
                         deleteFromRoomIfNotExistOnApi(clientsFromApi, clientsFromRoom);
                     mergeClientId(clientsFromRoom, clientsFromApi);
-                    List<Costumer> clientsToUpdate = getClientsToUpdate(clientsFromApi);
+                    List<Customer> clientsToUpdate = getClientsToUpdate(clientsFromApi);
                     dao.updateAll(clientsToUpdate)
                             .doOnComplete(() -> {
-                                List<Costumer> newCostumers = getClientsToInsert(clientsFromApi);
-                                newCostumers.forEach(client -> client.setClientId(null));
-                                dao.insertAll(newCostumers)
+                                List<Customer> newCustomers = getClientsToInsert(clientsFromApi);
+                                newCustomers.forEach(client -> client.setId(null));
+                                dao.insertAll(newCustomers)
                                         .doOnSuccess(ids -> {
                                             if (callBack != null) {
-                                                setClientIds(newCostumers, ids);
-                                                mergeClientId(newCostumers, clientsFromApi);
-
+                                                setClientIds(newCustomers, ids);
+                                                mergeClientId(newCustomers, clientsFromApi);
                                                 callBack.onSuccess(clientsFromApi);
                                             }
                                         }).subscribe();
@@ -250,38 +247,39 @@ public class ClientRepository {
                 }).subscribe();
     }
 
-    private void setClientIds(List<Costumer> newCostumers, List<Long> ids) {
-        for (int i = 0; i < newCostumers.size(); i++) {
-            newCostumers.get(i).setClientId(ids.get(i));
+    private void setClientIds(List<Customer> newCustomers, List<Long> ids) {
+        for (int i = 0; i < newCustomers.size(); i++) {
+            newCustomers.get(i).setId(ids.get(i));
         }
     }
 
     @NonNull
-    private List<Costumer> getClientsToInsert(List<Costumer> clientsFromApi) {
+    private List<Customer> getClientsToInsert(List<Customer> clientsFromApi) {
         return clientsFromApi.stream()
-                .filter(client -> !client.checkId())
-                .filter(Costumer::checkApiId)
+                .filter(client -> !client.isIdNotNull())
+                .filter(Customer::checkApiId)
                 .collect(Collectors.toList());
     }
 
     @NonNull
-    private List<Costumer> getClientsToUpdate(List<Costumer> clientsFromApi) {
+    private List<Customer> getClientsToUpdate(List<Customer> clientsFromApi) {
         return clientsFromApi.stream()
-                .filter(Costumer::checkId)
+                .filter(Customer::isIdNotNull)
                 .collect(Collectors.toList());
     }
 
-    private void mergeClientId(List<Costumer> clientsFromRoom, List<Costumer> clientsFromApi) {
+    private void mergeClientId(List<Customer> clientsFromRoom, List<Customer> clientsFromApi) {
         clientsFromApi.forEach((clientApi -> {
-            for (Costumer costumerRoom : clientsFromRoom) {
-                if (clientApi.getApiId().equals(costumerRoom.getApiId())) {
-                    clientApi.setClientId(costumerRoom.getClientId());
+            for (Customer customerRoom : clientsFromRoom) {
+                if (clientApi.isApiIdEquals(customerRoom.getApiId())) {
+                    clientApi.setId(customerRoom.getId());
                     break;
                 }
             }
         }
         ));
     }
+
     private boolean isFreeUser() {
         return profile.equals(FREE_ACCOUNT);
     }
@@ -290,20 +288,19 @@ public class ClientRepository {
         return profile.equals(USER_PREMIUM);
     }
 
-    public void insert(Costumer costumer) {
-        if(isFreeUser()){
-            insertOnRoom(costumer);
+    public void insert(Customer customer) {
+        if (isFreeUser()) {
+            customer.setTenant(tenant);
+            insertOnRoom(customer);
         }
-        if(isUserPremium()){
-            insertOnApi(costumer);
-        }
+        if (isUserPremium()) insertOnApi(customer);
     }
 
-    private void insertOnApi(Costumer costumer) {
-        webClient.insert(costumer, new ResultsCallBack<Costumer>() {
+    private void insertOnApi(Customer customer) {
+        webClient.insert(customer, new ResultsCallBack<Customer>() {
             @Override
-            public void onSuccess(Costumer costumer) {
-                insertOnRoom(costumer);
+            public void onSuccess(Customer customer) {
+                insertOnRoom(customer);
             }
 
             @Override
@@ -313,9 +310,7 @@ public class ClientRepository {
         });
     }
 
-    private void insertOnRoom(Costumer costumer) {
-        costumer.setClientId(null);
-        costumer.setCompanyId(tenant);
-        dao.insert(costumer).subscribe();
+    private void insertOnRoom(Customer customer) {
+        dao.insert(customer).subscribe();
     }
 }

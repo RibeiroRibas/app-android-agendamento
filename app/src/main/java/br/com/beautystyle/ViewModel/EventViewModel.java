@@ -7,16 +7,16 @@ import androidx.lifecycle.ViewModel;
 import java.util.List;
 
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.Report;
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.model.entity.Event;
 import br.com.beautystyle.model.entity.Job;
 import br.com.beautystyle.repository.EventRepository;
 import br.com.beautystyle.repository.Resource;
+import br.com.beautystyle.retrofit.model.dto.EventWithClientAndJobsDto;
 
 public class EventViewModel extends ViewModel {
 
-    private MutableLiveData<Costumer> clientLiveData;
+    private MutableLiveData<Customer> clientLiveData;
     private MutableLiveData<List<Job>> jobsLiveData;
     private final EventRepository repository;
 
@@ -36,18 +36,18 @@ public class EventViewModel extends ViewModel {
         this.jobsLiveData.setValue(serviceList);
     }
 
-    public LiveData<Costumer> getClientLiveData() {
+    public LiveData<Customer> getClientLiveData() {
         if (clientLiveData == null) {
             clientLiveData = new MutableLiveData<>();
         }
         return clientLiveData;
     }
 
-    public void add(Costumer costumer) {
-        clientLiveData.setValue(costumer);
+    public void add(Customer customer) {
+        clientLiveData.setValue(customer);
     }
 
-    public LiveData<Resource<List<EventWithClientAndJobs>>> getByDateLiveData() {
+    public LiveData<Resource<EventWithClientAndJobsDto>> getByDateLiveData() {
         return repository.getByDateLiveData();
     }
 
@@ -63,7 +63,4 @@ public class EventViewModel extends ViewModel {
         return repository.delete(event);
     }
 
-    public LiveData<Resource<List<Report>>> getReportByPeriod() {
-        return  repository.getReportByPeriod();
-    }
 }

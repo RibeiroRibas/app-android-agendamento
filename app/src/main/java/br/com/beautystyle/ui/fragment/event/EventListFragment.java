@@ -1,12 +1,20 @@
 package br.com.beautystyle.ui.fragment.event;
 
+import static br.com.beautystyle.retrofit.callback.CallbackMessages.DURATION_TIME_IS_NOT_AVAILABLE;
 import static br.com.beautystyle.ui.activity.ContantsActivity.KEY_CLICK_FAB_NAVIGATION;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_INSERT_EVENT;
 import static br.com.beautystyle.ui.activity.ContantsActivity.REQUEST_CODE_UPDATE_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_BLOCK_TIME;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_BLOCK_TIME;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_INSERT_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_START_TIME;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_BLOCK_TIME;
 import static br.com.beautystyle.ui.fragment.ConstantFragment.KEY_UPDATE_EVENT;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_INSERT_BLOCK_TIME;
+import static br.com.beautystyle.ui.fragment.ConstantFragment.TAG_UPDATE_BLOCK_TIME;
 import static br.com.beautystyle.util.ConstantsUtil.MMMM_YYYY;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -26,28 +34,38 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.beautystyle.R;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalTime;
 
 import javax.inject.Inject;
 
 import br.com.beautystyle.BeautyStyleApplication;
+import br.com.beautystyle.ViewModel.BlockTimeViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
+import br.com.beautystyle.ViewModel.factory.BlockTimeFactory;
 import br.com.beautystyle.ViewModel.factory.EventFactory;
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
+import br.com.beautystyle.model.entity.BlockTime;
+import br.com.beautystyle.model.entity.Event;
+import br.com.beautystyle.repository.BlockTimeRepository;
 import br.com.beautystyle.repository.EventRepository;
+import br.com.beautystyle.repository.OpeningHoursRepository;
 import br.com.beautystyle.repository.Resource;
+import br.com.beautystyle.retrofit.model.dto.EventTimeNotAvailableDto;
+import br.com.beautystyle.retrofit.model.dto.EventWithClientAndJobsDto;
 import br.com.beautystyle.ui.ListDaysView;
 import br.com.beautystyle.ui.activity.NewEventActivity;
 import br.com.beautystyle.ui.adapter.listview.EventListAdapter;
 import br.com.beautystyle.ui.adapter.recyclerview.ListDaysAdapter;
+import br.com.beautystyle.ui.fragment.BlockTimeFragment;
 import br.com.beautystyle.util.CalendarUtil;
 
 public class EventListFragment extends Fragment implements ListDaysAdapter.OnDayListener {
@@ -58,8 +76,16 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
     private ActivityResultLauncher<Intent> activityResultLauncher;
     private EventListAdapter adapterEvents;
     private EventViewModel eventViewModel;
+    private BlockTimeViewModel blockTimeViewModel;
     @Inject
     EventRepository eventRepository;
+    @Inject
+    OpeningHoursRepository openingHoursRepository;
+    @Inject
+    BlockTimeRepository blockTimeRepository;
+    @Inject
+    ObjectMapper mapper;
+    private EventWithClientAndJobs event = new EventWithClientAndJobs();
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -75,8 +101,12 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EventFactory factory = new EventFactory(eventRepository);
-        eventViewModel = new ViewModelProvider(this, factory).get(EventViewModel.class);
+        EventFactory eventFactory = new EventFactory(eventRepository);
+        BlockTimeFactory blockTimeFactory = new BlockTimeFactory(blockTimeRepository);
+        eventViewModel = new ViewModelProvider(this, eventFactory)
+                .get(EventViewModel.class);
+        blockTimeViewModel = new ViewModelProvider(this, blockTimeFactory)
+                .get(BlockTimeViewModel.class);
         daysList = new ListDaysView();
     }
 
@@ -94,8 +124,28 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         // LISTENER
         eventListOnClickListener();
         fabNavigationClickListener();
+        setFragmentResultListener();
 
         return inflatedView;
+    }
+
+    private void setFragmentResultListener() {
+        getChildFragmentManager().setFragmentResultListener(
+                KEY_BLOCK_TIME,
+                this,
+                (requestKey, result) -> {
+                    if (result.containsKey(KEY_INSERT_BLOCK_TIME)) {
+                        BlockTime blockTime =
+                                (BlockTime) result.getSerializable(KEY_INSERT_BLOCK_TIME);
+                        blockTimeViewModel.insert(blockTime)
+                                .observe(requireActivity(), this::checkResourceResponse);
+                    } else {
+                        BlockTime blockTime =
+                                (BlockTime) result.getSerializable(KEY_UPDATE_BLOCK_TIME);
+                        blockTimeViewModel.update(blockTime)
+                                .observe(requireActivity(), this::checkResourceResponse);
+                    }
+                });
     }
 
     @Override
@@ -122,7 +172,7 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         monthAndYear.setText(CalendarUtil.formatLocalDate(CalendarUtil.selectedDate, MMMM_YYYY));
     }
 
-    private void updateAdapters(Resource<List<EventWithClientAndJobs>> resource) {
+    private void updateAdapters(Resource<EventWithClientAndJobsDto> resource) {
         if (resource.isDataNotNull()) {
             updateAdapters(resource.getData());
         } else {
@@ -140,22 +190,45 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-        checkDelete(item);
+        EventWithClientAndJobs eventWithClientAndJobs =
+                getEventByAdapterPosition(item);
+        if (item.getItemId() == R.id.delete_menu) {
+            deleteAlertDialog(eventWithClientAndJobs);
+        } else {
+            startBlockTimeFragment(eventWithClientAndJobs.getEvent().getStartTime());
+        }
         return super.onContextItemSelected(item);
     }
 
-    public void checkDelete(final MenuItem itemId) {
+    private void startBlockTimeFragment(LocalTime startTime) {
+        BlockTimeFragment fragment = new BlockTimeFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(KEY_START_TIME, startTime);
+        fragment.setArguments(bundle);
+        fragment.show(getChildFragmentManager(), TAG_INSERT_BLOCK_TIME);
+    }
+
+    public void deleteAlertDialog(EventWithClientAndJobs eventWithClientAndJobs) {
         new AlertDialog
                 .Builder(requireActivity())
                 .setTitle("Removendo item da Agenda")
                 .setMessage("Tem certeza que deseja remover o item selecionado?")
                 .setPositiveButton("Sim", (dialog, which) -> {
-                    EventWithClientAndJobs eventWithClientAndJobs =
-                            getEventByAdapterPosition(itemId);
-                    checkIsEventNotNull(eventWithClientAndJobs);
+                    if (eventWithClientAndJobs.isEventNotNull()) {
+                        deleteEvent(eventWithClientAndJobs.getEvent());
+                    } else if (eventWithClientAndJobs.isBlockTimeNotNull()) {
+                        deleteBlockTime(eventWithClientAndJobs.getBlockTime());
+                    } else {
+                        showErrorMessage("Não é possível remover um horário vazio");
+                    }
                 })
                 .setNegativeButton("Não", null)
                 .show();
+    }
+
+    private void deleteBlockTime(BlockTime blockTime) {
+        blockTimeViewModel.delete(blockTime)
+                .observe(requireActivity(), this::checkResourceResponse);
     }
 
     private EventWithClientAndJobs getEventByAdapterPosition(MenuItem itemId) {
@@ -164,26 +237,53 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         return (EventWithClientAndJobs) adapterEvents.getItem(menuInfo.position);
     }
 
-    private void checkIsEventNotNull(EventWithClientAndJobs selectedEvent) {
-        if (selectedEvent.isEventNotNull()) {
-            delete(selectedEvent);
-        } else {
-            Toast.makeText(requireActivity(), "Não é possível remover um horário vazio",
-                    Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void delete(EventWithClientAndJobs selectedEvent) {
-            eventViewModel.delete(selectedEvent.getEvent())
-                    .observe(requireActivity(), this::checkResourceResponse);
+    private void deleteEvent(Event selectedEvent) {
+        eventViewModel.delete(selectedEvent)
+                .observe(requireActivity(), this::checkResourceResponse);
     }
 
     private void checkResourceResponse(Resource<?> resource) {
         if (resource.isErrorNotNull()) {
-            showErrorMessage(resource.getError());
+            if (resource.isDurationTimeNotAvailable()) {
+                durationTimeNotAvailableAlertDialog(resource);
+            } else {
+                errorAlertDialog(resource);
+            }
         } else {
             daysList.toScrollPosition(CalendarUtil.selectedDate);
         }
+    }
+
+    private void errorAlertDialog(Resource<?> resource) {
+        new AlertDialog
+                .Builder(requireActivity())
+                .setMessage(resource.getError())
+                .setPositiveButton("ok", null)
+                .show();
+    }
+
+    private void durationTimeNotAvailableAlertDialog(Resource<?> resource) {
+        try {
+            EventTimeNotAvailableDto eventTimeNotAvailableDto = mapper.readValue(
+                    resource.getError(), EventTimeNotAvailableDto.class);
+            durationTimeNotAvailableAlertDialog(eventTimeNotAvailableDto);
+        } catch (JsonProcessingException e) {
+            showErrorMessage(DURATION_TIME_IS_NOT_AVAILABLE);
+        }
+    }
+
+    private void durationTimeNotAvailableAlertDialog(EventTimeNotAvailableDto eventTimeNotAvailableDto) {
+        new AlertDialog
+                .Builder(requireActivity())
+                .setTitle(DURATION_TIME_IS_NOT_AVAILABLE)
+                .setMessage("Deseja reduzir o tempo de duração?")
+                .setPositiveButton("sim", (dialog, which) -> {
+                    event.getEvent().setEndTime(eventTimeNotAvailableDto.getData());
+                    eventViewModel.insert(event)
+                            .observe(requireActivity(), this::checkResourceResponse);
+                })
+                .setNegativeButton("Não", null)
+                .show();
     }
 
     private void setDaysRecyclerViewAdapter(View inflatedView) {
@@ -202,8 +302,24 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         eventsListView.setOnItemClickListener((adapter, view, position, id) -> {
             EventWithClientAndJobs eventWithClientAndJobs =
                     (EventWithClientAndJobs) adapter.getItemAtPosition(position);
-            launchNewEventActivity(eventWithClientAndJobs, KEY_UPDATE_EVENT);
+            String key = getKey(eventWithClientAndJobs);
+            if (key.equals(TAG_UPDATE_BLOCK_TIME)) {
+                BlockTime blockTime = eventWithClientAndJobs.getBlockTime();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(KEY_UPDATE_BLOCK_TIME, blockTime);
+                BlockTimeFragment blockTimeFragment = new BlockTimeFragment();
+                blockTimeFragment.setArguments(bundle);
+                blockTimeFragment.show(getChildFragmentManager(), TAG_UPDATE_BLOCK_TIME);
+            } else {
+                launchNewEventActivity(eventWithClientAndJobs, key);
+            }
         });
+    }
+
+    private String getKey(EventWithClientAndJobs eventWithClientAndJobs) {
+        if (eventWithClientAndJobs.isEventNotNull()) return KEY_UPDATE_EVENT;
+        if (eventWithClientAndJobs.isBlockTimeNotNull()) return TAG_UPDATE_BLOCK_TIME;
+        return KEY_INSERT_EVENT;
     }
 
     private void launchNewEventActivity(EventWithClientAndJobs eventWithClientAndJobs,
@@ -244,15 +360,14 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
         if (result.getResultCode() == REQUEST_CODE_UPDATE_EVENT) {
             EventWithClientAndJobs event =
                     (EventWithClientAndJobs) intent.getSerializableExtra(KEY_UPDATE_EVENT);
-                eventViewModel.update(event)
-                        .observe(requireActivity(), this::checkResourceResponse);
+            eventViewModel.update(event)
+                    .observe(requireActivity(), this::checkResourceResponse);
         }
     }
 
     private void isNewEvent(ActivityResult result, Intent intent) {
         if (result.getResultCode() == REQUEST_CODE_INSERT_EVENT) {
-            EventWithClientAndJobs event =
-                    (EventWithClientAndJobs) intent.getSerializableExtra(KEY_INSERT_EVENT);
+            event = (EventWithClientAndJobs) intent.getSerializableExtra(KEY_INSERT_EVENT);
             eventViewModel.insert(event)
                     .observe(requireActivity(), this::checkResourceResponse);
         }
@@ -263,9 +378,12 @@ public class EventListFragment extends Fragment implements ListDaysAdapter.OnDay
                 .observe(requireActivity(), this::updateAdapters);
     }
 
-    private void updateAdapters(List<EventWithClientAndJobs> events) {
-        adapterEvents.update(events);
-        daysList.changeScrollPosition();
+    private void updateAdapters(EventWithClientAndJobsDto events) {
+        openingHoursRepository.getAll().doOnSuccess(openingHours -> {
+            adapterEvents.update(events, openingHours);
+            daysList.changeScrollPosition();
+        }).subscribe();
+
     }
 
     private void showErrorMessage(String error) {

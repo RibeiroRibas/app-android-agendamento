@@ -1,8 +1,11 @@
 package br.com.beautystyle.model.entity;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -11,25 +14,27 @@ import java.time.LocalTime;
 import java.util.List;
 
 import br.com.beautystyle.database.references.EventWithClientAndJobs;
-import br.com.beautystyle.model.enuns.StatusPagamento;
 
 @Entity
 public class Event implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    private Long eventId = 0L;
-    private Long clientCreatorId = 0L;
+    @ColumnInfo(name = "eventId")
+    @JsonIgnore
+    private Long id;
+    @JsonIgnore
+    private Long customerCreatorId;
     private LocalDate eventDate;
-    private LocalTime starTime;
+    private LocalTime startTime;
     private LocalTime endTime;
-    private BigDecimal valueEvent;
-    private StatusPagamento statusPagamento;
-    private Long companyId;
+    private BigDecimal value;
+    private boolean hasPaymentReceived;
+    private Long tenant;
     private Long apiId;
 
     @Ignore
-    public Event(LocalTime starTime) {
-        this.starTime = starTime;
+    public Event(LocalTime startTime) {
+        this.startTime = startTime;
     }
 
     public Event() {
@@ -43,48 +48,42 @@ public class Event implements Serializable {
         this.apiId = apiId;
     }
 
-    public Long getCompanyId() {
-        return companyId;
+    public Long getTenant() {
+        return tenant;
     }
 
-    public void setCompanyId(Long companyId) {
-        this.companyId = companyId;
+    @JsonIgnore
+    public void setTenant(Long tenant) {
+        this.tenant = tenant;
     }
 
-    public Long getEventId() {
-        return eventId;
+    public Long getId() {
+        return id;
     }
 
-    public void setEventId(Long eventId) {
-        this.eventId = eventId;
+    @JsonIgnore
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Long getClientCreatorId() {
-        return clientCreatorId;
+    public Long getCustomerCreatorId() {
+        return customerCreatorId;
     }
 
-    public void setClientCreatorId(Long clientCreatorId) {
-        this.clientCreatorId = clientCreatorId;
+    public void setCustomerCreatorId(Long customerCreatorId) {
+        this.customerCreatorId = customerCreatorId;
     }
 
-    public BigDecimal getValueEvent() {
-        return valueEvent;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    public void setValueEvent(BigDecimal valueEvent) {
-        this.valueEvent = valueEvent;
+    public void setValue(BigDecimal value) {
+        this.value = value;
     }
 
-    public StatusPagamento getStatusPagamento() {
-        return statusPagamento;
-    }
-
-    public void setStatusPagamento(StatusPagamento statusPagamento) {
-        this.statusPagamento = statusPagamento;
-    }
-
-    public LocalTime getStarTime() {
-        return starTime;
+    public LocalTime getStartTime() {
+        return startTime;
     }
 
     public LocalTime getEndTime() {
@@ -99,52 +98,57 @@ public class Event implements Serializable {
         this.eventDate = eventDate;
     }
 
-    public void setStarTime(LocalTime starTime) {
-        this.starTime = starTime;
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
     }
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
 
-    public boolean checkIsEmptyEvent() {
-        return endTime != null;
+    public boolean isHasPaymentReceived() {
+        return hasPaymentReceived;
+    }
+
+    public void setHasPaymentReceived(boolean hasPaymentReceived) {
+        this.hasPaymentReceived = hasPaymentReceived;
     }
 
     public LocalTime checkEndTime(List<EventWithClientAndJobs> eventList) {
         LocalTime reducedEndTime = null;
         for (EventWithClientAndJobs ev : eventList) {
-            if (ev.getEvent().getStarTime().isAfter(starTime)
-                    && endTime.isAfter(ev.getEvent().getStarTime())
-                    && !eventId.equals(ev.getEvent().getEventId())) {
-                reducedEndTime = ev.getEvent().getStarTime();
+            if (ev.getEvent().getStartTime().isAfter(startTime)
+                    && endTime.isAfter(ev.getEvent().getStartTime())
+                    && !id.equals(ev.getEvent().getId())) {
+                reducedEndTime = ev.getEvent().getStartTime();
                 break;
             }
         }
         return reducedEndTime;
     }
 
-    public boolean checkStartTime(List<EventWithClientAndJobs> eventList) {
-        return eventList.stream()
-                .filter(ev -> !ev.getEvent().getEventId().equals(getEventId()))
-                .anyMatch(event1 -> !getStarTime().isBefore(event1.getEvent().getStarTime()) &&
-                        getStarTime().isBefore(event1.getEvent().getEndTime()));
+    @JsonIgnore
+    public boolean checkStartTime(List<EventWithClientAndJobs> events) {
+        return events.stream()
+                .filter(ev -> !ev.getEvent().getId().equals(this.id))
+                .anyMatch(ev -> !startTime.isBefore(ev.getEvent().getStartTime()) &&
+                        startTime.isBefore(ev.getEvent().getEndTime()));
     }
 
-    public boolean checkId() {
-        return eventId > 0;
+    @JsonIgnore
+    public boolean isEventIdNotNull() {
+        return id != null;
     }
 
-    public boolean isNotExistOnApi(List<Event> events) {
-        for (Event fromApi : events) {
-            if (apiId != null && apiId.equals(fromApi.getApiId())) {
-                return false;
-            }
-        }
-        return true;
+    @JsonIgnore
+    public boolean isApiIdEquals(Long apiId) {
+        return this.apiId != null && this.apiId.equals(apiId);
     }
 
-    public boolean isApiIdEquals(EventWithClientAndJobs eventFromApi) {
-        return apiId != null && apiId.equals(eventFromApi.getEvent().getApiId());
+    @JsonIgnore
+    public boolean isNotOver() {
+        return eventDate.isAfter(LocalDate.now()) ||
+                endTime.isAfter(LocalTime.now()) &&
+                        eventDate.equals(LocalDate.now());
     }
 }

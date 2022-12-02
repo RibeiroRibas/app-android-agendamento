@@ -14,14 +14,14 @@ import retrofit2.http.Path;
 
 public interface JobService {
 
-    @GET("job/{id}")
-    Call<List<Job>> getAllByCompanyId(@Path("id") Long id, @Header("Authorization") String token);
+    @GET("job")
+    Call<List<Job>> getAll(@Header("Authorization") String token);
 
     @POST("job")
     Call<Job> insert(@Body Job job, @Header("Authorization") String token);
 
-    @PUT("job")
-    Call<Void> update(@Body Job job, @Header("Authorization") String token);
+    @PUT("job/{id}")
+    Call<Void> update(@Path("id") Long id,@Body Job job, @Header("Authorization") String token);
 
     @DELETE("job/{id}")
     Call<Void> delete(@Path("id") Long id, @Header("Authorization") String token);

@@ -8,8 +8,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.beautystyle.model.Report;
-import br.com.beautystyle.model.enuns.TypeOfReport;
+import br.com.beautystyle.model.util.Report;
+import br.com.beautystyle.model.entity.TypeOfReport;
 import br.com.beautystyle.repository.ReportRepository;
 import br.com.beautystyle.repository.Resource;
 import br.com.beautystyle.repository.ResultsCallBack;

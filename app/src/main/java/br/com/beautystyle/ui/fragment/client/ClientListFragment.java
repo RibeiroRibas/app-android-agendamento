@@ -38,7 +38,7 @@ import br.com.beautystyle.BeautyStyleApplication;
 import br.com.beautystyle.ViewModel.CostumerViewModel;
 import br.com.beautystyle.ViewModel.EventViewModel;
 import br.com.beautystyle.ViewModel.factory.CostumerFactory;
-import br.com.beautystyle.model.entity.Costumer;
+import br.com.beautystyle.model.entity.Customer;
 import br.com.beautystyle.repository.ClientRepository;
 import br.com.beautystyle.ui.ProgressBottom;
 import br.com.beautystyle.ui.adapter.recyclerview.ClientListAdapter;
@@ -100,7 +100,6 @@ public class ClientListFragment extends Fragment {
         setFragmentResultListener();
 
         costumersObserver();
-
         return inflateDView;
     }
 
@@ -118,11 +117,11 @@ public class ClientListFragment extends Fragment {
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int adapterPosition = item.getGroupId();
         if (isDeleteClientMenu(item.getItemId())) {
-            Costumer costumer = adapter.getClientAtPosition(adapterPosition);
-            checkDeleteAlertDialog(costumer);
+            Customer customer = adapter.getClientAtPosition(adapterPosition);
+            checkDeleteAlertDialog(customer);
         } else if (isUpdateClientMenu(item.getItemId())) { // update client menu
-            Costumer costumer = adapter.getClientAtPosition(adapterPosition);
-            Bundle bundle = createBundle(costumer);
+            Customer customer = adapter.getClientAtPosition(adapterPosition);
+            Bundle bundle = createBundle(customer);
             showAddCostumerFragmentUpdateMode(bundle);
         }
         return super.onContextItemSelected(item);
@@ -136,9 +135,9 @@ public class ClientListFragment extends Fragment {
         return itemId == 2;
     }
 
-    private Bundle createBundle(Costumer selectedCostumer) {
+    private Bundle createBundle(Customer selectedCustomer) {
         Bundle bundle = new Bundle();
-        bundle.putSerializable(KEY_UPDATE_CLIENT, selectedCostumer);
+        bundle.putSerializable(KEY_UPDATE_CLIENT, selectedCustomer);
         return bundle;
     }
 
@@ -148,12 +147,12 @@ public class ClientListFragment extends Fragment {
         newClientFragment.show(getChildFragmentManager(), TAG_UPDATE_CLIENT);
     }
 
-    private void checkDeleteAlertDialog(Costumer costumerAtPosition) {
+    private void checkDeleteAlertDialog(Customer customerAtPosition) {
         new AlertDialog.Builder(requireActivity())
                 .setTitle("Removendo Cliente")
                 .setMessage("Tem Certeza que deseja remover o item selecionado?")
                 .setPositiveButton("Sim",
-                        (dialog, which) -> repository.delete(costumerAtPosition)
+                        (dialog, which) -> repository.delete(customerAtPosition)
                 )
                 .setNegativeButton("Não", null)
                 .show();
@@ -240,7 +239,7 @@ public class ClientListFragment extends Fragment {
                 });
     }
 
-    private void showDialogContactList(List<Costumer> contactList) {
+    private void showDialogContactList(List<Customer> contactList) {
         if (contactList.isEmpty()) {
             showAlertDialogEmptyResults();
         } else {
@@ -249,7 +248,7 @@ public class ClientListFragment extends Fragment {
 
     }
 
-    private void showAlertDialogFindResults(List<Costumer> contactList) {
+    private void showAlertDialogFindResults(List<Customer> contactList) {
         new AlertDialog
                 .Builder(requireActivity())
                 .setMessage("Foram encontrados " + contactList.size() +
@@ -300,16 +299,16 @@ public class ClientListFragment extends Fragment {
 
     private void isInsert(Bundle result) {
         if (result.containsKey(KEY_INSERT_CLIENT)) {
-            Costumer costumer = (Costumer) result.getSerializable(KEY_INSERT_CLIENT);
-            repository.insert(costumer);
+            Customer customer = (Customer) result.getSerializable(KEY_INSERT_CLIENT);
+            repository.insert(customer);
 
         }
     }
 
     private void isUpdate(Bundle result) {
         if (result.containsKey(KEY_UPDATE_CLIENT)) {
-            Costumer costumer = (Costumer) result.getSerializable(KEY_UPDATE_CLIENT);
-            repository.update(costumer);
+            Customer customer = (Customer) result.getSerializable(KEY_UPDATE_CLIENT);
+            repository.update(customer);
         }
     }
 }
